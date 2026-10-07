@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Code", "Consolas", monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+}
+
+:root {
+  --background: #f8f9f6;
+  --foreground: #242c29;
+  --card: #ffffff;
+  --primary: #34644c;
+  --primary-foreground: #ffffff;
+  --muted: #edf0eb;
+  --muted-foreground: #647069;
+  --border: #dde3dc;
+  --ring: #548a68;
+  --sidebar: #ffffff;
+  font-family: var(--font-sans);
+  color: var(--foreground);
+  background: var(--background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+@layer base {
+  * { border-color: var(--border); }
+  body { margin: 0; min-width: 320px; }
+  button:not(:disabled), select { cursor: pointer; }
+}
+
+@layer components {
+  .page-container { @apply mx-auto max-w-7xl px-5 py-7 sm:px-8 sm:py-9 lg:px-10 lg:py-10; }
+  .page-title { @apply mt-2 text-3xl font-semibold tracking-tight sm:text-4xl; }
+  .eyebrow { @apply text-xs font-medium tracking-wider text-muted-foreground; }
+  .skip-link { @apply fixed top-3 left-3 z-50 -translate-y-24 rounded-lg bg-primary px-4 py-3 text-sm text-primary-foreground focus:translate-y-0; }
+}

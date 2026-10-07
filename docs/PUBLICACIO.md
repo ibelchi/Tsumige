@@ -1,0 +1,25 @@
+# Publicació i manteniment
+
+## Circuit habitual
+
+1. Modificar el programa en el checkout local de Tsumige.
+2. Comprovar TypeScript, ESLint, les proves necessàries i la compilació.
+3. Revisar els canvis a la interfície local.
+4. Pujar els canvis a `main` de `ibelchi/Tsumige`.
+5. Esperar que el workflow «Publica Tsumige» acabi correctament i comprovar la web.
+
+El repositori del blog no necessita una còpia del programa ni un token amb accés a Tsumige. Manté un enllaç a https://ibelchi.github.io/Tsumige/. L’adreça antiga `/tsumige/` pot mantenir una redirecció de compatibilitat, inclosos els filtres i les seccions.
+
+## GitHub Pages
+
+Al repositori Tsumige, seleccionar **Settings → Pages → Source: GitHub Actions**. El workflow `.github/workflows/pages.yml` publica l’artefacte `dist/` amb els permisos `pages: write` i `id-token: write` del treball de desplegament. Les comprovacions del treball de compilació s’executen abans de publicar.
+
+La base de recursos és `/Tsumige/`, sensible a majúscules. La URL pública i la clau publishable de Supabase són configuració del client; no s’hi han d’introduir claus secret, service_role ni credencials d’IGDB/RAWG. Per utilitzar un Supabase propi, adaptar la configuració pública i preparar l’esquema i les polítiques.
+
+## Tornar enrere
+
+Revertir el commit que introdueix un problema i tornar-lo a pujar. La compilació anterior del blog es conserva durant la migració; només es retira quan la publicació independent es verifica. Cap d’aquestes operacions ha de modificar les dades de Supabase.
+
+## Còpies privades
+
+Descarregar periòdicament el ZIP des de Configuració i comprovar l’informe de portades. Guardar-lo fora del repositori públic. Les exportacions CSV serveixen per consultar les dades; no substitueixen la còpia completa. La restauració des de la interfície continua pendent.
