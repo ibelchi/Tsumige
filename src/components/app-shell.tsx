@@ -44,11 +44,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="mx-6 hidden border-t pt-6 lg:block">
-          <p className="text-xs font-medium tracking-wider text-muted-foreground">FILTRES</p>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">Cerca i filtra els registres des de la llista.</p>
-        </div>
-        <div className="mt-auto hidden px-6 py-6 lg:block"><p className="text-xs leading-5 text-muted-foreground">La teva història de joc.</p></div>
       </aside>
       <div className="flex min-w-0 flex-col">
         <div className="flex items-center justify-end gap-4 border-b px-5 py-3 sm:px-8 lg:px-10">{!canEdit && <span className="text-sm text-muted-foreground">Convidat · Només consulta</span>}<LogoutButton /></div>
