@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { BrandLogo } from '@/components/brand-logo'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth'
@@ -49,6 +49,7 @@ export function AuthPage() {
           {(error || sessionError) && <p role="alert" className="text-sm leading-6 text-muted-foreground">{error || sessionError}</p>}
           <Button type="submit" disabled={submitting || !isSupabaseConfigured} className="w-full">{submitting ? 'Entrant…' : 'Entra'}</Button>
         </form>
+        <Link to="/recuperacio" className="mt-5 inline-block text-sm underline">Has oblidat la contrasenya?</Link>
       </section>
     </main>
   )

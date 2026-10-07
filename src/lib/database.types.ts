@@ -57,6 +57,8 @@ export type PropositInput = Pick<Proposit, 'text' | 'any' | 'estat'>
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 export type FitxaJoc = {
+  portada_fitxer?: string | null
+  portada_visual_url?: string
   per_infants?: boolean
   comentaris?: string | null
   valoracio?: Valoracio | null
@@ -108,6 +110,8 @@ export type Database = {
     Views: Record<string, never>
     Functions: {
       pot_editar: { Args: Record<string, never>; Returns: boolean }
+      estat_restauracio: { Args: Record<string, never>; Returns: string }
+      restaurar_copia: { Args: { p_copia: Json; p_actualitzar: boolean; p_estat: string }; Returns: undefined }
       resum_jocs: { Args: Record<string, never>; Returns: ResumJocs[] }
       desar_registre: {
         Args: { p_tipus: string; p_id: string; p_fitxa: Json; p_dades: Json }

@@ -2,18 +2,14 @@
 
 ## Funcionalitats
 
-- Restaurar des de la interfície les dades i les imatges d’una còpia ZIP.
-- Recuperar la contrasenya des de la pantalla d’accés; actualment es pot canviar amb una sessió oberta.
 - Preparar un esquema i migracions genèrics perquè tercers puguin instal·lar la seva instància sense dades personals.
 - Ampliar les estadístiques amb combinacions com despesa per any i plataforma o valoracions per gènere, quan es concreti el disseny.
 - Gestió més completa de categories i reorganització dels gèneres i plataformes.
 - Completar els filtres útils del pla inicial: favorits, possible venda/intercanvi, desenvolupadora i valoració; concretar-los abans d'ampliar la llista de controls.
-- Mode fosc amb preferència desada i contrast revisat.
-- Instal·lació com a aplicació al mòbil i a l'ordinador (PWA). L'edició sense connexió requereix una decisió específica.
 
 ## Proper punt de represa
 
-Proposta: començar per recuperar la contrasenya des de l'accés. Després, restauració de còpies ZIP amb previsualització i protecció contra sobreescriptures. Les revisions manuals de dades continuen sent independents d'aquestes millores.
+Concretar primer els filtres i la gestió de categories. Després, definir les estadístiques combinades i revisar la interfície secció per secció. La revisió manual dels registres no bloqueja aquestes millores.
 
 ## Revisió de la interfície
 
@@ -26,3 +22,13 @@ Proposta: començar per recuperar la contrasenya des de l'accés. Després, rest
 - Fitxa aleatòria a Inici d’un joc físic, favorit o de tots dos grups. Encara no s’ha acordat activar-la.
 
 La revisió manual dels registres personals es fa a la base de dades i no és una tasca del repositori públic.
+
+## Implementat el 7 d’octubre de 2026
+
+- Recuperació de contrasenya per correu des de l’accés.
+- Restauració ZIP amb revisió prèvia, opció d’afegir només els registres absents o actualitzar també els existents, i recuperació de portades a Storage privat.
+
+## Descartat
+
+- Mode fosc i instal·lació PWA, per decisió de l’autor.
+- Filtre físic/digital per any; es mantenen els de plataforma i gènere.

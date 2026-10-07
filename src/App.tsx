@@ -13,6 +13,7 @@ import { RatingsPage } from '@/pages/ratings-page'
 import { useAccess } from '@/lib/access'
 import { PasswordPage } from '@/pages/password-page'
 import { GameDetailPage } from '@/pages/game-detail-page'
+import { RecoveryPage } from '@/pages/recovery-page'
 
 function HomePage() {
   const { canEdit } = useAccess()
@@ -38,6 +39,7 @@ export function App() {
   return (
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/recuperacio" element={<RecoveryPage />} />
         <Route element={<ProtectedLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="*" element={<div className="page-container"><h1 className="page-title">Pàgina no trobada</h1><p className="my-5 text-muted-foreground">Aquest enllaç no correspon a cap pàgina de 積みゲー.</p><Button asChild><Link to="/">Torna a la col·lecció</Link></Button></div>} />

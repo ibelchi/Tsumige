@@ -1,5 +1,6 @@
 import { strToU8, zip, type Zippable } from 'fflate'
 import type { Backup } from './backup'
+import type { FitxaJoc } from './database.types'
 
 export type CoverEntry = { joc_id: string; nom: string; url: string; fitxer: string | null; error: string | null }
 export type ArchiveProgress = { completed: number; total: number }
@@ -34,9 +35,11 @@ async function readImage(url: string, request: typeof fetch) {
   return { bytes, extension }
 }
 
-export async function buildBackupArchive(backup: Backup, onProgress?: (progress: ArchiveProgress) => void, request: typeof fetch = fetch) {
+export async function buildBackupArchive(backup: Backup, onProgress?: (progress: ArchiveProgress) => void, request: typeof fetch = fetch, imageUrlFor?: (game: FitxaJoc) => Promise<string>) {
   const entries: CoverEntry[] = backup.fitxes_joc.filter(game => Boolean(game.portada_url)).map(game => ({ joc_id: game.id, nom: game.nom, url: game.portada_url!, fitxer: null, error: null }))
   const urls = [...new Set(entries.map(entry => entry.url))]
+  const sourceGames = new Map<string, FitxaJoc>()
+  for (const game of backup.fitxes_joc) if (game.portada_url && (!sourceGames.has(game.portada_url) || game.portada_fitxer)) sourceGames.set(game.portada_url, game)
   const results = new Map<string, { fitxer: string | null; error: string | null }>()
   const files: Zippable = { 'dades.json': [strToU8(JSON.stringify(backup, null, 2)), { level: 6 }] }
   let cursor = 0, completed = 0, totalBytes = 0
@@ -46,7 +49,7 @@ export async function buildBackupArchive(backup: Backup, onProgress?: (progress:
       const index = cursor++
       const url = urls[index]
       try {
-        const { bytes, extension } = await readImage(url, request)
+        const { bytes, extension } = await readImage(imageUrlFor ? await imageUrlFor(sourceGames.get(url)!) : url, request)
         if (totalBytes + bytes.byteLength > MAX_TOTAL_BYTES) throw new Error('S’ha arribat al límit de 200 MB de portades per còpia.')
         totalBytes += bytes.byteLength
         const fitxer = `portades/${String(index + 1).padStart(5, '0')}.${extension}`
@@ -64,7 +67,7 @@ export async function buildBackupArchive(backup: Backup, onProgress?: (progress:
   const failed = entries.filter(entry => entry.error)
   const manifest = { format_version: 1, exported_at: backup.exported_at, portades: entries, jocs_sense_portada: backup.fitxes_joc.filter(game => !game.portada_url).map(game => ({ joc_id: game.id, nom: game.nom })) }
   files['portades.json'] = [strToU8(JSON.stringify(manifest, null, 2)), { level: 6 }]
-  files['LLEGEIX-ME.txt'] = strToU8(`Còpia de seguretat de 積みゲー\n\nDades completes: dades.json.\nPortades: carpeta portades.\nRelació entre cada joc, URL original i fitxer: portades.json.\n\n${entries.length - failed.length} jocs amb portada desada; ${failed.length} portades no descarregades; ${manifest.jocs_sense_portada.length} jocs sense portada assignada.\n${failed.length ? 'ATENCIÓ: aquesta còpia no conté totes les portades. Consulteu els errors a portades.json.\n' : ''}\nEls fitxers desats es poden consultar sense el proveïdor original. Els URL i les atribucions originals es conserven a les dades. Les portades continuen subjectes als drets dels seus titulars.\nLa restauració automàtica des de l’aplicació encara està pendent.\n`)
+  files['LLEGEIX-ME.txt'] = strToU8(`Còpia de seguretat de 積みゲー\n\nDades completes: dades.json.\nPortades: carpeta portades.\nRelació entre cada joc, URL original i fitxer: portades.json.\n\n${entries.length - failed.length} jocs amb portada desada; ${failed.length} portades no descarregades; ${manifest.jocs_sense_portada.length} jocs sense portada assignada.\n${failed.length ? 'ATENCIÓ: aquesta còpia no conté totes les portades. Consulteu els errors a portades.json.\n' : ''}\nEls fitxers desats es poden consultar sense el proveïdor original. Els URL i les atribucions originals es conserven a les dades. Les portades continuen subjectes als drets dels seus titulars.\nPer recuperar aquesta còpia, obriu Configuració → Recupera una còpia i reviseu els registres abans de confirmar.\n`)
   const bytes = await new Promise<Uint8Array>((resolve, reject) => zip(files, { level: 0 }, (error, data) => error ? reject(error) : resolve(data)))
   return { blob: new Blob([new Uint8Array(bytes).buffer], { type: 'application/zip' }), entries, failed, downloaded: entries.length - failed.length }
 }

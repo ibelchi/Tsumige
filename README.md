@@ -17,6 +17,7 @@ Tsumigē neix per consultar una col·lecció física i digital. També permet re
 - **Portades:** consulta manual d’IGDB i RAWG o introducció d’una URL.
 - **Còpies de seguretat:** ZIP amb dades i fitxers de les portades, vinculacions i informe d’errors; exportacions CSV per consultar amb Excel.
 - **Accés de convidats:** consulta sense poder modificar les dades, protegida també a la base de dades.
+- **Recuperació:** enllaç per correu per canviar la contrasenya, i restauració de còpies ZIP amb revisió prèvia i portades guardades a Supabase.
 
 ## Captures
 
@@ -52,7 +53,7 @@ La base de dades requereix l’esquema, les funcions i les polítiques descrits 
 ```sh
 npm run typecheck
 npm run lint
-node --experimental-strip-types --test tests/backup-archive.test.ts
+node --experimental-strip-types --test tests/backup-archive.test.ts tests/recovery-restore.test.ts
 npm run build
 ```
 

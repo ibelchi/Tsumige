@@ -39,6 +39,7 @@ export function RecordEditor({ kind, record, game, catalog, onClose, onSaved, cr
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [image, setImage] = useState(game.portada_url ?? '')
+  const displayImage = image === game.portada_url ? game.portada_visual_url ?? image : image
   const [imageSource, setImageSource] = useState(game.portada_font_url ?? null)
   const [imageError, setImageError] = useState(false)
   const [rating, setRating] = useState<Valoracio | null>(() => gameRating(game, catalog.experiencies))
@@ -138,7 +139,7 @@ export function RecordEditor({ kind, record, game, catalog, onClose, onSaved, cr
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] items-start gap-4 sm:grid-cols-[190px_minmax(0,1fr)] sm:gap-6">
         <div className="flex min-w-0 flex-col items-center gap-3">
-          {image && !imageError ? <img src={image} alt={`Portada de ${game.nom || 'nou joc'}`} onError={() => setImageError(true)} className="max-h-72 w-full rounded-lg object-contain" /> : <div className="flex min-h-40 w-full items-center justify-center rounded-lg bg-muted"><BrandLogo className="w-12" /></div>}
+          {displayImage && !imageError ? <img src={displayImage} alt={`Portada de ${game.nom || 'nou joc'}`} onError={() => setImageError(true)} className="max-h-72 w-full rounded-lg object-contain" /> : <div className="flex min-h-40 w-full items-center justify-center rounded-lg bg-muted"><BrandLogo className="w-12" /></div>}
           {imageError && <p className="text-xs text-muted-foreground">No s’ha pogut carregar la portada.</p>}
           {imageSource && <a className="text-xs underline" href={imageSource} target="_blank" rel="noreferrer">Imatge d’{imageSource.startsWith('https://www.igdb.com/') ? 'IGDB' : 'RAWG'}</a>}
           <GameRating rating={rating} className="mt-2 text-5xl leading-none" />

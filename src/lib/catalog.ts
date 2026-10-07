@@ -1,5 +1,6 @@
 import { getSupabase } from '@/lib/supabase'
 import type { Exemplar, Experiencia, FitxaJoc, Json } from '@/lib/database.types'
+import { withStoredCovers } from '@/lib/cover-storage'
 
 export type Catalog = { jocs: FitxaJoc[]; exemplars: Exemplar[]; experiencies: Experiencia[] }
 export async function getCatalog(): Promise<Catalog> {
@@ -10,7 +11,7 @@ export async function getCatalog(): Promise<Catalog> {
     db.from('experiencies').select('*').order('any_jugat', { ascending: false, nullsFirst: false }).order('id'),
   ])
   if (jocs.error || exemplars.error || experiencies.error) throw new Error('No s’han pogut carregar els jocs. Torna-ho a provar.')
-  return { jocs: jocs.data, exemplars: exemplars.data, experiencies: experiencies.data }
+  return { jocs: await withStoredCovers(jocs.data), exemplars: exemplars.data, experiencies: experiencies.data }
 }
 export async function saveRecord(kind: 'exemplar' | 'experiencia', id: string, game: Json, record: Json) {
   const { error } = await getSupabase().rpc('desar_registre', { p_tipus: kind, p_id: id, p_fitxa: game, p_dades: record })

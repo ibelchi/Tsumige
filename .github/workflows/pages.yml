@@ -20,7 +20,7 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      - run: node --experimental-strip-types --test tests/backup-archive.test.ts
+      - run: node --experimental-strip-types --test tests/backup-archive.test.ts tests/recovery-restore.test.ts
       - run: npm run build
         env:
           VITE_SUPABASE_URL: https://swexwdaqqdisbtvzwikv.supabase.co

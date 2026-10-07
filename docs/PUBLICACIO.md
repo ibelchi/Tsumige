@@ -22,4 +22,10 @@ Revertir el commit que introdueix un problema i tornar-lo a pujar. La compilaci�
 
 ## Còpies privades
 
-Descarregar periòdicament el ZIP des de Configuració i comprovar l’informe de portades. Guardar-lo fora del repositori públic. Les exportacions CSV serveixen per consultar les dades; no substitueixen la còpia completa. La restauració des de la interfície continua pendent.
+Descarregar periòdicament el ZIP des de Configuració i comprovar l’informe de portades. Guardar-lo fora del repositori públic. Les exportacions CSV serveixen per consultar les dades; no substitueixen la còpia completa. Des de «Recupera una còpia» es pot revisar un ZIP del mateix compte. Per defecte només afegeix registres absents; actualitzar els existents requereix seleccionar-ho i confirmar-ho. No elimina registres. Abans de sobreescriure es descarrega una còpia actual; comprovar que s’ha desat.
+
+## Recuperació i restauració
+
+Aplicar `supabase/migrations/202610070006_restauracio.sql` sobre l’esquema existent. Les proves `supabase/tests/restauracio.sql` creen dades temporals i les reverteixen al final.
+
+A Authentication → URL Configuration, autoritzar exactament https://ibelchi.github.io/Tsumige/?recuperacio=1. Si es prova en local, autoritzar també l’URL concreta de l’entorn local. El correu de recuperació l’envia Supabase; els límits i el servei de correu del projecte condicionen la recepció. La contrasenya nova l’introdueix l’usuari.

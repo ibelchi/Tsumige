@@ -6,7 +6,7 @@ export function CollectionCard({ game, copy, rating = null, onOpen }: { game: Fi
   return <article className="h-full overflow-hidden rounded-xl border bg-card">
     <button onClick={onOpen} className="grid h-full min-h-48 w-full grid-cols-[40%_minmax(0,1fr)] gap-4 p-4 text-left transition-colors hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring sm:gap-5 sm:p-5">
       <div className="flex min-w-0 items-center justify-center">
-        {game.portada_url ? <img src={game.portada_url} alt="" loading="lazy" className="max-h-52 w-full object-contain" /> : <BrandLogo className="w-12" />}
+        {(game.portada_visual_url ?? game.portada_url) ? <img src={game.portada_visual_url ?? game.portada_url!} alt="" loading="lazy" className="max-h-52 w-full object-contain" /> : <BrandLogo className="w-12" />}
       </div>
       <div className="flex min-w-0 flex-col justify-center py-1">
         <h2 className="break-words text-base font-semibold leading-snug tracking-tight">{game.nom}</h2>

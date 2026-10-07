@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { downloadBlob, downloadFile, getBackup } from '@/lib/backup'
 import { buildBackupArchive, type CoverEntry } from '@/lib/backup-archive'
 import { buildCsv, type CsvKind } from '@/lib/csv'
+import { BackupRestore } from '@/components/backup-restore'
+import { coverUrl } from '@/lib/cover-storage'
 
 export function SettingsPage() {
   const [busy, setBusy] = useState(false)
@@ -18,7 +20,7 @@ export function SettingsPage() {
     setBusy(true); setError(null); setMessage(null); setFailedCovers([]); setProgress('Preparant les dades…')
     try {
       const backup = await getBackup()
-      const archive = await buildBackupArchive(backup, ({ completed, total }) => setProgress(completed === total ? 'Preparant el ZIP…' : `Descarregant portades: ${completed} de ${total}…`))
+      const archive = await buildBackupArchive(backup, ({ completed, total }) => setProgress(completed === total ? 'Preparant el ZIP…' : `Descarregant portades: ${completed} de ${total}…`), fetch, coverUrl)
       downloadBlob(archive.blob, `tsumige-${backup.exported_at.replace(/[:.]/g, '-')}.zip`)
       setFailedCovers(archive.failed)
       setMessage(`Còpia preparada: ${backup.fitxes_joc.length} jocs, ${backup.exemplars.length} exemplars, ${backup.experiencies.length} experiències, ${backup.proposits.length} propòsits i portades de ${archive.downloaded} jocs. Comprova la carpeta de descàrregues.`)
@@ -45,8 +47,9 @@ export function SettingsPage() {
       {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
       {message && <p role="status" className="mt-4 text-sm">{message}</p>}
       {failedCovers.length > 0 && <div role="alert" className="mt-4 rounded-lg border border-orange-300 bg-orange-50 p-4 text-sm text-orange-950"><p>No s’han pogut desar {failedCovers.length} portades. Les dades dels jocs sí que s’han inclòs; els errors també consten dins del ZIP.</p><details className="mt-2"><summary className="cursor-pointer">Veure les portades pendents</summary><ul className="mt-2 space-y-1">{failedCovers.map(cover => <li key={cover.joc_id}><strong>{cover.nom}</strong>: {cover.error}</li>)}</ul></details></div>}
-      <p className="mt-4 text-xs text-muted-foreground">El ZIP inclou dades.json, la carpeta de portades i l’informe portades.json. Els jocs sense portada assignada també consten a l’informe. La recuperació d’una còpia des de l’aplicació encara està pendent.</p>
+      <p className="mt-4 text-xs text-muted-foreground">El ZIP inclou dades.json, la carpeta de portades i l’informe portades.json. Els jocs sense portada assignada també consten a l’informe.</p>
     </section>
+    <BackupRestore />
     <section className="mt-6 rounded-xl border bg-card p-6 sm:p-8" aria-labelledby="csv-title"><h2 id="csv-title" className="text-lg font-semibold">Exporta per consultar amb Excel</h2>
       <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">La col·lecció inclou una fila per exemplar. El registre de jocs jugats inclou una fila per experiència, també dels jocs que no tens a la col·lecció.</p>
       <label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" disabled={busy} checked={includeRetired} onChange={event => setIncludeRetired(event.target.checked)} />Inclou els exemplars retirats a l’exportació de la col·lecció</label>
