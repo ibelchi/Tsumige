@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { BrandLogo } from '@/components/brand-logo'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { getResumJocs } from '@/lib/jocs'
@@ -23,7 +24,7 @@ function GameList({ title, games, isLoading }: { title: string; games: JocLlista
         <p className="mt-4 text-sm text-muted-foreground">Cap joc marcat.</p>
       ) : (
         <ul className="mt-4 grid grid-cols-1 gap-x-4 gap-y-5 lg:grid-cols-2">
-          {games.map((game) => <li key={game.id} className="flex min-w-0 items-center gap-3"><SummaryCover key={`${game.id}-${game.portada_url}`} game={game} /><div className="min-w-0"><p className="break-words text-sm font-medium leading-snug">{game.nom}</p><p className="mt-1 break-words text-xs text-muted-foreground">{game.plataforma}</p></div></li>)}
+          {games.map((game) => <li key={game.id} className="min-w-0"><Link to={`/?vista=detall&joc=${game.id}`} aria-label={`Obre el detall de ${game.nom}`} className="flex items-center gap-3 rounded-lg hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><SummaryCover key={`${game.id}-${game.portada_url}`} game={game} /><div className="min-w-0"><p className="break-words text-sm font-medium leading-snug">{game.nom}</p><p className="mt-1 break-words text-xs text-muted-foreground">{game.plataforma}</p></div></Link></li>)}
         </ul>
       )}
     </section>

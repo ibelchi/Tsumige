@@ -164,8 +164,8 @@ export function RecordEditor({ kind, record, game, catalog, onClose, onSaved, cr
       {experience && <><Check name="per_infants" label="Per jugar amb infants" checked={Boolean(game.per_infants)} /><div className="grid gap-4 sm:grid-cols-3">
         <Field label="Any de joc"><input name="any_jugat" type="number" min="1" max="9999" defaultValue={experience.any_jugat ?? ''} className={control} /></Field>
         <Field label="Completat"><select name="completat" defaultValue={experience.completat ?? ''} className={control}><option value="">En blanc</option><option value="si">Sí</option><option value="no">No</option><option value="no_aplicable">No aplicable</option></select></Field>
-        <Field label="Valoració del joc"><select name="valoracio" value={rating ?? ''} onChange={e => setRating((e.target.value || null) as Valoracio | null)} className={`${control} ${ratingColor(rating)}`}><option value="" className="text-foreground">En blanc</option>{(['A++', 'A+', 'A', 'B', 'C', 'D'] as const).map(value => <option key={value} className={ratingColor(value)}>{value}</option>)}</select></Field>
       </div></>}
+      <Field label="Valoració del joc"><select name="valoracio" value={rating ?? ''} onChange={e => setRating((e.target.value || null) as Valoracio | null)} className={`${control} ${ratingColor(rating)}`}><option value="" className="text-foreground">En blanc</option>{(['A++', 'A+', 'A', 'B', 'C', 'D'] as const).map(value => <option key={value} className={ratingColor(value)}>{value}</option>)}</select></Field>
       <Field label="Comentaris"><textarea name="comentaris" rows={4} defaultValue={comments.value} disabled={comments.conflict} className={control} /></Field>
       {comments.conflict && <p role="status" className="text-sm text-amber-800">Hi ha comentaris diferents en els registres d’aquest joc. Cal revisar-los abans d’unificar-los; es conserven tots.</p>}
       <Check name="revisat" label="Revisat" checked={record.revisat} />

@@ -12,11 +12,13 @@ import { SettingsPage } from '@/pages/settings-page'
 import { RatingsPage } from '@/pages/ratings-page'
 import { useAccess } from '@/lib/access'
 import { PasswordPage } from '@/pages/password-page'
+import { GameDetailPage } from '@/pages/game-detail-page'
 
 function HomePage() {
   const { canEdit } = useAccess()
   const [params] = useSearchParams()
   const section = params.get('vista')
+  if (section === 'detall') return <GameDetailPage key={params.get('joc')} />
   if (section === 'contrasenya') return <PasswordPage />
   if (section === 'proposits') return <PropositsPage />
   if (section === 'jugats') return <CatalogPage key={`historial-${params.get('any') ?? 'all'}`} history />

@@ -30,6 +30,10 @@ export async function setGamePlayingFromRecord(recordId: string, value: boolean,
   if (!owner) throw new Error('Cal iniciar sessió per actualitzar el seguiment.')
   const { data: copy, error: copyError } = await db.from(kind === 'exemplar' ? 'exemplars' : 'experiencies').select('*').eq('id', recordId).eq('user_id', owner).single()
   if (copyError || !copy) throw new Error('No s’ha pogut consultar el joc del registre.')
+  // Ratings belong to the game, even when edited from a collection copy.
+  // The database synchronizes existing experiences without inventing a played year.
+  const { error: ratingError } = await db.from('fitxes_joc').update({ valoracio: rating }).eq('id', copy.joc_id).eq('user_id', owner).select('id').single()
+  if (ratingError) throw new Error('Les dades s’han desat, però no s’ha pogut actualitzar la valoració del joc. Torna-ho a provar.')
   if (!value) {
     const { error } = await db.from('experiencies').update({ jugant: false }).eq('joc_id', copy.joc_id).eq('user_id', owner).eq('jugant', true)
     if (error) throw new Error('Les dades s’han desat, però no s’ha pogut actualitzar «Hi estic jugant». Torna-ho a provar.')
