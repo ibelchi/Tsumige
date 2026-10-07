@@ -9,6 +9,9 @@ import { ratingColor } from '@/lib/game-rating'
 import type { Valoracio } from '@/lib/database.types'
 
 const euros = new Intl.NumberFormat('ca-ES', { style: 'currency', currency: 'EUR' })
+function FormatFilter({ label, selected, onChange }: { label: string; selected: string[]; onChange: (values: string[]) => void }) {
+  return <fieldset className="flex flex-wrap gap-4 text-sm"><legend className="sr-only">{label}</legend>{[{ value: 'fisic', label: 'Físics' }, { value: 'digital', label: 'Digitals' }].map(format => <label key={format.value} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={selected.includes(format.value)} onChange={e => onChange(e.target.checked ? [...selected, format.value] : selected.filter(value => value !== format.value))} />{format.label}</label>)}</fieldset>
+}
 function BarChart({ title, rows, note, money = false, grades = false, controls, link }: { title: string; rows: StatisticRow[]; note: string; money?: boolean; grades?: boolean; controls?: ReactNode; link?: (row: StatisticRow) => string }) {
   const max = Math.max(...rows.map(row => row.value), 1)
   return <section className="min-w-0 rounded-xl border bg-card p-5 sm:p-6" aria-label={title}>
@@ -30,9 +33,10 @@ function BarChart({ title, rows, note, money = false, grades = false, controls, 
 export function StatisticsPage() {
   const { session } = useAuth()
   const [platformFormats, setPlatformFormats] = useState(['fisic', 'digital'])
+  const [genreFormats, setGenreFormats] = useState(['fisic', 'digital'])
   const [purchaseYears, setPurchaseYears] = useState<string[] | null>(null)
   const { data, error, isPending } = useQuery({ queryKey: ['catalog', session?.user.id], queryFn: getCatalog, enabled: Boolean(session) })
-  const stats = data ? statistics(data, { platformFormats, purchaseYears }) : null
+  const stats = data ? statistics(data, { platformFormats, genreFormats, purchaseYears }) : null
   const availableYears = [...new Set(data?.exemplars.map(copy => copy.any_compra === null ? 'Sense any' : String(copy.any_compra)) ?? [])].sort((a, b) => (Number(b) || 0) - (Number(a) || 0))
   return <div className="page-container">
     <h1 className="page-title">Estadístiques</h1>
@@ -42,7 +46,7 @@ export function StatisticsPage() {
       <section aria-labelledby="stats-colleccio"><h2 id="stats-colleccio" className="mb-4 text-xl font-semibold">Col·lecció</h2>
         <div className="grid items-start gap-4 lg:grid-cols-2">
           <BarChart title="Jocs per plataforma" rows={stats.platforms} link={row => { const query = new URLSearchParams({ vista: 'colleccio', plataforma: row.label }); platformFormats.forEach(format => query.append('format', format)); return `/?${query}` }} note="Exemplars que tens a la col·lecció. Cada exemplar compta." controls={<fieldset className="flex flex-wrap gap-4 text-sm"><legend className="sr-only">Formats de jocs per plataforma</legend>{[{ value: 'fisic', label: 'Físics' }, { value: 'digital', label: 'Digitals' }].map(format => <label key={format.value} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={platformFormats.includes(format.value)} onChange={e => setPlatformFormats(previous => e.target.checked ? [...previous, format.value] : previous.filter(value => value !== format.value))} />{format.label}</label>)}</fieldset>} />
-          <BarChart title="Jocs per gènere" rows={stats.genres} link={row => `/?${new URLSearchParams({ vista: 'colleccio', genere: row.label })}`} note="Gènere principal dels exemplars de la col·lecció. Els buits apareixen com a Sense gènere." />
+          <BarChart title="Jocs per gènere" rows={stats.genres} link={row => { const query = new URLSearchParams({ vista: 'colleccio', genere: row.label }); genreFormats.forEach(format => query.append('format', format)); return `/?${query}` }} note="Gènere principal dels exemplars de la col·lecció. Els buits apareixen com a Sense gènere." controls={<FormatFilter label="Formats de jocs per gènere" selected={genreFormats} onChange={setGenreFormats} />} />
         </div>
       </section>
       <section aria-labelledby="stats-compres"><h2 id="stats-compres" className="mb-4 text-xl font-semibold">Compres</h2>
