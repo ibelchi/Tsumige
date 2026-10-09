@@ -8,7 +8,7 @@ Tsumigē neix per consultar una col·lecció física i digital. També permet re
 
 ## Què permet fer?
 
-- **Inici:** recompte de jocs físics i digitals, portades dels jocs que s’estan jugant o es volen jugar aviat, i propòsits de l’any actual i anterior.
+- **Inici:** recompte de jocs físics i digitals, portades dels jocs que s’estan jugant o es volen jugar aviat, tres portades aleatòries de la col·lecció i propòsits de l’any actual.
 - **Col·lecció:** consulta en llista o fitxes amb portada; filtres de plataforma, format i gènere; cerca i navegació d’un registre al següent.
 - **Bitàcora:** jocs agrupats per any, encara que no siguin a la col·lecció. Un joc pot tenir entrades de diversos anys.
 - **Valoracions i comentaris:** una valoració i un camp de comentaris per joc. A+ i A++ destaquen en vermell; una valoració en blanc és vàlida.

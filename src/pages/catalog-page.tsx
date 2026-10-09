@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,26 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
   const client = useQueryClient()
   const [params, setParams] = useSearchParams()
   const gameFilter = params.get('joc')
+  const platformMenu = useRef<HTMLDetailsElement>(null)
+  useEffect(() => {
+    function closeOutside(event: PointerEvent) {
+      if (event.target instanceof Node && !platformMenu.current?.contains(event.target)) {
+        if (platformMenu.current) platformMenu.current.open = false
+      }
+    }
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape' && platformMenu.current?.open) {
+        platformMenu.current.open = false
+        platformMenu.current.querySelector('summary')?.focus()
+      }
+    }
+    document.addEventListener('pointerdown', closeOutside)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [])
   const [search, setSearch] = useState('')
   const platforms = params.getAll('plataforma')
   const formats = params.has('format') ? params.getAll('format') : ['fisic', 'digital']
@@ -70,7 +90,7 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
       {history && <label className="text-sm">Any <select aria-label="Filtra per any de joc" value={year} onChange={e => setYear(e.target.value)} className="ml-2 h-10 rounded-lg border bg-card px-3"><option value="all">Tots els anys</option>{[...new Set([new Date().getFullYear(), ...(data?.experiencies.flatMap(e => e.any_jugat === null ? [] : [e.any_jugat]) ?? [])])].sort((a, b) => b - a).map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
       <label className="grow text-sm"><span className="sr-only">Cerca per nom</span><input type="search" placeholder="Cerca jocs…" value={search} onChange={e => setSearch(e.target.value)} className="h-10 w-full rounded-lg border bg-card px-3" /></label>
       {!history && <fieldset className="flex items-center gap-3 text-sm"><legend className="sr-only">Format de la col·lecció</legend>{[{value: 'fisic', label: 'Físics'}, {value: 'digital', label: 'Digitals'}].map(f => <label key={f.value} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={formats.includes(f.value)} onChange={e => toggleFilter('format', formats, f.value, e.target.checked)} />{f.label}</label>)}</fieldset>}
-      <details className="relative text-sm"><summary className="cursor-pointer rounded-lg border bg-card px-3 py-2.5">Plataformes · {platforms.length ? `${platforms.length} seleccionades` : 'Totes'}</summary><fieldset className="absolute left-0 z-10 mt-2 max-h-80 w-64 overflow-auto rounded-lg border bg-card p-3 shadow-lg"><legend className="sr-only">Filtra per plataformes</legend><Button type="button" variant="outline" size="sm" className="mb-2 w-full" onClick={() => changeFilter('plataforma', [])}>Totes les plataformes</Button>{[...new Set(records.map(r => games.get(r.joc_id)?.plataforma || 'Sense plataforma'))].sort().map(p => <label key={p} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={platforms.includes(p)} onChange={e => toggleFilter('plataforma', platforms, p, e.target.checked)} />{p}</label>)}</fieldset></details>
+      <details ref={platformMenu} className="relative text-sm"><summary className="cursor-pointer rounded-lg border bg-card px-3 py-2.5">Plataformes · {platforms.length ? `${platforms.length} seleccionades` : 'Totes'}</summary><fieldset className="absolute left-0 z-10 mt-2 max-h-80 w-64 overflow-auto rounded-lg border bg-card p-3 shadow-lg"><legend className="sr-only">Filtra per plataformes</legend><Button type="button" variant="outline" size="sm" className="mb-2 w-full" onClick={() => changeFilter('plataforma', [])}>Totes les plataformes</Button>{[...new Set(records.map(r => games.get(r.joc_id)?.plataforma || 'Sense plataforma'))].sort().map(p => <label key={p} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={platforms.includes(p)} onChange={e => toggleFilter('plataforma', platforms, p, e.target.checked)} />{p}</label>)}</fieldset></details>
       {!history && <select aria-label="Filtra per gènere" value={genre} onChange={e => changeFilter('genere', e.target.value ? [e.target.value] : [])} className="h-10 max-w-full rounded-lg border bg-card px-3 text-sm"><option value="">Tots els gèneres</option>{[...new Set(records.map(r => games.get(r.joc_id)?.genere_principal?.trim() || 'Sense gènere'))].sort((a, b) => a === 'Sense gènere' ? 1 : b === 'Sense gènere' ? -1 : a.localeCompare(b, 'ca')).map(value => <option key={value} value={value}>{value}</option>)}</select>}
       {!history && <label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" checked={onlyChildren} onChange={e => setOnlyChildren(e.target.checked)} />Per jugar amb infants</label>}
       {!history && <select aria-label="Ordena els registres" value={order} onChange={e => setOrder(e.target.value)} className="h-10 rounded-lg border bg-card px-3 text-sm"><option value="az">Nom A–Z</option><option value="za">Nom Z–A</option></select>}
