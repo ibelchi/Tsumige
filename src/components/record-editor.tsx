@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { saveRecord, createRecord, setGamePlayingFromRecord, removeFromCollection, restoreToCollection, type Catalog } from '@/lib/catalog'
 import type { Exemplar, Experiencia, FitxaJoc, Json, Valoracio } from '@/lib/database.types'
+import { RecordDetails } from '@/components/record-details'
 import { MetadataSearch } from '@/components/metadata-search'
 import { gameRating, ratingColor } from '@/lib/game-rating'
 import { BrandLogo } from '@/components/brand-logo'
@@ -17,21 +18,31 @@ function Check({ label, name, checked }: { label: string; name: string; checked:
 function text(form: FormData, key: string): string | null { const result = String(form.get(key) ?? ''); return result === '' ? null : result }
 function number(form: FormData, key: string): number | null { const result = text(form, key); return result === null ? null : Number(result) }
 
-export function RecordEditor({ kind, record, game, catalog, onClose, onSaved, creating = false, existingGame = false, navigation }: {
+export function RecordEditor({ kind, record: initialRecord, game: initialGame, catalog: initialCatalog, onClose, onSaved, creating = false, existingGame = false, navigation }: {
   kind: 'exemplar' | 'experiencia'; record: Exemplar | Experiencia; game: FitxaJoc
-  catalog: Catalog; onClose: () => void; onSaved: () => Promise<void>
+  catalog: Catalog; onClose: () => void; onSaved: () => Promise<Catalog | void>
   creating?: boolean; existingGame?: boolean
   navigation?: { position: number; total: number; previous?: () => void; next?: () => void }
 }) {
   const { canEdit } = useAccess()
+  const navigate = useNavigate()
+  const [savedCatalog, setSavedCatalog] = useState<Catalog | null>(null)
+  const catalog = savedCatalog ?? initialCatalog
+  const game = catalog.jocs.find(item => item.id === initialGame.id) ?? initialGame
+  const record = (kind === 'exemplar' ? catalog.exemplars : catalog.experiencies).find(item => item.id === initialRecord.id) ?? initialRecord
+  const [formVersion, setFormVersion] = useState(0)
+  const [saved, setSaved] = useState(false)
+  const [editing, setEditing] = useState(creating)
+  const isEditing = editing && canEdit
   const dialog = useRef<HTMLDialogElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
+  const confirmation = useRef<HTMLElement>(null)
   const pendingNavigation = useRef<(() => void) | null>(null)
   const [dirty, setDirty] = useState(false)
   const [confirmNavigation, setConfirmNavigation] = useState(false)
   function moveTo(action?: () => void) {
-    if (!action || busy) return
-    if (!dirty) { action(); return }
+    if (!action || busy || confirmNavigation) return
+    if (!dirty || !canEdit) { action(); return }
     pendingNavigation.current = action
     setConfirmNavigation(true)
   }
@@ -54,33 +65,64 @@ export function RecordEditor({ kind, record, game, catalog, onClose, onSaved, cr
   const services = [...new Set(['Steam', 'Epic Games', 'itch.io', ...catalog.exemplars.map(e => e.botiga_servei).filter((value): value is string => Boolean(value)), ...extraServices, ...(service ? [service] : [])].map(storeName))]
   const comments = gameComments(game, catalog)
   const commentsReady = game.comentaris !== undefined || (creating && catalog.jocs.some(j => j.comentaris !== undefined))
+  function resetDraft(source: Catalog) {
+    const savedGame = source.jocs.find(item => item.id === game.id) ?? game
+    const savedCopy = source.exemplars.find(item => item.id === record.id)
+    setSavedCatalog(source)
+    setImage(savedGame.portada_url ?? '')
+    setImageSource(savedGame.portada_font_url ?? null)
+    setImageError(false)
+    setRating(gameRating(savedGame, source.experiencies))
+    setFormat(savedCopy?.format ?? 'digital')
+    setService(storeName(savedCopy?.botiga_servei ?? ''))
+    setNotFound(savedCopy?.no_localitzat === true)
+    setExtraServices([]); setAddingService(false); setNewService('')
+    setFormVersion(value => value + 1)
+    setDirty(false); setConfirmNavigation(false); pendingNavigation.current = null
+    setError(null); setSaved(false); setEditing(false)
+  }
+  function undoChanges() {
+    if (busy || !canEdit) return
+    resetDraft(savedCatalog ?? initialCatalog)
+  }
   function addService() {
     const value = storeName(newService.trim())
     if (!value) return
     const existing = services.find(s => s.toLocaleLowerCase() === value.toLocaleLowerCase())
     setService(existing ?? value)
     if (!existing) setExtraServices(previous => [...previous, value])
-    setNewService(''); setAddingService(false)
+    setNewService(''); setAddingService(false); setDirty(true); setSaved(false)
   }
   const retired = Boolean(copy && !copy.a_la_colleccio && !creating)
   const ownedCopies = catalog.exemplars.filter(e => e.joc_id === game.id && e.a_la_colleccio)
   const history = catalog.experiencies.filter(e => e.joc_id === game.id)
   useEffect(() => { dialog.current?.showModal() }, [])
+  useEffect(() => {
+    if (!dirty || !canEdit) return
+    function protectLeave(event: BeforeUnloadEvent) { event.preventDefault(); event.returnValue = '' }
+    window.addEventListener('beforeunload', protectLeave)
+    return () => window.removeEventListener('beforeunload', protectLeave)
+  }, [dirty, canEdit])
+  useEffect(() => {
+    if (!confirmNavigation) return
+    confirmation.current?.scrollIntoView({ block: 'nearest' })
+    confirmation.current?.querySelector('button')?.focus()
+  }, [confirmNavigation])
   async function retire() {
-    if (!copy || !window.confirm(`Retirar «${game.nom}» (${copy.regio ?? game.plataforma}) de la col·lecció? Es conservaran les experiències, valoracions i notes de joc.`)) return
+    if (busy || !canEdit || !copy || !window.confirm(`Retirar «${game.nom}» (${copy.regio ?? game.plataforma}) de la col·lecció? Es conservaran les experiències, valoracions i notes de joc.`)) return
     setBusy(true); setError(null)
     try { await removeFromCollection(copy.id); await onSaved(); onClose() }
     catch (caught) { setError(caught instanceof Error ? caught.message : 'No s’ha pogut retirar.'); setBusy(false) }
   }
   async function restore() {
-    if (!copy) return
+    if (busy || !canEdit || !copy) return
     setBusy(true); setError(null)
     try { await restoreToCollection(copy.id); await onSaved(); onClose() }
     catch (caught) { setError(caught instanceof Error ? caught.message : 'No s’ha pogut recuperar.'); setBusy(false) }
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (retired || !canEdit) return
+    if (busy || retired || !canEdit || !isEditing) return
     const form = new FormData(event.currentTarget)
     const infantsReady = game.per_infants !== undefined || (creating && catalog.jocs.some(j => j.per_infants !== undefined))
     if (!infantsReady && form.has('per_infants')) {
@@ -118,20 +160,41 @@ export function RecordEditor({ kind, record, game, catalog, onClose, onSaved, cr
         await saveRecord(kind, recordId, fields, details)
       }
       await setGamePlayingFromRecord(recordId, form.has('jugant'), rating, kind)
-      await onSaved()
-      if (pendingNavigation.current) pendingNavigation.current()
-      else onClose()
+      const updated = await onSaved()
+      const action = pendingNavigation.current
+      if (creating) { if (action) action(); else onClose(); return }
+      if (!updated) throw new Error('Les dades s’han desat, però no s’han pogut tornar a carregar. Torna-ho a provar.')
+      resetDraft(updated)
+      setBusy(false)
+      setSaved(true)
+      action?.()
     }
     catch (caught) { setError(caught instanceof Error ? caught.message : 'No s’han pogut desar els canvis.'); setBusy(false) }
   }
-  return <dialog ref={dialog} onCancel={event => { if (busy) event.preventDefault(); else onClose() }} aria-labelledby="detall-titol" className="m-auto max-h-[90dvh] w-[min(94vw,760px)] overflow-y-auto rounded-xl border bg-card p-6 text-foreground shadow-xl backdrop:bg-black/40">
-    <div className="flex items-start justify-between gap-4"><div className="flex flex-wrap items-center gap-2"><h2 id="detall-titol" className="text-xl font-semibold">{creating ? (copy ? 'Afegeix un exemplar' : 'Nova experiència de joc') : game.nom}</h2>{notFound && <span className="rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800">No localitzat</span>}</div><Button type="button" variant="ghost" disabled={busy} onClick={onClose}>Tanca</Button></div>
-    {retired && <p className="mt-3 text-sm">Aquest exemplar està retirat. Pots consultar-ne les dades i recuperar-lo abans d’editar-lo.</p>}
-    <form ref={formRef} onSubmit={submit} onChange={() => setDirty(true)} className="mt-6 space-y-6">
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button type="button" variant="outline" disabled={busy} onClick={onClose}>{retired ? 'Tanca' : 'Cancel·la'}</Button>
-        {canEdit && !retired && <Button type="submit" disabled={busy}>{busy ? 'Desant…' : creating ? 'Afegeix' : 'Desa els canvis'}</Button>}
+  return <dialog ref={dialog} onCancel={event => { event.preventDefault(); moveTo(onClose) }} aria-labelledby="detall-titol" className="m-auto max-h-[90dvh] w-[min(94vw,760px)] overflow-y-auto rounded-xl border bg-card p-6 text-foreground shadow-xl backdrop:bg-black/40">
+    <header className="grid items-start gap-4 sm:grid-cols-[minmax(0,1fr)_18rem]">
+      <h2 id="detall-titol" className="min-w-0 text-xl font-semibold [overflow-wrap:anywhere]">
+        {creating ? (copy ? 'Afegeix un exemplar' : 'Nova experiència de joc') : game.nom}
+        {copy?.favorit && <span role="img" aria-label="Joc favorit" className="ml-2 inline-block align-middle text-sm font-normal text-muted-foreground"><span aria-hidden="true">★</span></span>}
+      </h2>
+      <div className="flex min-w-0 flex-col items-end gap-2">
+        {navigation && <nav aria-label="Recorre els registres des de la capçalera" className="flex max-w-full flex-wrap items-center justify-end gap-2">
+          <Button type="button" variant="outline" disabled={busy || !navigation.previous || confirmNavigation} onClick={() => moveTo(navigation.previous)}>Anterior</Button>
+          <span className="text-sm text-muted-foreground">{navigation.position} de {navigation.total}</span>
+          <Button type="button" variant="outline" disabled={busy || !navigation.next || confirmNavigation} onClick={() => moveTo(navigation.next)}>Següent</Button>
+        </nav>}
+        <div className="flex max-w-full flex-wrap justify-end gap-2">
+          {canEdit && !retired && !isEditing && !creating && <Button type="button" disabled={busy} onClick={() => { resetDraft(savedCatalog ?? initialCatalog); setEditing(true) }}>Edita</Button>}
+          {isEditing && !retired && <>
+            {!creating && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={undoChanges}>Desfés els canvis</Button>}
+            <Button type="submit" form="detall-formulari" disabled={busy}>{busy ? 'Desant…' : creating ? 'Afegeix' : 'Desa els canvis'}</Button>
+          </>}
+          <Button type="button" variant="ghost" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>
+        </div>
       </div>
+    </header>
+    {retired && <p className="mt-3 text-sm">Aquest exemplar està retirat. Pots consultar-ne les dades i recuperar-lo abans d’editar-lo.</p>}
+    {isEditing ? <form id="detall-formulari" key={formVersion} ref={formRef} onSubmit={submit} onChange={() => { if (canEdit) { setDirty(true); setSaved(false) } }} className="mt-6 space-y-6">
       <fieldset disabled={busy || retired || !canEdit} className="space-y-6">
       <div className="flex flex-wrap gap-x-6 gap-y-2 border-b pb-4">
         <Check name="jugant" label="Hi estic jugant" checked={Boolean(experience?.jugant || history.some(e => e.jugant))} />
@@ -172,32 +235,38 @@ export function RecordEditor({ kind, record, game, catalog, onClose, onSaved, cr
       <Check name="revisat" label="Revisat" checked={record.revisat} />
       {record.origen && <details className="text-xs"><summary className="cursor-pointer">Dades originals de l’Excel</summary><pre className="mt-3 max-h-56 overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3">{JSON.stringify(record.origen, null, 2)}</pre></details>}
     </fieldset>{experience && <section className="mt-7 border-t pt-5"><h3 className="font-medium">A la col·lecció</h3>
-      {ownedCopies.length ? <><p className="mt-2 text-sm">{ownedCopies.length} {ownedCopies.length === 1 ? 'exemplar' : 'exemplars'}</p><Link onClick={onClose} className="mt-3 inline-block text-sm underline" to={`/?vista=colleccio&joc=${game.id}`}>Veure el joc a la col·lecció</Link></> : <p className="mt-2 text-sm text-muted-foreground">Aquest joc no és a la col·lecció.</p>}
+      {ownedCopies.length ? <><p className="mt-2 text-sm">{ownedCopies.length} {ownedCopies.length === 1 ? 'exemplar' : 'exemplars'}</p><button type="button" disabled={busy || confirmNavigation} onClick={() => moveTo(() => navigate(`/?vista=colleccio&joc=${game.id}`))} className="mt-3 inline-block text-sm underline">Veure el joc a la col·lecció</button></> : <p className="mt-2 text-sm text-muted-foreground">Aquest joc no és a la col·lecció.</p>}
     </section>}
       <fieldset disabled={busy || retired || !canEdit}><details className="rounded-lg border p-4">
         <summary className="cursor-pointer font-medium">Configuració</summary>
         <section aria-label="Configuració de la portada" className="mt-4 space-y-4">
           <Field label="URL de la imatge"><input type="url" name="portada_url" pattern="https?://.*" value={image} onChange={e => { setImage(e.target.value); setImageSource(null); setImageError(false) }} className={control} placeholder="https://…" /></Field>
-          <MetadataSearch name={game.nom} onImage={(url, source) => { setImage(url); setImageSource(source); setImageError(false); setDirty(true) }} />
+          <MetadataSearch name={game.nom} onImage={(url, source) => { setImage(url); setImageSource(source); setImageError(false); setDirty(true); setSaved(false) }} />
         </section>
       </details>
-    </fieldset>{error && <p role="alert" className="text-sm text-red-700">{error}</p>}<div className="flex flex-wrap justify-end gap-2">
-      {canEdit && copy && !creating && <Button type="button" variant="outline" disabled={busy} onClick={() => void (retired ? restore() : retire())} className={retired ? 'mr-auto' : 'mr-auto text-red-700'}>{busy ? 'Actualitzant…' : retired ? 'Torna a la col·lecció' : 'Retira de la col·lecció'}</Button>}
-      <Button type="button" variant="outline" disabled={busy} onClick={onClose}>{retired ? 'Tanca' : 'Cancel·la'}</Button>{canEdit && !retired && <Button disabled={busy}>{busy ? 'Desant…' : creating ? 'Afegeix' : 'Desa els canvis'}</Button>}</div>
+    </fieldset><div className="flex flex-wrap justify-end gap-2">
+      <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>
+        {canEdit && !retired && !creating && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={undoChanges}>Desfés els canvis</Button>}{canEdit && !retired && <Button disabled={busy}>{busy ? 'Desant…' : creating ? 'Afegeix' : 'Desa els canvis'}</Button>}</div>
+    </form> : <RecordDetails kind={kind} record={record} game={game} catalog={catalog} onViewCollection={() => moveTo(() => navigate(`/?vista=colleccio&joc=${game.id}`))} />}
+    {saved && <p role="status" className="mt-4 text-sm">Canvis desats.</p>}
+    {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
+    <div className="mt-6 flex flex-wrap justify-end gap-2">
+      {canEdit && copy && !creating && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(() => void (retired ? restore() : retire()))} className={retired ? 'mr-auto' : 'mr-auto text-red-700'}>{busy ? 'Actualitzant…' : retired ? 'Torna a la col·lecció' : 'Retira de la col·lecció'}</Button>}
+      {!isEditing && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>}
+    </div>
       {navigation && <nav aria-label="Recorre els registres" className="flex items-center justify-between gap-3 border-t pt-4">
         <Button type="button" variant="outline" disabled={busy || !navigation.previous || confirmNavigation} onClick={() => moveTo(navigation.previous)}>Anterior</Button>
         <p className="text-sm text-muted-foreground">{navigation.position} de {navigation.total}</p>
         <Button type="button" variant="outline" disabled={busy || !navigation.next || confirmNavigation} onClick={() => moveTo(navigation.next)}>Següent</Button>
       </nav>}
-      {confirmNavigation && <section role="alert" className="rounded-lg border p-4">
-        <p className="text-sm">Tens canvis sense desar. Què vols fer abans de canviar de registre?</p>
+      {confirmNavigation && <section ref={confirmation} role="alert" className="rounded-lg border p-4">
+        <p className="text-sm">Tens canvis sense desar. Què vols fer abans de continuar?</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button type="button" disabled={busy} onClick={() => formRef.current?.requestSubmit()}>Desa i continua</Button>
-          <Button type="button" variant="outline" disabled={busy} onClick={() => pendingNavigation.current?.()}>Descarta els canvis</Button>
+          <Button type="button" variant="outline" disabled={busy} onClick={() => { const action = pendingNavigation.current; resetDraft(savedCatalog ?? initialCatalog); action?.() }}>Descarta i continua</Button>
           <Button type="button" variant="outline" disabled={busy} onClick={() => { pendingNavigation.current = null; setConfirmNavigation(false) }}>Continua editant</Button>
         </div>
       </section>}
-    </form>
   </dialog>
 }
 

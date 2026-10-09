@@ -7,7 +7,7 @@ import { gameRating } from '@/lib/game-rating'
 import { RecordEditor } from '@/components/record-editor'
 import { RecordCreator } from '@/components/record-creator'
 import { CollectionCard } from '@/components/collection-card'
-import { getCatalog } from '@/lib/catalog'
+import { getCatalog, type Catalog } from '@/lib/catalog'
 import { useAuth } from '@/lib/auth'
 import { useAccess } from '@/lib/access'
 
@@ -58,6 +58,7 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
   const [onlyChildren, setOnlyChildren] = useState(false)
   const [order, setOrder] = useState('az')
   const [year, setYear] = useState(() => /^\d{1,4}$/.test(params.get('any') ?? '') ? params.get('any')! : 'all')
+  const [navigationIds, setNavigationIds] = useState<string[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const { data, error, isPending } = useQuery({ queryKey: ['catalog', session?.user.id], queryFn: getCatalog, enabled: Boolean(session) })
@@ -72,16 +73,23 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
     const result = (games.get(a.joc_id)?.nom ?? '').localeCompare(games.get(b.joc_id)?.nom ?? '', 'ca')
     return order === 'za' ? -result : result
   })
-  const chosen = records.find(r => r.id === selected)
+  const chosen = (history ? data?.experiencies : data?.exemplars)?.find(r => r.id === selected)
   const chosenGame = chosen ? games.get(chosen.joc_id) : undefined
   const navigationRows = history ? [...rows].sort((a, b) => ('any_jugat' in b ? b.any_jugat ?? 0 : 0) - ('any_jugat' in a ? a.any_jugat ?? 0 : 0)) : rows
-  const currentIndex = navigationRows.findIndex(r => r.id === selected)
-  const navigation = currentIndex < 0 ? undefined : {
-    position: currentIndex + 1, total: navigationRows.length,
-    previous: currentIndex > 0 ? () => setSelected(navigationRows[currentIndex - 1].id) : undefined,
-    next: currentIndex < navigationRows.length - 1 ? () => setSelected(navigationRows[currentIndex + 1].id) : undefined,
+  function openRecord(id: string) {
+    setNavigationIds(navigationRows.map(row => row.id))
+    setSelected(id)
   }
-  async function refresh() { await Promise.all([client.invalidateQueries({ queryKey: ['catalog'] }), client.invalidateQueries({ queryKey: ['jocs'] })]) }
+  const currentIndex = navigationIds.indexOf(selected ?? '')
+  const navigation = currentIndex < 0 ? undefined : {
+    position: currentIndex + 1, total: navigationIds.length,
+    previous: currentIndex > 0 ? () => setSelected(navigationIds[currentIndex - 1]) : undefined,
+    next: currentIndex < navigationIds.length - 1 ? () => setSelected(navigationIds[currentIndex + 1]) : undefined,
+  }
+  async function refresh() {
+    await Promise.all([client.invalidateQueries({ queryKey: ['catalog'] }, { throwOnError: true }), client.invalidateQueries({ queryKey: ['jocs'] })])
+    return client.getQueryData<Catalog>(['catalog', session?.user.id])
+  }
   return <div className="page-container">
     <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="page-title">{history ? 'Bitàcora' : retired ? 'Jocs retirats' : 'Col·lecció'}</h1><div className="flex flex-wrap gap-2">{!history && <Button asChild variant="outline"><Link to={retired ? '/?vista=colleccio' : '/?vista=retirats'}>{retired ? 'Torna a la col·lecció' : 'Jocs retirats'}</Link></Button>}{canEdit && !retired && <Button disabled={!data} onClick={() => setCreating(true)}>{history ? 'Afegeix una experiència' : 'Afegeix a la col·lecció'}</Button>}</div></div>
     {retired && <p className="mt-3 text-sm text-muted-foreground">Exemplars que has retirat de la col·lecció. Obre’n un per consultar-lo o recuperar-lo; el seu historial de joc es conserva.</p>}
@@ -100,13 +108,13 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
     {gameFilter && <p className="mt-4 text-sm">Mostrant {games.get(gameFilter)?.nom ?? 'un joc'}. <Link className="underline" to={history ? '/?vista=jugats' : retired ? '/?vista=retirats' : '/?vista=colleccio'}>Mostra tots els registres</Link></p>}
     {(!history || isPending) && <p role="status" className="mt-4 text-sm text-muted-foreground">{isPending ? 'Carregant…' : `${rows.length} exemplars`}</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error.message}</p>}
-    {history && data ? <HistoryList rows={rows.filter((r): r is import('@/lib/database.types').Experiencia => 'any_jugat' in r)} games={games} experiences={data.experiencies} year={year} onOpen={setSelected} /> : <section aria-label={history ? 'Llista d’experiències' : retired ? 'Exemplars retirats' : 'Jocs de la col·lecció'} className={history ? 'mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : view === 'cards' ? 'mt-5 grid gap-4 md:grid-cols-2' : 'mt-5 overflow-hidden rounded-xl border bg-card divide-y'}>
+    {history && data ? <HistoryList rows={rows.filter((r): r is import('@/lib/database.types').Experiencia => 'any_jugat' in r)} games={games} experiences={data.experiencies} year={year} onOpen={openRecord} /> : <section aria-label={history ? 'Llista d’experiències' : retired ? 'Exemplars retirats' : 'Jocs de la col·lecció'} className={history ? 'mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : view === 'cards' ? 'mt-5 grid gap-4 md:grid-cols-2' : 'mt-5 overflow-hidden rounded-xl border bg-card divide-y'}>
       {rows.map(r => {
         const j = games.get(r.joc_id)!
 
         const c = 'format' in r ? r : null
-        if (!history && view === 'list') return <article key={r.id}><button onClick={() => setSelected(r.id)} className="flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-2 px-4 py-3 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><div className="min-w-0 flex-1 basis-48"><h2 className="break-words text-sm font-medium">{j.nom}</h2><p className="mt-1 text-xs text-muted-foreground">{j.plataforma}{c?.regio ? ` · ${c.regio}` : ''}</p></div><div className="text-right text-xs text-muted-foreground"><p>{c?.format === 'fisic' ? 'Físic' : 'Digital'}{c?.no_localitzat ? ' · No localitzat' : ''}{c?.reproduccio ? ' · Reproducció' : ''}</p><p className="mt-1">{r.revisat ? 'Revisat' : 'Sense revisar'}</p></div></button></article>
-        if (c) return <CollectionCard key={r.id} game={j} copy={c} rating={gameRating(j, data?.experiencies ?? [])} onOpen={() => setSelected(r.id)} />
+        if (!history && view === 'list') return <article key={r.id}><button onClick={() => openRecord(r.id)} className="flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-2 px-4 py-3 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><div className="min-w-0 flex-1 basis-48"><h2 className="break-words text-sm font-medium">{j.nom}</h2><p className="mt-1 text-xs text-muted-foreground">{j.plataforma}{c?.regio ? ` · ${c.regio}` : ''}</p></div><div className="text-right text-xs text-muted-foreground"><p>{c?.format === 'fisic' ? 'Físic' : 'Digital'}{c?.no_localitzat ? ' · No localitzat' : ''}{c?.reproduccio ? ' · Reproducció' : ''}</p><p className="mt-1">{r.revisat ? 'Revisat' : 'Sense revisar'}</p></div></button></article>
+        if (c) return <CollectionCard key={r.id} game={j} copy={c} rating={gameRating(j, data?.experiencies ?? [])} onOpen={() => openRecord(r.id)} />
         return null
       })}
     </section>}

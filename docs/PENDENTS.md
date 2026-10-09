@@ -55,6 +55,41 @@ La revisió manual dels registres no bloqueja aquestes millores.
 - Cada joc conserva l’amplada que tindria en una fila completa: no creix per ocupar els espais buits. Es mantenen els llindars de 22 i 32 rem, les portades senceres, els enllaços i les alçades independents.
 - Verificació: controls del projecte, CSS generat i comprovació dels càlculs de files amb 1–8 jocs en una, dues i tres columnes. No s’ha pogut fer revisió visual en aquest entorn sense navegador; cal confirmar les últimes files, especialment amb 4, 5, 7 i 8 jocs.
 
+## Detall: navegació, desament i descart (implementat)
+
+- Anterior i Següent disponibles a la part superior dreta i a la part inferior, amb la mateixa llista i els mateixos límits. La llista i l’ordre dels registres filtrats es fixen en obrir el detall: desar un camp que afecta els filtres o l’ordre no impedeix continuar navegant. Tanca conserva els filtres de la llista.
+- Desar manté oberta la fitxa del mateix joc, recarrega les dades desades i mostra «Canvis desats». Es poden tornar a editar i continuar amb Anterior/Següent.
+- «Desfés els canvis» restaura els camps, la valoració, la portada i els controls de botiga/format a les dades desades, sense tancar ni canviar de joc. «Tanca» és una acció diferenciada.
+- Anterior/Següent, Tanca, Esc i l’accés a la col·lecció des de Bitàcora protegeixen els canvis pendents amb les opcions Desa i continua / Descarta i continua / Continua editant. S’afegeix l’avís natiu en recarregar o sortir de la pàgina. Durant el desament es bloquegen les accions; si falla el desament o la recàrrega, es conserva l’esborrany i es mostra l’error.
+- Els convidats mantenen els camps desactivats i no tenen accions de desament o desfés. El mode consulta/edició s’ha implementat en la tanda següent; altres canvis de disseny continuen pendents. L’alta de registres conserva el tancament després de crear-los.
+- Verificació: TypeScript, ESLint, compilació, proves existents i comprovacions aïllades del component amb dades i desaments simulats (èxit, error, desfés, confirmació, límits, convidats, bloqueig mentre desa i continuïtat amb filtres). Cap prova escriu a Supabase.
+- Limitació: sense navegador disponible, no s’han verificat les interaccions DOM reals ni la presentació en escriptori/mòbil. Revisió manual pendent: desar i tornar a desfer, errors de desament, navegació superior/inferior amb filtres, primer/últim registre, Tanca/Esc amb canvis pendents i sessió de convidat.
+- Implementació completada; es mantenen les limitacions de verificació indicades.
+
+## Detall: mode consulta/edició (implementat)
+
+- Els jocs s’obren en consulta, amb portada sencera, informació de lectura, indicadors booleans i valoració compacta destacada; A+ i A++ continuen en vermell. El preu zero es mostra com a zero euros, i els valors buits no es converteixen en zero o en negacions.
+- «Edita» disponible per al propietari activa els controls existents. Es conserven tots els camps d’edició, la configuració de portades, la botiga/servei i les accions de retirar o recuperar exemplars. Els exemplars retirats s’han de recuperar abans d’editar; l’alta continua obrint directament el formulari.
+- Desar correctament torna a consulta del mateix joc amb les dades actualitzades. «Desfés els canvis» recupera les dades desades i torna a consulta, també si no s’ha canviat cap camp. Un error manté l’edició i l’esborrany.
+- Els convidats només veuen la consulta, sense formulari, Edita ni accions que modifiquin la col·lecció. Es mantenen les comprovacions de permisos del desament.
+- Es conserva la tanda anterior: Anterior/Següent superior i inferior, ordre i filtres, límits i confirmació de canvis pendents abans de navegar o tancar.
+- Consulta adaptable: portada damunt de la informació al mòbil i al costat en escriptori; indicadors i accions poden ocupar diverses línies. No s’ha fet l’auditoria pendent de l’esquema ni la retirada dels camps Revisat del formulari existent.
+- Verificació: TypeScript, ESLint, compilació, proves existents i comprovacions aïllades amb dades simulades de consulta inicial, Edita, desament/desfés, error, convidats, exemplars retirats, alta i regressions de navegació. Comprovats també zero euros, indicadors i color de A+/A++. Sense escriure a Supabase.
+- Pendent de navegador real: presentació en escriptori i mòbil, focus, desament i error de xarxa, configuració de portada, confirmacions amb Tanca/Esc i consulta de convidats. Els controls simulats no substitueixen aquesta revisió visual i d’interaccions DOM.
+- Implementació completada; revisió visual pendent.
+
+## Detall: etiquetes, favorit, valoració i capçalera (implementat)
+
+- En consulta només es mostren les etiquetes activades: Jugant, Per jugar aviat, Per jugar amb infants, Possiblement d’intercanvi, Reproducció i No localitzat. Sense Sí/No ni espai reservat si no n’hi ha. Els tics d’edició es conserven.
+- Favorit es representa amb una estrella discreta al costat del títol i el text accessible «Joc favorit», només quan està activat. El tic continua disponible en edició.
+- Valoració única, més gran i centrada sota la portada en consulta. Sense marcador quan és buida; A+ i A++ mantenen el vermell. El control d’edició es conserva.
+- Atribució amb l’enllaç guardat i l’etiqueta IGDB o RAWG sota la valoració, o sota la portada si no hi ha valoració. El proveïdor es reconeix pel domini del URL; no s’assignen fonts inventades a URL desconeguts.
+- Capçalera amb una columna pròpia per als controls a la dreta en escriptori: Anterior/Següent i accions del mode actual. El títol pot ocupar diverses línies, també amb paraules llargues. En mòbil, la zona d’accions va sota el títol i pot ocupar diverses línies. Els botons superiors de desament actuen sobre el mateix formulari que els inferiors.
+- Es mantenen les tandes locals anteriors: consulta/edició, desament, desfés, errors, tancament, navegació filtrada i permisos dels convidats.
+- Verificació: TypeScript, ESLint, compilació i proves existents; comprovacions aïllades amb dades sintètiques de les 64 combinacions d’etiquetes, favorit activat/desactivat, absència de valoració, ordre portada/valoració/font, fonts guardades, títols llargs i imatges verticals, quadrades i panoràmiques. També regressions de desament/desfés, errors, navegació i convidats.
+- Limitació: sense navegador disponible no s’han verificat visualment la capçalera, els salts de línia ni les proporcions reals de les imatges en escriptori/mòbil. Revisió visual pendent. No s’ha escrit a Supabase.
+- La revisió general del disseny i l’auditoria dels camps respecte de l’esquema continuen pendents; aquests ajustos no les donen per completades.
+
 ## Revisió de la interfície
 
 - Continuar refinant el detall dels jocs i la presentació de la Bitàcora.

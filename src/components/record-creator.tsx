@@ -20,7 +20,7 @@ function ChooseGame({ kind, catalog, onClose, onChoose }: { kind: 'exemplar' | '
   </dialog>
 }
 
-export function RecordCreator({ kind, catalog, onClose, onSaved, initialGameId }: { kind: 'exemplar' | 'experiencia'; catalog: Catalog; onClose: () => void; onSaved: () => Promise<void>; initialGameId?: string }) {
+export function RecordCreator({ kind, catalog, onClose, onSaved, initialGameId }: { kind: 'exemplar' | 'experiencia'; catalog: Catalog; onClose: () => void; onSaved: () => Promise<Catalog | void>; initialGameId?: string }) {
   const [choice, setChoice] = useState<string | null>(initialGameId ?? null)
   if (choice === null) return <ChooseGame kind={kind} catalog={catalog} onClose={onClose} onChoose={setChoice} />
   const game: FitxaJoc = catalog.jocs.find(j => j.id === choice) ?? { id: '', user_id: '', nom: '', plataforma: '', desenvolupadora: null, genere_principal: null, generos_secundaris: [], any_llancament: null, sinopsi: null, portada_url: null, per_jugar_aviat: false, created_at: '', updated_at: '' }

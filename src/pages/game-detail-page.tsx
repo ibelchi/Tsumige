@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { RecordEditor } from '@/components/record-editor'
-import { getCatalog } from '@/lib/catalog'
+import { getCatalog, type Catalog } from '@/lib/catalog'
 import { useAuth } from '@/lib/auth'
 
 export function GameDetailPage() {
@@ -16,7 +16,8 @@ export function GameDetailPage() {
   const retired = data?.exemplars.find(item => item.joc_id === game?.id)
   const record = copy ?? experience ?? retired
   async function refresh() {
-    await Promise.all([client.invalidateQueries({ queryKey: ['catalog'] }), client.invalidateQueries({ queryKey: ['jocs'] })])
+    await Promise.all([client.invalidateQueries({ queryKey: ['catalog'] }, { throwOnError: true }), client.invalidateQueries({ queryKey: ['jocs'] })])
+    return client.getQueryData<Catalog>(['catalog', session?.user.id])
   }
   return <div className="page-container">
     <h1 className="page-title">{game?.nom ?? 'Detall del joc'}</h1>
