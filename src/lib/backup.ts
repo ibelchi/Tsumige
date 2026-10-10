@@ -1,7 +1,7 @@
 import { getSupabase } from '@/lib/supabase'
 import type { Database, Exemplar, Experiencia, FitxaJoc, Proposit } from '@/lib/database.types'
 
-export type Backup = { app: 'tsumige'; format_version: 1; exported_at: string; user_id: string; fitxes_joc: FitxaJoc[]; exemplars: Exemplar[]; experiencies: Experiencia[]; proposits: Proposit[] }
+export type Backup = { app: 'tsumige'; format_version: 1 | 2; exported_at: string; user_id: string; fitxes_joc: FitxaJoc[]; exemplars: Exemplar[]; experiencies: Experiencia[]; proposits: Proposit[] }
 export async function getBackup(): Promise<Backup> {
   const db = getSupabase()
   const { data: { session } } = await db.auth.getSession()
@@ -19,7 +19,9 @@ export async function getBackup(): Promise<Backup> {
   const [fitxes_joc, exemplars, experiencies, proposits] = await Promise.all([readAll<FitxaJoc>('fitxes_joc'), readAll<Exemplar>('exemplars'), readAll<Experiencia>('experiencies'), readAll<Proposit>('proposits')])
   const { data: current } = await db.auth.getSession()
   if (current.session?.user.id !== owner) throw new Error('La sessió ha canviat. Torna a preparar la còpia.')
-  return { app: 'tsumige', format_version: 1, exported_at: new Date().toISOString(), user_id: owner, fitxes_joc, exemplars, experiencies, proposits }
+  const { data: version } = await db.rpc('versio_plataforma')
+  if (version === 2 && fitxes_joc.some(game => typeof game.plataforma_resolta !== 'boolean')) throw new Error('No s’ha pogut confirmar el model de totes les plataformes de la còpia.')
+  return { app: 'tsumige', format_version: version === 2 ? 2 : 1, exported_at: new Date().toISOString(), user_id: owner, fitxes_joc, exemplars, experiencies, proposits }
 }
 // Kept for the archived one-off import tools; Settings exports the ZIP instead.
 export function downloadBackup(backup: Backup) {

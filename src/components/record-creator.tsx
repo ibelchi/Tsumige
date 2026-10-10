@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { isEmulator } from '@/lib/platform'
 import { Button } from '@/components/ui/button'
 import { RecordEditor } from '@/components/record-editor'
 import type { Catalog } from '@/lib/catalog'
@@ -10,7 +11,7 @@ function ChooseGame({ kind, catalog, onClose, onChoose }: { kind: 'exemplar' | '
   const [search, setSearch] = useState('')
   const [newGame, setNewGame] = useState(false)
   useEffect(() => { dialog.current?.showModal() }, [])
-  const games = catalog.jocs.filter(j => `${j.nom} ${j.plataforma}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
+  const games = catalog.jocs.filter(j => (kind !== 'exemplar' || !isEmulator(j.plataforma)) && `${j.nom} ${j.plataforma}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
   return <dialog ref={dialog} onCancel={onClose} aria-labelledby="alta-titol" className="m-auto max-h-[90dvh] w-[min(94vw,640px)] overflow-auto rounded-xl border bg-card p-6 text-foreground shadow-xl backdrop:bg-black/40">
     <h2 id="alta-titol" className="text-xl font-semibold">{kind === 'exemplar' ? 'Afegeix a la col·lecció' : 'Afegeix una experiència'}</h2>
     <p className="mt-3 text-sm text-muted-foreground">Tria la fitxa del joc. Pots afegir un altre exemplar o una experiència d’un joc existent.</p>

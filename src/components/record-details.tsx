@@ -1,3 +1,4 @@
+import { collectionCopy } from '@/lib/platform'
 import type { ReactNode } from 'react'
 import type { Catalog } from '@/lib/catalog'
 import type { Exemplar, Experiencia, FitxaJoc } from '@/lib/database.types'
@@ -31,7 +32,7 @@ export function RecordDetails({ kind, record, game, catalog, onViewCollection }:
   const experience = kind === 'experiencia' ? record as Experiencia : null
   const comments = gameComments(game, catalog)
   const history = catalog.experiencies.filter(item => item.joc_id === game.id)
-  const owned = catalog.exemplars.filter(item => item.joc_id === game.id && item.a_la_colleccio)
+  const owned = catalog.exemplars.filter(item => item.joc_id === game.id && collectionCopy(item, game))
   const legacyComments = comments.conflict ? [...new Set([...catalog.exemplars, ...history].filter(item => item.joc_id === game.id).map(item => item.notes).filter((value): value is string => Boolean(value?.trim())))] : []
   const rating = gameRating(game, catalog.experiencies)
   const provider = imageProvider(game.portada_font_url)
@@ -51,7 +52,6 @@ export function RecordDetails({ kind, record, game, catalog, onViewCollection }:
         {provider && game.portada_font_url && <a href={game.portada_font_url} target="_blank" rel="noreferrer" className="text-xs underline">{provider}</a>}
       </div>
       <div className="min-w-0 space-y-5">
-        <p className="break-words text-base font-medium">{game.plataforma || '—'}</p>
         <dl className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2">
           <Detail label="Desenvolupadora" value={game.desenvolupadora} />
           <Detail label="Gènere" value={game.genere_principal} />
@@ -62,7 +62,7 @@ export function RecordDetails({ kind, record, game, catalog, onViewCollection }:
             <Detail label="Conservació" value={copy.estat_conservacio} />
             <Detail label="Any de compra" value={copy.any_compra} />
             <Detail label="Preu" value={copy.preu === null || copy.preu === undefined ? null : new Intl.NumberFormat('ca-ES', { style: 'currency', currency: 'EUR' }).format(copy.preu)} />
-            <Detail label="Botiga o servei" value={storeName(copy.botiga_servei ?? '')} />
+            {game.plataforma_resolta !== true && <Detail label="Botiga o servei" value={storeName(copy.botiga_servei ?? '')} />}
           </>}
           {experience && <>
             <Detail label="Any de joc" value={experience.any_jugat} />

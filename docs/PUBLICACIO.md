@@ -29,3 +29,11 @@ Descarregar periòdicament el ZIP des de Configuració i comprovar l’informe d
 Aplicar `supabase/migrations/202610070006_restauracio.sql` sobre l’esquema existent. Les proves `supabase/tests/restauracio.sql` creen dades temporals i les reverteixen al final.
 
 A Authentication → URL Configuration, autoritzar exactament https://ibelchi.github.io/Tsumige/?recuperacio=1. Si es prova en local, autoritzar també l’URL concreta de l’entorn local. El correu de recuperació l’envia Supabase; els límits i el servei de correu del projecte condicionen la recepció. La contrasenya nova l’introdueix l’usuari.
+
+## Publicació posterior a Plataforma
+
+La conversió transaccional del pla 002 ja s’ha aplicat una vegada per l’autor, amb verificació posterior correcta i comprovacions funcionals locals confirmades. Publicar el client compatible no requereix executar cap SQL. El workflow només valida, compila i desplega el lloc; no aplica migracions ni modifica Supabase.
+
+Els SQL d’inspecció, generadors i proves del repositori són genèrics. Informes reals, CSV, ZIP, plans per identificadors i bundles/SQL generats de reversió es custodien fora del repositori. La migració de referència no s’ha de repetir sobre aquesta base. Una reversió de Git no substitueix la reversió de dades: el client publicat ha de continuar sent compatible amb l’esquema vigent.
+
+La verificació pública ha de relacionar el workflow amb el commit publicat i contrastar els recursos servits per Pages amb l’artefacte desplegat. Això acredita el lliurament de la versió, no les interaccions autenticades. Les comprovacions funcionals locals comunicades per l’usuari es registren com a confirmació de l’usuari; Auth/Storage, restauració remota i navegador públic no es donen per verificats sense executar-ne les proves.

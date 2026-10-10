@@ -1,3 +1,4 @@
+import { collectionCopy, platformName } from '@/lib/platform'
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -38,7 +39,7 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
     }
   }, [])
   const [search, setSearch] = useState('')
-  const platforms = params.getAll('plataforma')
+  const platforms = params.getAll('plataforma').map(platformName)
   const formats = params.has('format') ? params.getAll('format') : ['fisic', 'digital']
   const genre = params.get('genere') ?? ''
   function changeFilter(name: string, values: string[]) {
@@ -54,7 +55,6 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
     changeFilter(name, name === 'format' && !next.length ? [''] : next)
   }
   const [view, setView] = useState<'list' | 'cards'>('list')
-  const [onlyUnreviewed, setOnlyUnreviewed] = useState(false)
   const [onlyChildren, setOnlyChildren] = useState(false)
   const [order, setOrder] = useState('az')
   const [year, setYear] = useState(() => /^\d{1,4}$/.test(params.get('any') ?? '') ? params.get('any')! : 'all')
@@ -63,11 +63,11 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
   const [creating, setCreating] = useState(false)
   const { data, error, isPending } = useQuery({ queryKey: ['catalog', session?.user.id], queryFn: getCatalog, enabled: Boolean(session) })
   const games = new Map(data?.jocs.map(j => [j.id, j]) ?? [])
-  const active = data?.exemplars.filter(e => e.a_la_colleccio !== retired) ?? []
+  const active = data?.exemplars.filter(e => retired ? !e.a_la_colleccio : collectionCopy(e, games.get(e.joc_id))) ?? []
   const records = history ? (data?.experiencies ?? []).filter(e => e.any_jugat !== null) : active
   const rows = records.filter(r => {
     const j = games.get(r.joc_id)
-    return j && (!onlyChildren || j.per_infants === true) && (!gameFilter || j.id === gameFilter) && j.nom.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (!platforms.length || platforms.includes(j.plataforma || 'Sense plataforma')) && (!genre || (j.genere_principal?.trim() || 'Sense gènere') === genre) && (history || ('format' in r && formats.includes(r.format))) && (!onlyUnreviewed || !r.revisat) && (!history || year === 'all' || ('any_jugat' in r && r.any_jugat === Number(year)))
+    return j && (!onlyChildren || j.per_infants === true) && (!gameFilter || j.id === gameFilter) && j.nom.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (!platforms.length || platforms.includes(platformName(j.plataforma) || 'Sense plataforma')) && (!genre || (j.genere_principal?.trim() || 'Sense gènere') === genre) && (history || ('format' in r && formats.includes(r.format))) && (!history || year === 'all' || ('any_jugat' in r && r.any_jugat === Number(year)))
   }).sort((a, b) => {
     if (order === 'year' && 'any_jugat' in a && 'any_jugat' in b) return (b.any_jugat ?? 0) - (a.any_jugat ?? 0)
     const result = (games.get(a.joc_id)?.nom ?? '').localeCompare(games.get(b.joc_id)?.nom ?? '', 'ca')
@@ -98,11 +98,10 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
       {history && <label className="text-sm">Any <select aria-label="Filtra per any de joc" value={year} onChange={e => setYear(e.target.value)} className="ml-2 h-10 rounded-lg border bg-card px-3"><option value="all">Tots els anys</option>{[...new Set([new Date().getFullYear(), ...(data?.experiencies.flatMap(e => e.any_jugat === null ? [] : [e.any_jugat]) ?? [])])].sort((a, b) => b - a).map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
       <label className="grow text-sm"><span className="sr-only">Cerca per nom</span><input type="search" placeholder="Cerca jocs…" value={search} onChange={e => setSearch(e.target.value)} className="h-10 w-full rounded-lg border bg-card px-3" /></label>
       {!history && <fieldset className="flex items-center gap-3 text-sm"><legend className="sr-only">Format de la col·lecció</legend>{[{value: 'fisic', label: 'Físics'}, {value: 'digital', label: 'Digitals'}].map(f => <label key={f.value} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={formats.includes(f.value)} onChange={e => toggleFilter('format', formats, f.value, e.target.checked)} />{f.label}</label>)}</fieldset>}
-      <details ref={platformMenu} className="relative text-sm"><summary className="cursor-pointer rounded-lg border bg-card px-3 py-2.5">Plataformes · {platforms.length ? `${platforms.length} seleccionades` : 'Totes'}</summary><fieldset className="absolute left-0 z-10 mt-2 max-h-80 w-64 overflow-auto rounded-lg border bg-card p-3 shadow-lg"><legend className="sr-only">Filtra per plataformes</legend><Button type="button" variant="outline" size="sm" className="mb-2 w-full" onClick={() => changeFilter('plataforma', [])}>Totes les plataformes</Button>{[...new Set(records.map(r => games.get(r.joc_id)?.plataforma || 'Sense plataforma'))].sort().map(p => <label key={p} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={platforms.includes(p)} onChange={e => toggleFilter('plataforma', platforms, p, e.target.checked)} />{p}</label>)}</fieldset></details>
+      <details ref={platformMenu} className="relative text-sm"><summary className="cursor-pointer rounded-lg border bg-card px-3 py-2.5">Plataformes · {platforms.length ? `${platforms.length} seleccionades` : 'Totes'}</summary><fieldset className="absolute left-0 z-10 mt-2 max-h-80 w-64 overflow-auto rounded-lg border bg-card p-3 shadow-lg"><legend className="sr-only">Filtra per plataformes</legend><Button type="button" variant="outline" size="sm" className="mb-2 w-full" onClick={() => changeFilter('plataforma', [])}>Totes les plataformes</Button>{[...new Set(records.map(r => platformName(games.get(r.joc_id)?.plataforma ?? '') || 'Sense plataforma'))].sort().map(p => <label key={p} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={platforms.includes(p)} onChange={e => toggleFilter('plataforma', platforms, p, e.target.checked)} />{p}</label>)}</fieldset></details>
       {!history && <select aria-label="Filtra per gènere" value={genre} onChange={e => changeFilter('genere', e.target.value ? [e.target.value] : [])} className="h-10 max-w-full rounded-lg border bg-card px-3 text-sm"><option value="">Tots els gèneres</option>{[...new Set(records.map(r => games.get(r.joc_id)?.genere_principal?.trim() || 'Sense gènere'))].sort((a, b) => a === 'Sense gènere' ? 1 : b === 'Sense gènere' ? -1 : a.localeCompare(b, 'ca')).map(value => <option key={value} value={value}>{value}</option>)}</select>}
       {!history && <label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" checked={onlyChildren} onChange={e => setOnlyChildren(e.target.checked)} />Per jugar amb infants</label>}
       {!history && <select aria-label="Ordena els registres" value={order} onChange={e => setOrder(e.target.value)} className="h-10 rounded-lg border bg-card px-3 text-sm"><option value="az">Nom A–Z</option><option value="za">Nom Z–A</option></select>}
-      {!history && <details className="text-sm"><summary className="cursor-pointer text-muted-foreground">Revisió de la importació{onlyUnreviewed ? ' · Filtre actiu' : ''}</summary><p className="mt-2 max-w-xs text-xs text-muted-foreground">Eina temporal per comprovar les dades importades.</p><label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={onlyUnreviewed} onChange={e => setOnlyUnreviewed(e.target.checked)} />Sense revisar</label></details>}
       {!history && <div role="group" aria-label="Vista de la col·lecció" className="flex gap-1"><Button size="sm" variant={view === 'list' ? 'default' : 'outline'} aria-pressed={view === 'list'} onClick={() => setView('list')}>Llista</Button><Button size="sm" variant={view === 'cards' ? 'default' : 'outline'} aria-pressed={view === 'cards'} onClick={() => setView('cards')}>Fitxes</Button></div>}
     </div>
     {gameFilter && <p className="mt-4 text-sm">Mostrant {games.get(gameFilter)?.nom ?? 'un joc'}. <Link className="underline" to={history ? '/?vista=jugats' : retired ? '/?vista=retirats' : '/?vista=colleccio'}>Mostra tots els registres</Link></p>}
@@ -113,7 +112,7 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
         const j = games.get(r.joc_id)!
 
         const c = 'format' in r ? r : null
-        if (!history && view === 'list') return <article key={r.id}><button onClick={() => openRecord(r.id)} className="flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-2 px-4 py-3 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><div className="min-w-0 flex-1 basis-48"><h2 className="break-words text-sm font-medium">{j.nom}</h2><p className="mt-1 text-xs text-muted-foreground">{j.plataforma}{c?.regio ? ` · ${c.regio}` : ''}</p></div><div className="text-right text-xs text-muted-foreground"><p>{c?.format === 'fisic' ? 'Físic' : 'Digital'}{c?.no_localitzat ? ' · No localitzat' : ''}{c?.reproduccio ? ' · Reproducció' : ''}</p><p className="mt-1">{r.revisat ? 'Revisat' : 'Sense revisar'}</p></div></button></article>
+        if (!history && view === 'list') return <article key={r.id}><button onClick={() => openRecord(r.id)} className="flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-2 px-4 py-3 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><div className="min-w-0 flex-1 basis-48"><h2 className="break-words text-sm font-medium">{j.nom}</h2><p className="mt-1 text-xs text-muted-foreground">{platformName(j.plataforma)}{c?.regio ? ` · ${c.regio}` : ''}</p></div><div className="text-right text-xs text-muted-foreground"><p>{c?.format === 'fisic' ? 'Físic' : 'Digital'}{c?.no_localitzat ? ' · No localitzat' : ''}{c?.reproduccio ? ' · Reproducció' : ''}</p></div></button></article>
         if (c) return <CollectionCard key={r.id} game={j} copy={c} rating={gameRating(j, data?.experiencies ?? [])} onOpen={() => openRecord(r.id)} />
         return null
       })}

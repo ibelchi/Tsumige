@@ -1,6 +1,7 @@
+import { collectionCopy, platformName } from './platform.ts'
 import type { Catalog } from '@/lib/catalog'
 import type { Valoracio } from '@/lib/database.types'
-import { gameRating } from '@/lib/game-rating'
+import { gameRating } from './game-rating.ts'
 
 export type StatisticRow = { label: string; value: number }
 function counts(values: string[]): StatisticRow[] {
@@ -10,8 +11,8 @@ function counts(values: string[]): StatisticRow[] {
 }
 export function statistics(catalog: Catalog, filters: { platformFormats?: string[]; genreFormats?: string[]; purchaseYears?: string[] | null } = {}) {
   const games = new Map(catalog.jocs.map(game => [game.id, game]))
-  const active = catalog.exemplars.filter(copy => copy.a_la_colleccio)
-  const platforms = counts(active.filter(copy => !filters.platformFormats || filters.platformFormats.includes(copy.format)).map(copy => games.get(copy.joc_id)?.plataforma || 'Sense plataforma'))
+  const active = catalog.exemplars.filter(copy => collectionCopy(copy, games.get(copy.joc_id)))
+  const platforms = counts(active.filter(copy => !filters.platformFormats || filters.platformFormats.includes(copy.format)).map(copy => platformName(games.get(copy.joc_id)?.plataforma ?? '') || 'Sense plataforma'))
   const genres = counts(active.filter(copy => !filters.genreFormats || filters.genreFormats.includes(copy.format)).map(copy => games.get(copy.joc_id)?.genere_principal?.trim() || 'Sense gènere')).sort((a, b) => a.label === 'Sense gènere' ? 1 : b.label === 'Sense gènere' ? -1 : b.value - a.value || a.label.localeCompare(b.label, 'ca'))
   const expenses = new Map<string, number>()
   let totalCents = 0, missingPrice = 0, missingPurchaseYear = 0

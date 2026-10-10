@@ -1,3 +1,4 @@
+import { platformName } from '@/lib/platform'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
@@ -32,8 +33,8 @@ export function TrackingPage() {
     {isPending ? <p role="status" className="mt-5">Carregant…</p> : <p role="status" className="mt-4 text-sm text-muted-foreground">{games.length} {games.length === 1 ? 'joc' : 'jocs'}</p>}
     <div className="mt-5 grid items-start gap-3 md:grid-cols-2">{games.map(game => {
       const experiences = data!.experiencies.filter(e => e.joc_id === game.id)
-      return <section key={game.id} aria-label={`${game.nom} · ${game.plataforma}`} className="rounded-xl border bg-card p-5">
-        <h2 className="font-medium">{game.nom}</h2><p className="mt-1 text-sm text-muted-foreground">{game.plataforma}</p>
+      return <section key={game.id} aria-label={`${game.nom} · ${platformName(game.plataforma)}`} className="rounded-xl border bg-card p-5">
+        <h2 className="font-medium">{game.nom}</h2><p className="mt-1 text-sm text-muted-foreground">{platformName(game.plataforma)}</p>
         <label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={game.per_jugar_aviat} disabled={busy} onChange={e => void update('upcoming', game.id, e.target.checked)} />Per jugar aviat</label>
         {experiences.length > 0 && <div className="mt-4 border-t pt-3"><h3 className="text-sm font-medium">Jugant</h3>{experiences.map((e, index) => <label key={e.id} className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={e.jugant} disabled={busy} onChange={event => void update('playing', e.id, event.target.checked)} /><span>Experiència {index + 1} · {e.any_jugat ?? 'Any no indicat'}</span></label>)}<Link className="mt-3 inline-block text-sm underline" to={`/?vista=jugats&joc=${game.id}`}>Veure les experiències</Link></div>}
         <Button variant="outline" size="sm" className="mt-4" onClick={() => setCreatingFor(game.id)}>Nova experiència</Button>

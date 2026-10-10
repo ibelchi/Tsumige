@@ -1,3 +1,4 @@
+import { platformName } from '@/lib/platform'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -24,7 +25,7 @@ function GameList({ title, games, isLoading }: { title: string; games: JocLlista
         <p className="mt-4 text-sm text-muted-foreground">Cap joc marcat.</p>
       ) : (
         <ul className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-6">
-          {games.map((game) => <li key={game.id} className="min-w-0 shrink-0 grow-0 basis-full @min-[22rem]:basis-[calc((100%_-_1rem)/2)] @min-[32rem]:basis-[calc((100%_-_2rem)/3)]"><Link to={`/?vista=detall&joc=${game.id}`} aria-label={`Obre el detall de ${game.nom}`} className="block rounded-lg text-center hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><SummaryCover key={`${game.id}-${game.portada_url}`} game={game} /><div className="mt-3 min-w-0"><p className="break-words text-sm font-medium leading-snug">{game.nom}</p><p className="mt-1 break-words text-xs text-muted-foreground">{game.plataforma}</p></div></Link></li>)}
+          {games.map((game) => <li key={game.id} className="min-w-0 shrink-0 grow-0 basis-full @min-[22rem]:basis-[calc((100%_-_1rem)/2)] @min-[32rem]:basis-[calc((100%_-_2rem)/3)]"><Link to={`/?vista=detall&joc=${game.id}`} aria-label={`Obre el detall de ${game.nom}`} className="block rounded-lg text-center hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><SummaryCover key={`${game.id}-${game.portada_url}`} game={game} /><div className="mt-3 min-w-0"><p className="break-words text-sm font-medium leading-snug">{game.nom}</p><p className="mt-1 break-words text-xs text-muted-foreground">{platformName(game.plataforma)}</p></div></Link></li>)}
         </ul>
       )}
     </section>

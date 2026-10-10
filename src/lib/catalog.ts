@@ -2,23 +2,29 @@ import { getSupabase } from '@/lib/supabase'
 import type { Exemplar, Experiencia, FitxaJoc, Json } from '@/lib/database.types'
 import { withStoredCovers } from '@/lib/cover-storage'
 
-export type Catalog = { jocs: FitxaJoc[]; exemplars: Exemplar[]; experiencies: Experiencia[] }
+export type Catalog = { jocs: FitxaJoc[]; exemplars: Exemplar[]; experiencies: Experiencia[]; plataformaModel?: 2 }
 export async function getCatalog(): Promise<Catalog> {
   const db = getSupabase()
-  const [jocs, exemplars, experiencies] = await Promise.all([
-    db.from('fitxes_joc').select('*').order('nom'),
-    db.from('exemplars').select('*').order('created_at').order('id'),
-    db.from('experiencies').select('*').order('any_jugat', { ascending: false, nullsFirst: false }).order('id'),
+  async function readAll<T>(table: 'fitxes_joc' | 'exemplars' | 'experiencies'): Promise<T[]> {
+    const rows: T[] = []
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await db.from(table).select('*').order('id').range(offset, offset + 499)
+      if (error || !data) throw new Error('No s’han pogut carregar tots els jocs. Torna-ho a provar.')
+      rows.push(...data as T[])
+      if (data.length < 500) return rows
+    }
+  }
+  const [jocs, exemplars, experiencies, version] = await Promise.all([
+    readAll<FitxaJoc>('fitxes_joc'), readAll<Exemplar>('exemplars'), readAll<Experiencia>('experiencies'), db.rpc('versio_plataforma'),
   ])
-  if (jocs.error || exemplars.error || experiencies.error) throw new Error('No s’han pogut carregar els jocs. Torna-ho a provar.')
-  return { jocs: await withStoredCovers(jocs.data), exemplars: exemplars.data, experiencies: experiencies.data }
+  return { jocs: await withStoredCovers(jocs), exemplars, experiencies, plataformaModel: version.data === 2 ? 2 : undefined }
 }
-export async function saveRecord(kind: 'exemplar' | 'experiencia', id: string, game: Json, record: Json) {
-  const { error } = await getSupabase().rpc('desar_registre', { p_tipus: kind, p_id: id, p_fitxa: game, p_dades: record })
+export async function saveRecord(kind: 'exemplar' | 'experiencia', id: string, game: Json, record: Json, resolved = false) {
+  const { error } = await getSupabase().rpc(resolved ? 'desar_registre_plataforma' : 'desar_registre', { p_tipus: kind, p_id: id, p_fitxa: game, p_dades: record })
   if (error) throw new Error('No s’han pogut desar els canvis. Comprova els camps i torna-ho a provar.')
 }
-export async function createRecord(kind: 'exemplar' | 'experiencia', gameId: string | null, game: Json, record: Json) {
-  const { data, error } = await getSupabase().rpc('crear_registre', { p_tipus: kind, p_joc: gameId, p_fitxa: game, p_dades: record })
+export async function createRecord(kind: 'exemplar' | 'experiencia', gameId: string | null, game: Json, record: Json, resolved = false) {
+  const { data, error } = await getSupabase().rpc(resolved ? 'crear_registre_plataforma' : 'crear_registre', { p_tipus: kind, p_joc: gameId, p_fitxa: game, p_dades: record })
   if (error) throw new Error(error.message.includes('ja existeix') ? 'Aquest joc ja existeix amb aquesta plataforma. Torna enrere i selecciona’l a la llista de jocs existents.' : 'No s’ha pogut afegir el registre. Comprova els camps i torna-ho a provar.')
   if (!data) throw new Error('No s’ha pogut confirmar el registre creat.')
   return data

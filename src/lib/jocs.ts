@@ -1,6 +1,7 @@
 import { getSupabase } from '@/lib/supabase'
 import type { ResumJocs } from '@/lib/database.types'
-import { withStoredCovers } from '@/lib/cover-storage'
+import { getCatalog } from '@/lib/catalog'
+import { collectionCopy, platformName } from '@/lib/platform'
 
 export async function getResumJocs(): Promise<ResumJocs> {
   const supabase = getSupabase()
@@ -9,11 +10,10 @@ export async function getResumJocs(): Promise<ResumJocs> {
   if (!session) throw new Error('Inicia sessió per consultar el resum de la col·lecció.')
   const { data, error } = await supabase.rpc('resum_jocs').single()
   if (error) throw new Error('No s’ha pogut carregar el resum. Comprova la connexió i les migracions de Supabase.')
-  const ids = [...new Set([...data.jugant, ...data.per_jugar_aviat].map(game => game.id))]
-  if (!ids.length) return data
-  const { data: covers, error: coverError } = await supabase.from('fitxes_joc').select('*').in('id', ids)
-  if (coverError) throw new Error('No s’han pogut carregar les portades del resum. Torna-ho a provar.')
-  const images = new Map((await withStoredCovers(covers)).map(game => [game.id, game.portada_visual_url ?? game.portada_url]))
-  const withCover = (game: ResumJocs['jugant'][number]) => ({ ...game, portada_url: images.get(game.id) ?? null })
-  return { ...data, jugant: data.jugant.map(withCover), per_jugar_aviat: data.per_jugar_aviat.map(withCover) }
+  const catalog = await getCatalog()
+  const games = new Map(catalog.jocs.map(game => [game.id, game]))
+  const active = catalog.exemplars.filter(copy => collectionCopy(copy, games.get(copy.joc_id)))
+  const withCover = (game: ResumJocs['jugant'][number]) => ({ ...game, plataforma: platformName(game.plataforma), portada_url: games.get(game.id)?.portada_visual_url ?? games.get(game.id)?.portada_url ?? null })
+  return { ...data, fisics: active.filter(copy => copy.format === 'fisic').length, digitals: active.filter(copy => copy.format === 'digital').length,
+    jugant: data.jugant.map(withCover), per_jugar_aviat: data.per_jugar_aviat.map(withCover) }
 }

@@ -1,3 +1,4 @@
+import { platformName } from '@/lib/platform'
 import { getSupabase } from '@/lib/supabase'
 import { getBackup, type Backup } from '@/lib/backup'
 import { COVER_BUCKET } from '@/lib/cover-storage'
@@ -11,13 +12,15 @@ async function state() {
   return data
 }
 export async function previewRestore(archive: RestoreArchive): Promise<RestorePreview> {
+  const { data: platformVersion } = await getSupabase().rpc('versio_plataforma')
+  if (archive.backup.format_version === 2 && platformVersion !== 2) throw new Error('Cal preparar el servidor per al model de Plataforma abans de restaurar una còpia v2.')
   const before = await state()
   const current = await getBackup()
   if (archive.backup.user_id !== current.user_id) throw new Error('La sessió ha canviat. Torna a obrir la còpia.')
   const after = await state()
   if (before !== after) throw new Error('Les dades han canviat mentre es preparava la revisió. Torna-ho a provar.')
   for (const game of archive.backup.fitxes_joc) {
-    if (current.fitxes_joc.some(existing => existing.id !== game.id && existing.nom.toLocaleLowerCase() === game.nom.toLocaleLowerCase() && existing.plataforma.toLocaleLowerCase() === game.plataforma.toLocaleLowerCase())) {
+    if (current.fitxes_joc.some(existing => existing.id !== game.id && existing.nom.toLocaleLowerCase() === game.nom.toLocaleLowerCase() && platformName(existing.plataforma).toLocaleLowerCase() === platformName(game.plataforma).toLocaleLowerCase())) {
       throw new Error(`«${game.nom}» ja existeix amb un altre identificador. Cal revisar aquesta coincidència abans de restaurar.`)
     }
   }
@@ -33,6 +36,11 @@ export async function restoreArchive(archive: RestoreArchive, preview: RestorePr
   const { data: editable } = await db.rpc('pot_editar')
   if (!editable) throw new Error('Els convidats no poden restaurar còpies.')
   if (await state() !== preview.state) throw new Error('Les dades han canviat. Torna a revisar la còpia abans de restaurar.')
+  const { data: platformVersion } = await db.rpc('versio_plataforma')
+  if (archive.backup.format_version === 2 && platformVersion !== 2) throw new Error('El servidor encara no admet còpies v2 de Plataforma.')
+  if (overwrite && archive.backup.fitxes_joc.some(game => game.plataforma_resolta !== true && preview.current.fitxes_joc.some(current => current.id === game.id && current.plataforma_resolta === true))) {
+    throw new Error('La còpia conté plataformes antigues que sobreescriurien registres resolts. Cal conciliar-les abans de restaurar; no s’ha pujat cap portada.')
+  }
   const payload = structuredClone(archive.backup)
   const existing = new Set(preview.current.fitxes_joc.map(game => game.id))
   const covers = archive.covers.filter(cover => overwrite || !existing.has(cover.gameId))
@@ -51,7 +59,7 @@ export async function restoreArchive(archive: RestoreArchive, preview: RestorePr
     payload.fitxes_joc.find(game => game.id === cover.gameId)!.portada_fitxer = path
   }
   onProgress('Restaurant les dades…')
-  const { error } = await db.rpc('restaurar_copia', {p_copia: payload as unknown as Json, p_actualitzar: overwrite, p_estat: preview.state})
+  const { error } = await db.rpc(platformVersion === 2 ? 'restaurar_copia_plataforma' : 'restaurar_copia', {p_copia: payload as unknown as Json, p_actualitzar: overwrite, p_estat: preview.state})
   if (error) throw new Error('No s’ha pogut confirmar la restauració. Actualitza la pàgina i comprova les dades abans de tornar-ho a provar. Si han canviat des de la revisió, prepara-la de nou.')
   return covers.length
 }

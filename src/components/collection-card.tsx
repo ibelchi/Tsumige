@@ -1,3 +1,4 @@
+import { platformName } from '@/lib/platform'
 import { BrandLogo } from '@/components/brand-logo'
 import { GameRating } from '@/components/game-rating'
 import type { Exemplar, FitxaJoc, Valoracio } from '@/lib/database.types'
@@ -10,7 +11,7 @@ export function CollectionCard({ game, copy, rating = null, onOpen }: { game: Fi
       </div>
       <div className="flex min-w-0 flex-col justify-center py-1">
         <h2 className="break-words text-base font-semibold leading-snug tracking-tight">{game.nom}</h2>
-        <p className="mt-2 break-words text-sm leading-5 text-muted-foreground">{game.plataforma}</p>
+        <p className="mt-2 break-words text-sm leading-5 text-muted-foreground">{platformName(game.plataforma)}</p>
         <p className="mt-1 text-sm text-muted-foreground">{copy.format === 'fisic' ? 'Físic' : 'Digital'}</p>
         {rating && <div className="mt-5"><GameRating rating={rating} className="text-4xl leading-none" /></div>}
       </div>

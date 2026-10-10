@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { saveRecord, createRecord, setGamePlayingFromRecord, removeFromCollection, restoreToCollection, type Catalog } from '@/lib/catalog'
 import type { Exemplar, Experiencia, FitxaJoc, Json, Valoracio } from '@/lib/database.types'
@@ -9,6 +8,7 @@ import { gameRating, ratingColor } from '@/lib/game-rating'
 import { BrandLogo } from '@/components/brand-logo'
 import { GameRating } from '@/components/game-rating'
 import { gameComments } from '@/lib/game-comments'
+import { collectionCopy, platformName, platformOptions, resolvedPlatformError } from '@/lib/platform'
 import { storeName } from '@/lib/store-name'
 import { useAccess } from '@/lib/access'
 
@@ -25,7 +25,6 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
   navigation?: { position: number; total: number; previous?: () => void; next?: () => void }
 }) {
   const { canEdit } = useAccess()
-  const navigate = useNavigate()
   const [savedCatalog, setSavedCatalog] = useState<Catalog | null>(null)
   const catalog = savedCatalog ?? initialCatalog
   const game = catalog.jocs.find(item => item.id === initialGame.id) ?? initialGame
@@ -34,6 +33,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
   const [saved, setSaved] = useState(false)
   const [editing, setEditing] = useState(creating)
   const isEditing = editing && canEdit
+  const platformResolved = game.plataforma_resolta === true || (creating && !existingGame && catalog.plataformaModel === 2)
   const dialog = useRef<HTMLDialogElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const confirmation = useRef<HTMLElement>(null)
@@ -94,9 +94,23 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
     setNewService(''); setAddingService(false); setDirty(true); setSaved(false)
   }
   const retired = Boolean(copy && !copy.a_la_colleccio && !creating)
-  const ownedCopies = catalog.exemplars.filter(e => e.joc_id === game.id && e.a_la_colleccio)
+  const ownedCopies = catalog.exemplars.filter(e => e.joc_id === game.id && collectionCopy(e, game))
   const history = catalog.experiencies.filter(e => e.joc_id === game.id)
-  useEffect(() => { dialog.current?.showModal() }, [])
+  const [relatedCopyId, setRelatedCopyId] = useState<string | null>(null)
+  const [choosingCopy, setChoosingCopy] = useState(false)
+  const copyChooser = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (choosingCopy) {
+      copyChooser.current?.scrollIntoView({ block: 'nearest' })
+      copyChooser.current?.querySelector('button')?.focus()
+    }
+  }, [choosingCopy])
+  const relatedCopy = ownedCopies.find(item => item.id === relatedCopyId)
+  function openCollection() {
+    if (ownedCopies.length === 1) setRelatedCopyId(ownedCopies[0].id)
+    else if (ownedCopies.length > 1) setChoosingCopy(true)
+  }
+  useEffect(() => { if (!relatedCopy) dialog.current?.showModal() }, [relatedCopy])
   useEffect(() => {
     if (!dirty || !canEdit) return
     function protectLeave(event: BeforeUnloadEvent) { event.preventDefault(); event.returnValue = '' }
@@ -133,8 +147,20 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
       setError('Cal aplicar la migració de comentaris del joc abans de desar aquest camp. Els comentaris existents es conserven.')
       return
     }
+    const nextPlatform = platformName(text(form, 'plataforma') ?? '')
+    if (!nextPlatform) { setError('Indica una plataforma.'); return }
+    if ((!creating || existingGame) && nextPlatform !== platformName(game.plataforma)) {
+      setError('Una plataforma diferent necessita un registre de joc diferent. No es reassignen les entrades de Bitàcora des d’aquest formulari.')
+      return
+    }
+    if (creating && existingGame && kind === 'exemplar' && catalog.plataformaModel === 2 && !platformResolved) {
+      setError('Cal resoldre la conversió de plataforma d’aquest joc abans d’afegir-hi registres. Les dades antigues es conserven.')
+      return
+    }
+    const platformError = resolvedPlatformError(catalog, game.id, nextPlatform, copy ? format : undefined, copy?.id)
+    if (platformError && (platformResolved || nextPlatform === 'Emulador')) { setError(platformError); return }
     const fields: Json = {
-      nom: text(form, 'nom'), plataforma: text(form, 'plataforma'), desenvolupadora: text(form, 'desenvolupadora'),
+      nom: text(form, 'nom'), plataforma: nextPlatform, desenvolupadora: text(form, 'desenvolupadora'),
       genere_principal: text(form, 'genere_principal'), any_llancament: number(form, 'any_llancament'), per_jugar_aviat: form.has('per_jugar_aviat'),
       portada_url: image || null, portada_font_url: imageSource,
       ...(commentsReady ? { comentaris: text(form, 'comentaris') } : {}),
@@ -142,22 +168,22 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
     }
     const details: Json = copy ? {
       format: text(form, 'format'), regio: text(form, 'regio'), estat_conservacio: text(form, 'estat_conservacio'),
-      any_compra: number(form, 'any_compra'), preu: number(form, 'preu'), botiga_servei: service || null,
+      any_compra: number(form, 'any_compra'), preu: number(form, 'preu'), botiga_servei: platformResolved ? copy.botiga_servei : service || null,
       notes: record.notes, favorit: form.has('favorit'), canvi: form.has('canvi'), reproduccio: form.has('reproduccio'),
-      no_localitzat: notFound ? true : copy.no_localitzat === null ? null : false, revisat: form.has('revisat'),
+      no_localitzat: notFound ? true : copy.no_localitzat === null ? null : false, revisat: record.revisat,
     } : {
       any_jugat: number(form, 'any_jugat'), completat: text(form, 'completat'), valoracio: text(form, 'valoracio'),
-      notes: record.notes, jugant: form.has('jugant'), revisat: form.has('revisat'),
+      notes: record.notes, jugant: form.has('jugant'), revisat: record.revisat,
     }
     setBusy(true); setError(null)
     try {
       let recordId = record.id
       if (creating && !createdRecord.current) {
-        recordId = await createRecord(kind, existingGame ? game.id : null, fields, details)
+        recordId = await createRecord(kind, existingGame ? game.id : null, fields, details, platformResolved)
         createdRecord.current = recordId
       } else {
         recordId = createdRecord.current ?? record.id
-        await saveRecord(kind, recordId, fields, details)
+        await saveRecord(kind, recordId, fields, details, platformResolved)
       }
       await setGamePlayingFromRecord(recordId, form.has('jugant'), rating, kind)
       const updated = await onSaved()
@@ -171,12 +197,32 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
     }
     catch (caught) { setError(caught instanceof Error ? caught.message : 'No s’han pogut desar els canvis.'); setBusy(false) }
   }
+  if (relatedCopy) return <RecordEditor key={relatedCopy.id} kind="exemplar" record={relatedCopy} game={game} catalog={catalog}
+    onClose={() => setRelatedCopyId(null)} onSaved={async () => {
+      const updated = await onSaved()
+      if (updated) resetDraft(updated)
+      return updated
+    }} />
   return <dialog ref={dialog} onCancel={event => { event.preventDefault(); moveTo(onClose) }} aria-labelledby="detall-titol" className="m-auto max-h-[90dvh] w-[min(94vw,760px)] overflow-y-auto rounded-xl border bg-card p-6 text-foreground shadow-xl backdrop:bg-black/40">
+    {choosingCopy && <section ref={copyChooser} aria-label="Tria un exemplar de la col·lecció" className="mb-4 rounded-lg border p-4">
+      <h3 className="font-semibold">Tria un exemplar</h3>
+      <div className="mt-3 flex flex-col gap-2">
+        {ownedCopies.map(item => <Button key={item.id} type="button" variant="outline" className="h-auto justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || confirmNavigation} onClick={() => moveTo(() => { setChoosingCopy(false); setRelatedCopyId(item.id) })}>
+          {[item.format === 'fisic' ? 'Físic' : 'Digital', item.regio, item.botiga_servei, item.estat_conservacio,
+            item.any_compra !== null ? `Compra: ${item.any_compra}` : null,
+            item.preu !== null ? `${item.preu} €` : null, `ID: ${item.id}`].filter(Boolean).join(' · ')}
+        </Button>)}
+      </div>
+      <Button type="button" variant="outline" className="mt-3" onClick={() => setChoosingCopy(false)}>Cancel·la</Button>
+    </section>}
     <header className="grid items-start gap-4 sm:grid-cols-[minmax(0,1fr)_18rem]">
-      <h2 id="detall-titol" className="min-w-0 text-xl font-semibold [overflow-wrap:anywhere]">
-        {creating ? (copy ? 'Afegeix un exemplar' : 'Nova experiència de joc') : game.nom}
-        {copy?.favorit && <span role="img" aria-label="Joc favorit" className="ml-2 inline-block align-middle text-sm font-normal text-muted-foreground"><span aria-hidden="true">★</span></span>}
-      </h2>
+      <div className="min-w-0">
+        <h2 id="detall-titol" className="min-w-0 text-xl font-semibold [overflow-wrap:anywhere]">
+          {creating ? (copy ? 'Afegeix un exemplar' : 'Nova experiència de joc') : game.nom}
+          {copy?.favorit && <span role="img" aria-label="Joc favorit" className="ml-2 inline-block align-middle text-sm font-normal text-muted-foreground"><span aria-hidden="true">★</span></span>}
+        </h2>
+        {!isEditing && !creating && <p className="mt-2 break-words text-base font-medium">{platformName(game.plataforma)}</p>}
+      </div>
       <div className="flex min-w-0 flex-col items-end gap-2">
         {navigation && <nav aria-label="Recorre els registres des de la capçalera" className="flex max-w-full flex-wrap items-center justify-end gap-2">
           <Button type="button" variant="outline" disabled={busy || !navigation.previous || confirmNavigation} onClick={() => moveTo(navigation.previous)}>Anterior</Button>
@@ -209,7 +255,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
         </div>
         <div className="grid min-w-0 gap-3">
           <Field label="Nom"><input name="nom" required defaultValue={game.nom} className={control} /></Field>
-          <Field label="Plataforma o lloc d’accés"><input name="plataforma" required defaultValue={game.plataforma} className={control} /></Field>
+          <Field label="Plataforma"><input name="plataforma" list="plataforma-opcions" required defaultValue={platformName(game.plataforma)} className={control} /><datalist id="plataforma-opcions">{platformOptions(catalog).map(option => <option key={option} value={option} />)}</datalist></Field>
           <Field label="Desenvolupadora"><input name="desenvolupadora" defaultValue={game.desenvolupadora ?? ''} className={control} /></Field>
           <Field label="Gènere"><input name="genere_principal" defaultValue={game.genere_principal ?? ''} className={control} /></Field>
           <Field label="Any de llançament"><input name="any_llancament" type="number" min="1" max="9999" defaultValue={game.any_llancament ?? ''} className={control} /></Field>
@@ -221,9 +267,9 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
         <Field label="Conservació"><input name="estat_conservacio" defaultValue={copy.estat_conservacio ?? ''} className={control} /></Field>
         <Field label="Any de compra"><input name="any_compra" type="number" min="1" max="9999" defaultValue={copy.any_compra ?? ''} className={control} /></Field>
         <Field label="Preu (€)"><input name="preu" type="number" min="0" step="0.01" defaultValue={copy.preu ?? ''} className={control} /></Field>
-        <div><Field label="Botiga o servei"><select name="botiga_servei" value={addingService ? '__add__' : service} disabled={format === 'fisic'} onChange={e => { if (e.target.value === '__add__') setAddingService(true); else { setService(e.target.value); setAddingService(false) } }} className={`${control} disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground`}><option value="">En blanc</option>{services.map(s => <option key={s} value={s}>{s}</option>)}<option value="__add__">Afegeix una botiga o servei…</option></select></Field>
+        {!platformResolved && <div><Field label="Botiga o servei"><select name="botiga_servei" value={addingService ? '__add__' : service} disabled={format === 'fisic'} onChange={e => { if (e.target.value === '__add__') setAddingService(true); else { setService(e.target.value); setAddingService(false) } }} className={`${control} disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground`}><option value="">En blanc</option>{services.map(s => <option key={s} value={s}>{s}</option>)}<option value="__add__">Afegeix una botiga o servei…</option></select></Field>
           {addingService && format === 'digital' && <div className="mt-2 flex items-end gap-2"><Field label="Nova botiga o servei"><input value={newService} onChange={e => setNewService(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addService() } }} className={control} /></Field><Button type="button" variant="outline" disabled={!newService.trim()} onClick={addService}>Afegeix</Button></div>}
-        </div>
+        </div>}
       </div><div className="flex flex-wrap gap-4"><Check name="favorit" label="Favorit" checked={copy.favorit} /><Check name="per_infants" label="Per jugar amb infants" checked={Boolean(game.per_infants)} /><Check name="canvi" label="Possible venda o intercanvi" checked={copy.canvi} /><Check name="reproduccio" label="Reproducció" checked={copy.reproduccio} /><label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="no_localitzat" checked={notFound} onChange={e => setNotFound(e.target.checked)} />No localitzat</label></div></>}
       {experience && <><Check name="per_infants" label="Per jugar amb infants" checked={Boolean(game.per_infants)} /><div className="grid gap-4 sm:grid-cols-3">
         <Field label="Any de joc"><input name="any_jugat" type="number" min="1" max="9999" defaultValue={experience.any_jugat ?? ''} className={control} /></Field>
@@ -232,10 +278,9 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
       <Field label="Valoració del joc"><select name="valoracio" value={rating ?? ''} onChange={e => setRating((e.target.value || null) as Valoracio | null)} className={`${control} ${ratingColor(rating)}`}><option value="" className="text-foreground">En blanc</option>{(['A++', 'A+', 'A', 'B', 'C', 'D'] as const).map(value => <option key={value} className={ratingColor(value)}>{value}</option>)}</select></Field>
       <Field label="Comentaris"><textarea name="comentaris" rows={4} defaultValue={comments.value} disabled={comments.conflict} className={control} /></Field>
       {comments.conflict && <p role="status" className="text-sm text-amber-800">Hi ha comentaris diferents en els registres d’aquest joc. Cal revisar-los abans d’unificar-los; es conserven tots.</p>}
-      <Check name="revisat" label="Revisat" checked={record.revisat} />
       {record.origen && <details className="text-xs"><summary className="cursor-pointer">Dades originals de l’Excel</summary><pre className="mt-3 max-h-56 overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3">{JSON.stringify(record.origen, null, 2)}</pre></details>}
     </fieldset>{experience && <section className="mt-7 border-t pt-5"><h3 className="font-medium">A la col·lecció</h3>
-      {ownedCopies.length ? <><p className="mt-2 text-sm">{ownedCopies.length} {ownedCopies.length === 1 ? 'exemplar' : 'exemplars'}</p><button type="button" disabled={busy || confirmNavigation} onClick={() => moveTo(() => navigate(`/?vista=colleccio&joc=${game.id}`))} className="mt-3 inline-block text-sm underline">Veure el joc a la col·lecció</button></> : <p className="mt-2 text-sm text-muted-foreground">Aquest joc no és a la col·lecció.</p>}
+      {ownedCopies.length ? <><p className="mt-2 text-sm">{ownedCopies.length} {ownedCopies.length === 1 ? 'exemplar' : 'exemplars'}</p><button type="button" disabled={busy || confirmNavigation} onClick={() => moveTo(openCollection)} className="mt-3 inline-block text-sm underline">Veure el joc a la col·lecció</button></> : <p className="mt-2 text-sm text-muted-foreground">Aquest joc no és a la col·lecció.</p>}
     </section>}
       <fieldset disabled={busy || retired || !canEdit}><details className="rounded-lg border p-4">
         <summary className="cursor-pointer font-medium">Configuració</summary>
@@ -247,7 +292,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
     </fieldset><div className="flex flex-wrap justify-end gap-2">
       <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>
         {canEdit && !retired && !creating && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={undoChanges}>Desfés els canvis</Button>}{canEdit && !retired && <Button disabled={busy}>{busy ? 'Desant…' : creating ? 'Afegeix' : 'Desa els canvis'}</Button>}</div>
-    </form> : <RecordDetails kind={kind} record={record} game={game} catalog={catalog} onViewCollection={() => moveTo(() => navigate(`/?vista=colleccio&joc=${game.id}`))} />}
+    </form> : <RecordDetails kind={kind} record={record} game={game} catalog={catalog} onViewCollection={() => moveTo(openCollection)} />}
     {saved && <p role="status" className="mt-4 text-sm">Canvis desats.</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
     <div className="mt-6 flex flex-wrap justify-end gap-2">

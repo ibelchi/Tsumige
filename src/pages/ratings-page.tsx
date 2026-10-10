@@ -1,3 +1,4 @@
+import { platformName } from '@/lib/platform'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -28,7 +29,7 @@ export function RatingsPage() {
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error.message}</p>}
     <section aria-label="Jocs amb aquesta valoració" className="mt-5 divide-y overflow-hidden rounded-xl border bg-card">
       {games.map(item => <button key={item.id} onClick={() => setSelected(item.id)} className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">
-        <span><span className="block text-sm font-medium">{item.nom}</span><span className="mt-1 block text-xs text-muted-foreground">{item.plataforma}</span></span>
+        <span><span className="block text-sm font-medium">{item.nom}</span><span className="mt-1 block text-xs text-muted-foreground">{platformName(item.plataforma)}</span></span>
         <GameRating rating={gameRating(item, data!.experiencies)} className="text-2xl" />
       </button>)}
     </section>

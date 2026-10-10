@@ -1,4 +1,5 @@
 import { unzip, strFromU8 } from 'fflate'
+import { isEmulator, platformName, pcStore } from './platform.ts'
 import type { Backup } from './backup'
 import type { CoverEntry } from './backup-archive'
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -15,7 +16,7 @@ function url(value: unknown) { if (value === null) return; string(value); try { 
 function timestamp(value: unknown) { if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) fail() }
 export function validateBackup(value: unknown, owner: string): Backup {
   const root = object(value)
-  if (root.app !== 'tsumige' || root.format_version !== 1) throw new Error('Format de còpia no compatible.')
+  if (root.app !== 'tsumige' || ![1, 2].includes(root.format_version as number)) throw new Error('Format de còpia no compatible.')
   if (root.user_id !== owner) throw new Error('La còpia pertany a un altre compte. No es pot restaurar aquí.')
   uuid(owner); timestamp(root.exported_at)
   const tables = ['fitxes_joc', 'exemplars', 'experiencies', 'proposits'] as const
@@ -27,6 +28,8 @@ export function validateBackup(value: unknown, owner: string): Backup {
       uuid(row.id); if (row.user_id !== owner || ids.has(row.id as string)) fail(); ids.add(row.id as string)
       timestamp(row.created_at); timestamp(row.updated_at)
       if (table === 'fitxes_joc') {
+        if (root.format_version === 2) bool(row.plataforma_resolta)
+        else delete row.plataforma_resolta
         for (const key of ['nom', 'plataforma']) { string(row[key]); if (!(row[key] as string).trim()) fail() }
         for (const key of ['desenvolupadora', 'genere_principal', 'sinopsi']) string(row[key], true)
         if (!Array.isArray(row.generos_secundaris) || row.generos_secundaris.some(v => typeof v !== 'string')) fail()
@@ -57,6 +60,14 @@ export function validateBackup(value: unknown, owner: string): Backup {
   const games = new Map(backup.fitxes_joc.map(game => [game.id, game]))
   for (const row of [...backup.exemplars, ...backup.experiencies]) if (!games.has(row.joc_id)) fail()
   for (const game of backup.fitxes_joc) {
+    if (game.plataforma_resolta === true) {
+      if (game.plataforma !== platformName(game.plataforma)) throw new Error('Una plataforma resolta ha de tenir el nom canònic. Cal revisar la còpia.')
+      const copies = backup.exemplars.filter(copy => copy.joc_id === game.id)
+      if (isEmulator(game.plataforma) && copies.length) throw new Error('Emulador només admet entrades de Bitàcora. Cal revisar els exemplars històrics abans de restaurar.')
+      const active = copies.filter(copy => copy.a_la_colleccio)
+      if (game.plataforma === 'PC' && active.some(copy => copy.format === 'digital' && pcStore(copy.botiga_servei ?? ''))) throw new Error('Un joc digital de botiga no pot quedar resolt com a PC. Cal revisar la conversió.')
+      if (game.plataforma !== 'PC' && active.some(copy => copy.format === 'fisic') && active.some(copy => copy.format === 'digital')) throw new Error('Físic i digital pendents de consolidar: cal revisar les compres abans de restaurar.')
+    }
     const ratings = [...new Set(backup.experiencies.filter(e => e.joc_id === game.id).map(e => e.valoracio))]
     if (game.valoracio === undefined) {
       const known = ratings.filter(value => value !== null)

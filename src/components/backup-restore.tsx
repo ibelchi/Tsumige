@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth'
@@ -13,6 +13,8 @@ export function BackupRestore() {
   const { session } = useAuth()
   const { canEdit } = useAccess()
   const client = useQueryClient()
+  const fileInput = useRef<HTMLInputElement>(null)
+  const [fileName, setFileName] = useState('')
   const [archive, setArchive] = useState<RestoreArchive | null>(null)
   const [preview, setPreview] = useState<RestorePreview | null>(null)
   const [overwrite, setOverwrite] = useState(false)
@@ -22,7 +24,8 @@ export function BackupRestore() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   async function read(file?: File) {
-    if (!file || !session) return
+    if (!file || !session || busy || !canEdit) return
+    setFileName(file.name)
     setArchive(null); setPreview(null); setError(''); setMessage(''); setConfirmed(false); setOverwrite(false); setBusy(true)
     try {
       if (file.size > 230 * 1024 * 1024) throw new Error('El ZIP supera 230 MB.')
@@ -53,10 +56,18 @@ export function BackupRestore() {
     finally { setBusy(false); setProgress('') }
   }
   if (!canEdit) return null
-  return <section className="mt-6 rounded-xl border bg-card p-6 sm:p-8" aria-labelledby="restore-title">
-    <h2 id="restore-title" className="text-lg font-semibold">Recupera una còpia</h2>
+  return <section className="mt-6 min-w-0 border-t pt-5" aria-labelledby="restore-title">
+    <h3 id="restore-title" className="font-medium">Recupera una còpia</h3>
     <p className="mt-3 text-sm text-muted-foreground">Selecciona un ZIP descarregat des d’aquesta aplicació. Primer en revisarem el contingut; no s’aplica res en obrir-lo.</p>
-    <label className="mt-4 block text-sm">Còpia ZIP<input type="file" accept=".zip,application/zip" disabled={busy} onChange={event => void read(event.target.files?.[0])} className="mt-2 block w-full text-sm" /></label>
+    <div className="mt-4 flex flex-wrap items-center gap-3">
+      <input ref={fileInput} type="file" accept=".zip,application/zip" disabled={busy} aria-label="Còpia ZIP" hidden onChange={event => {
+        const file = event.target.files?.[0]
+        event.target.value = ''
+        void read(file)
+      }} />
+      <Button type="button" variant="outline" disabled={busy} aria-describedby="restore-file-name" onClick={() => fileInput.current?.click()}>Selecciona una còpia ZIP</Button>
+      <span id="restore-file-name" role="status" className="min-w-0 text-sm text-muted-foreground [overflow-wrap:anywhere]">{fileName || 'Cap fitxer seleccionat'}</span>
+    </div>
     {archive && preview && <div className="mt-5 space-y-4">
       <p className="text-sm">Còpia del {new Date(archive.backup.exported_at).toLocaleString('ca-ES')}. Portades incloses: {archive.covers.length} jocs.</p>
       <table className="w-full text-sm"><thead><tr><th className="py-2 text-left">Dades</th><th>Nous</th><th>Ja existents</th></tr></thead><tbody>{preview.rows.map(row => <tr key={row.table}><th className="py-2 text-left font-normal">{labels[row.table]}</th><td className="text-center">{row.added}</td><td className="text-center">{row.existing}</td></tr>)}</tbody></table>
