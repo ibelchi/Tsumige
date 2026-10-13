@@ -1,17 +1,17 @@
 import { platformName } from '@/lib/platform'
-import { useEffect, useSyncExternalStore } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Button } from '@/components/ui/button'
-import { eligibleRandomGames, reconcileRandomGames, renewRandomGames, randomVisit } from '@/lib/random-collection'
+import { eligibleRandomGames, reconcileRandomGames, renewFilterSelection, randomVisit, randomFilters, randomFilterLabels, savedRandomFilter, type RandomFilter } from '@/lib/random-collection'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { getCatalog, type Catalog } from '@/lib/catalog'
 import { useAuth } from '@/lib/auth'
 
-function CoverSelection({ catalog, owner }: { catalog: Catalog; owner: string }) {
-  const ids = useSyncExternalStore(randomVisit.subscribe, () => randomVisit.get(owner), () => randomVisit.get(owner))
-  useEffect(() => { randomVisit.set(owner, reconcileRandomGames(randomVisit.get(owner), eligibleRandomGames(catalog))) }, [catalog, owner])
-  const eligible = eligibleRandomGames(catalog)
+export function CoverSelection({ catalog, owner }: { catalog: Catalog; owner: string }) {
+  const [filter, setFilter] = useState<RandomFilter>(savedRandomFilter)
+  const ids = useSyncExternalStore(randomVisit.subscribe, () => randomVisit.get(owner, filter), () => randomVisit.get(owner, filter))
+  useEffect(() => { randomVisit.set(owner, reconcileRandomGames(randomVisit.get(owner, filter), eligibleRandomGames(catalog, filter)), filter) }, [catalog, owner, filter])
+  const eligible = eligibleRandomGames(catalog, filter)
   const games = ids.flatMap(id => {
     const game = catalog.jocs.find(item => item.id === id)
     return game && eligible.includes(id) ? [game] : []
@@ -21,8 +21,12 @@ function CoverSelection({ catalog, owner }: { catalog: Catalog; owner: string })
       <div className="flex h-56 items-center justify-center sm:h-64"><img src={game.portada_visual_url || game.portada_url!} alt="" loading="lazy" className="h-full w-full object-contain" /></div>
       <p className="mt-3 text-center break-words text-sm font-medium leading-snug">{game.nom}</p><p className="mt-1 text-center break-words text-xs text-muted-foreground">{platformName(game.plataforma)}</p>
     </Link></li>)}
-  </ul> : <p className="mt-4 text-sm text-muted-foreground">No hi ha jocs actius amb portada a la col·lecció.</p>
-  return <><header className="flex items-center gap-2"><h2 className="font-semibold">Jocs a l’atzar</h2><Button type="button" variant="ghost" size="icon" className="size-11 text-green-700" aria-label="Renova els jocs a l’atzar" onClick={() => randomVisit.set(owner, renewRandomGames(ids, eligible))} disabled={!eligible.length}><RefreshCw aria-hidden="true" /></Button></header>{covers}</>
+  </ul> : <p className="mt-4 text-sm text-muted-foreground">No hi ha jocs amb portada per a aquest filtre.</p>
+  return <><header className="flex flex-wrap items-center justify-between gap-2"><h2 className="min-w-0 font-semibold [overflow-wrap:anywhere]">Jocs a l’atzar</h2><div role="group" aria-label="Filtra i renova els jocs a l’atzar" className="ml-auto flex gap-2">{randomFilters.map(option => <Button key={option} type="button" size="sm" variant="outline" aria-label={`Renova els jocs a l’atzar: ${randomFilterLabels[option]}`} title={`Nova selecció: ${randomFilterLabels[option]}`} aria-pressed={filter === option} className={`min-h-10 ${filter === option ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15' : ''}`} onClick={() => {
+    renewFilterSelection(owner, option, catalog)
+    setFilter(option)
+    try {window.localStorage.setItem('tsumige.random.filter', option)} catch { /* Funciona sense Storage. */ }
+  }}>{randomFilterLabels[option]}</Button>)}</div></header>{covers}</>
 }
 
 export function RandomCollectionCovers() {

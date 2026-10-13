@@ -1,3 +1,4 @@
+import { FavoriteIndicator } from '@/components/favorite-indicator'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { saveRecord, createRecord, setGamePlayingFromRecord, removeFromCollection, restoreToCollection, type Catalog } from '@/lib/catalog'
@@ -217,9 +218,9 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
     </section>}
     <header className="grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_18rem]">
       <div className="min-w-0">
-        <h2 id="detall-titol" className="min-w-0 text-xl font-semibold [overflow-wrap:anywhere]">
-          {creating ? (copy ? 'Afegeix un exemplar' : 'Nova entrada de log') : game.nom}
-          {copy?.favorit && <span role="img" aria-label="Joc favorit" className="ml-2 inline-block align-middle text-sm font-normal text-muted-foreground"><span aria-hidden="true">★</span></span>}
+        <h2 id="detall-titol" className="flex min-w-0 items-start gap-2 text-xl font-semibold">
+          {copy?.favorit && <FavoriteIndicator />}
+          <span className="min-w-0 [overflow-wrap:anywhere]">{creating ? (copy ? 'Afegeix un exemplar' : 'Nova entrada de log') : game.nom}</span>
         </h2>
         {!isEditing && !creating && <p className="mt-2 break-words text-base font-medium">{platformName(game.plataforma)}</p>}
       </div>

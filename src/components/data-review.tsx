@@ -9,7 +9,7 @@ import { getReviewCatalog } from '@/lib/review-catalog'
 import { reviewFields, reviewNavigation, reviewRows, reviewTargetLabel, type ReviewFilters, type ReviewRow, type ReviewTarget, type ReviewScope } from '@/lib/data-review'
 
 const control = 'mt-1 w-full rounded-lg border bg-card p-2 text-sm'
-function TargetChooser({ row, onChoose, onClose }: { row: ReviewRow; onChoose: (target: ReviewTarget) => void; onClose: () => void }) {
+export function TargetChooser({ row, onChoose, onClose }: { row: ReviewRow; onChoose: (target: ReviewTarget) => void; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null)
   useEffect(() => { dialog.current?.showModal() }, [])
   return <dialog ref={dialog} onCancel={event => { event.preventDefault(); onClose() }} aria-labelledby="review-choice-title" className="m-auto max-h-[90dvh] w-[min(94vw,600px)] overflow-y-auto rounded-xl border bg-card p-6 text-foreground backdrop:bg-black/40">

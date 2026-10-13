@@ -8,7 +8,7 @@ Tsumigē neix per consultar una col·lecció física i digital. També permet re
 
 ## Què permet fer?
 
-- **Inici:** recompte de jocs físics i digitals, portades dels jocs que s’estan jugant o es volen jugar aviat, fins a tres portades aleatòries de la col·lecció, estables durant la visita amb renovació explícita, i propòsits de l’any actual. Estadístiques al final amb selecció directa; anys amb entrades, només els cinc més recents.
+- **Inici:** recompte de jocs físics i digitals, portades dels jocs que s’estan jugant o es volen jugar aviat, fins a tres portades aleatòries de la col·lecció, estables durant la visita, amb botons Tots/Top que renoven la selecció, i propòsits de l’any actual. Estadístiques al final amb selecció directa; anys amb entrades, només els cinc més recents.
 - **Plataforma:** un camp únic per a consoles, botigues o altres vies d’accés; opcions noves sense modificar el codi. Físic/digital és independent. Emulador només al log.
 - **Col·lecció:** Galeria inicial amb portada o Llista compacta amb miniatures i valoracions, amb elecció conservada durant la navegació; filtres de plataforma, format i gènere; cerca i navegació d’un registre al següent.
 - **log:** galeria amb portades, plataforma, valoració i estat de completat, agrupada per anys del més recent al més antic, encara que els jocs no siguin a la col·lecció. Accés separat al detall de l’entrada i al de Col·lecció quan hi ha exemplars actius relacionats. Un joc pot tenir entrades de diversos anys; les entrades sense any es conserven fora de la vista principal.

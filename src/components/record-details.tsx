@@ -24,7 +24,7 @@ function imageProvider(source: string | null | undefined) {
 }
 
 export function RecordDetails({ kind, record, game, catalog, onViewCollection }: {
-  kind: 'exemplar' | 'experiencia'; record: Exemplar | Experiencia; game: FitxaJoc; catalog: Catalog; onViewCollection: () => void
+  kind: 'exemplar' | 'experiencia' | 'joc'; record: Exemplar | Experiencia | null; game: FitxaJoc; catalog: Catalog; onViewCollection: () => void
 }) {
   const [failedImage, setFailedImage] = useState<string | null>(null)
   const image = game.portada_visual_url ?? game.portada_url

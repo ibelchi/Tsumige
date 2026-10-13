@@ -65,8 +65,8 @@ test('random refresh is icon-only and accessible; Settings retains permanent too
  randomVisit.set(session.user.id,['game'])
  const renderPart=(settings:boolean)=>renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter>{settings ? <SettingsPage/> : <RandomCollectionCovers/>}</MemoryRouter></QueryClientProvider></AuthContext.Provider>)
  const covers=renderPart(false)
- assert.match(covers,/aria-label="Renova els jocs a l’atzar"/)
- assert.match(covers,/size-11 text-green-700/);assert.match(covers,/focus-visible:ring-2/)
+ assert.match(covers,/aria-label="Renova els jocs a l’atzar: Tots"/)
+ assert.match(covers,/aria-label="Renova els jocs a l’atzar: Top"/);assert.doesNotMatch(covers,/lucide-refresh-cw|>Favorits</);assert.match(covers,/focus-visible:ring-2/)
  assert.doesNotMatch(covers,/>Renova els jocs a l’atzar</)
  assert.match(covers,/object-contain/)
  const settings=renderPart(true)
@@ -271,4 +271,60 @@ test('collection list rows keep full thumbnails, long titles, format and red rat
  }
  const html=renderToStaticMarkup(<CollectionListRow game={catalog.jocs[0]} copy={copy} rating={null} onOpen={()=>{}}/>)
  assert.doesNotMatch(html,/text-2xl/)
+})
+
+test('random covers show accessible active filters and only eligible saved selections, including empty results',async()=>{
+ const {CoverSelection}=await import('../src/components/random-collection-covers')
+ const {randomVisit}=await import('../src/lib/random-collection')
+ const {MemoryRouter}=await import('react-router-dom')
+ const previous=Object.getOwnPropertyDescriptor(globalThis,'window')
+ const games=[{...catalog.jocs[0],id:'best',nom:'Millor sintètic',valoracio:'A+',portada_url:'https://example.invalid/cover.jpg'}, {...catalog.jocs[0],id:'favorite',nom:'Favorit sense valoració',valoracio:null,portada_url:'https://example.invalid/wide.jpg'}]
+ const data={jocs:games,exemplars:[{joc_id:'best',a_la_colleccio:true,favorit:false},{joc_id:'favorite',a_la_colleccio:true,favorit:true}],experiencies:[]} as unknown as Catalog
+ try {
+  for(const [filter,ids,label,excluded] of [['all',['best','favorite'],'Tots',''],['best',['best'],'Top','Favorit sense valoració']] as const) {
+   Object.defineProperty(globalThis,'window',{configurable:true,value:{localStorage:{getItem:()=>filter}}})
+   randomVisit.set('random-synthetic',ids,filter)
+   const html=renderToStaticMarkup(<MemoryRouter><CoverSelection owner="random-synthetic" catalog={data}/></MemoryRouter>)
+   assert.equal((html.match(/aria-pressed="true"/g)??[]).length,1)
+   assert.match(html,new RegExp(`aria-pressed="true"[^>]*>${label}`))
+   assert.equal((html.match(/<li /g)??[]).length,ids.length)
+   if(excluded)assert(!html.includes(excluded))
+   assert.match(html,/Renova els jocs a l’atzar/);assert.doesNotMatch(html,/Els millors|>Favorits<|lucide-refresh-cw/);assert.match(html,/flex flex-wrap items-center justify-between/);assert.match(html,/object-contain/);assert.match(html,/focus-visible/)
+  }
+  randomVisit.set('random-empty',[],'best')
+  const html=renderToStaticMarkup(<MemoryRouter><CoverSelection owner="random-empty" catalog={{...data,exemplars:[]}}/></MemoryRouter>)
+  assert.match(html,/No hi ha jocs amb portada per a aquest filtre/);assert.doesNotMatch(html,/<li /)
+ } finally {if(previous)Object.defineProperty(globalThis,'window',previous);else Reflect.deleteProperty(globalThis,'window')}
+})
+
+test('collection gallery and list share a filled, named favorite star before long titles, omitted when inactive',async()=>{
+ const {CollectionCard,CollectionListRow}=await import('../src/components/collection-card')
+ const game={...catalog.jocs[0],nom:'Nom molt llarg '.repeat(20)}
+ for(const favorite of [false,true]) {
+  const copy={joc_id:game.id,format:'fisic',favorit:favorite} as Catalog['exemplars'][number]
+  for(const Component of [CollectionCard,CollectionListRow]) {
+   const html=renderToStaticMarkup(<Component game={game} copy={copy} rating="A+" onOpen={()=>{}}/>)
+   assert.equal((html.match(/aria-label="Joc favorit"/g)??[]).length,favorite ? 1 : 0)
+   if(favorite) {
+    assert(html.indexOf('aria-label="Joc favorit"')<html.indexOf(game.nom))
+    assert.match(html,/fill-current/);assert.match(html,/shrink-0/);assert.match(html,/text-\[#996515\]/)
+   }
+   assert.match(html,/items-start/);assert.match(html,/text-\[#e02424\]/)
+  }
+ }
+})
+
+test('home search is one accessible field for guests and owners, while standalone game details need no fabricated record',async()=>{
+ const {HomeGameSearch}=await import('../src/components/home-game-search')
+ const {RecordDetails}=await import('../src/components/record-details')
+ const {MemoryRouter}=await import('react-router-dom')
+ for(const owner of [true,false]) {
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'search-synthetic'}} as Session
+  client.setQueryData(['access',session.user.id],owner);client.setQueryData(['catalog',session.user.id],catalog)
+  const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter><HomeGameSearch/></MemoryRouter></QueryClientProvider></AuthContext.Provider>)
+  assert.match(html,/role="combobox"/);assert.match(html,/aria-label="Cerca un joc"/);assert.match(html,/aria-autocomplete="list"/)
+  assert.doesNotMatch(html,/<select|<form|<li /)
+ }
+ const html=renderToStaticMarkup(<RecordDetails kind="joc" record={null} game={catalog.jocs[0]} catalog={catalog} onViewCollection={()=>{}}/>)
+ assert.match(html,/Comentari compartit/);assert.match(html,/A\+/);assert.doesNotMatch(html,/<input|<textarea/)
 })
