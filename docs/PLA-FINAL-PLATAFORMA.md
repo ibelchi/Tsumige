@@ -2,7 +2,7 @@
 
 ## Estat vigent: conversió aplicada i verificada
 
-El 10 d’octubre de 2026 l’autor ha executat una vegada el script transaccional privat del pla 002. Els informes posteriors rebuts confirmen `coincideix=true`, cap diferència, totes les fitxes resoltes i els recomptes aprovats. Es preserven identificadors, compres, comentaris, valoracions, Bitàcora i propòsits; només els tres digitals aprovats passen a històrics inactius. El ZIP previ, les captures anteriors/posteriors i el material de reversió complet estan verificats i custodiats fora del repositori. La reversió no s’ha executat.
+El 10 d’octubre de 2026 l’autor ha executat una vegada el script transaccional privat del pla 002. Els informes posteriors rebuts confirmen `coincideix=true`, cap diferència, totes les fitxes resoltes i els recomptes aprovats. Es preserven identificadors, compres, comentaris, valoracions, log i propòsits; només els tres digitals aprovats passen a històrics inactius. El ZIP previ, les captures anteriors/posteriors i el material de reversió complet estan verificats i custodiats fora del repositori. La reversió no s’ha executat.
 
 L’usuari confirma que les comprovacions funcionals locals de Plataforma han passat. És una confirmació de l’usuari, no una prova de navegador executada per l’agent ni una verificació de la versió publicada. Continuen pendents les restauracions i recuperacions remotes, els serveis Auth/Storage no comprovats explícitament i la concurrència multiclient. Les restauracions v1/v2 i la inversa acotada estan provades localment amb dades sintètiques.
 
@@ -72,7 +72,7 @@ L’eina mostra registres afegits/absents/modificats, recomptes i camps canviats
 | Físics actius | Sense canvi |
 | Digitals actius / exemplars actius | −3 / −3 |
 | Retirats | +3; les compres i notes digitals es conserven |
-| Bitàcora i propòsits: totals, IDs, vincles i dades | Sense canvi |
+| log i propòsits: totals, IDs, vincles i dades | Sense canvi |
 
 Els totals i identificadors consten exclusivament als fitxers privats. La nova lectura confirma les previsions; els recomptes posteriors no són un resultat de conversió executada. La lectura inclou també entrades sense any i tots els exemplars; no hi ha exclusions del diagnòstic dins les quatre taules comprovades.
 
@@ -93,9 +93,9 @@ La proposta és **un únic script revisat i una única transacció** per a estru
 1. Iniciar transacció SERIALIZABLE amb límits de temps de locks. Com a rol administratiu, bloquejar les quatre taules afectades contra insercions/edicions concurrents, inclosos propòsits. Les operacions externes han de continuar pausades.
 2. Abans del primer SELECT/DO que fixi la instantània serialitzable, obtenir els bloquejos. Llegir i comparar amb el pla privat: propietari, empremta completa, tots els IDs/totals i els tres parells per ID amb format, estat actiu i compra física. Cada discrepància ha de provocar una excepció que avorti, abans de tocar dades.
 3. Incorporar el cos de la migració estructural preparada dins d’aquesta transacció, **retirant només el BEGIN/COMMIT externs de la còpia d’aplicació**. No tocar el fitxer font ni afegir una transacció niada. Si la columna/RPC ja existeixen, aturar i identificar la fase; no repetir la migració automàticament.
-4. Comprovar que afegir `plataforma_resolta=false` no ha modificat cap dada anterior: hashes sense aquest marcador iguals, exemplars/Bitàcora/propòsits íntegres. La columna nova canvia l’empremta completa: calcular-ne una de nova **només després d’aquest contrast**, sense reutilitzar la d’abans ni acceptar-la cegament.
+4. Comprovar que afegir `plataforma_resolta=false` no ha modificat cap dada anterior: hashes sense aquest marcador iguals, exemplars/log/propòsits íntegres. La columna nova canvia l’empremta completa: calcular-ne una de nova **només després d’aquest contrast**, sense reutilitzar la d’abans ni acceptar-la cegament.
 5. Actuar com `authenticated` amb el context del propietari privat, sense concedir permisos nous. Cridar l’executor amb **els tres IDs digitals del pla** i l’empremta nova comprovada. L’esquema/RLS reals i les proteccions continuen actius.
-6. Abans de COMMIT, assercions de resultat: tres retirades exactes, totals previstos, totes les fitxes resoltes i canòniques, IDs conservats, físics íntegres, únicament l’estat actiu dels digitals autoritzats canviat. `created_at`, compres, camps buits, booleans, notes/valoracions i tots els vincles preservats; Bitàcora i propòsits iguals fila a fila.
+6. Abans de COMMIT, assercions de resultat: tres retirades exactes, totals previstos, totes les fitxes resoltes i canòniques, IDs conservats, físics íntegres, únicament l’estat actiu dels digitals autoritzats canviat. `created_at`, compres, camps buits, booleans, notes/valoracions i tots els vincles preservats; log i propòsits iguals fila a fila.
 7. Acceptar només `updated_at` dels jocs realment convertits i digitals retirats com a canvi de metadata produït pels triggers existents. Els altres exemplars i totes les entrades mantenen també aquesta metadata. Les assercions han de comprovar aquests límits, no limitar-se a recomptes.
 8. COMMIT **només si totes les assercions passen**, en el mateix script. Qualsevol excepció obliga rollback complet d’estructura i dades. El SELECT de verificació preparat serveix també per a lectura posterior; a l’script d’aplicació calen assercions que avortin, no un SELECT amb errors que després faci COMMIT.
 
@@ -115,7 +115,7 @@ El script final privat s’ha emplenat amb els IDs del pla nou i està preparat;
 
 - **Auth/PostgREST:** sessió/JWT reals, propietari/convidat/altre compte, errors i invocació de les RPC des de l’aplicació. SQL/RLS locals no acrediten aquestes interaccions remotes.
 - **Storage:** serveis d’upload/download, URL signades, MIME/mida, bytes reals i recuperació de portades. RLS i DELETE de metadades estan provats localment, però els interns redactats i les API no estan completament reproduïts.
-- **Navegador:** consulta/edició/desament/navegació, llistes/filtres/estadístiques, retirada dels digitals sense perdre Bitàcora, convidats, còpies i restauració; escriptori/mòbil i errors reals.
+- **Navegador:** consulta/edició/desament/navegació, llistes/filtres/estadístiques, retirada dels digitals sense perdre log, convidats, còpies i restauració; escriptori/mòbil i errors reals.
 
 Controls locals d’aquesta preparació: consulta prèvia en READ ONLY, casos sintètics amb zero/null, retirats/sense any/sense fills, duplicat digital, propietari ambigu, canvis d’empremta i detecció de diferències; verificació posterior del pla amb conversió local i rebuig d’un comentari fora del pla. Esquema públic/RPC/RLS/triggers reconstruïts de l’informe rebut. TypeScript, ESLint i compilació; cap consulta remota executada, conversió real ni publicació.
 
@@ -169,7 +169,7 @@ Aquest procediment alternatiu cobreix la reversió del pla en **la mateixa base 
 | `fitxes_joc` | Afegeix `plataforma_resolta`, canvia default; resol totes les fitxes, normalitza només plataformes i actualitza `updated_at` | Elimina marcador i restaura plataforma/data originals per ID |
 | Tres digitals aprovats | `a_la_colleccio=false` i `updated_at`; sense DELETE | Recupera actiu/data originals; compres i altres camps romanen intactes |
 | RPC i triggers | Dos triggers i vuit funcions amb noms nous; RPC original de restauració renomenada i wrapper nou al nom original; grants als nous objectes | DROP dels nous amb RESTRICT, sense CASCADE; rename de la RPC original, preservant OID/cos/owner/ACL |
-| Bitàcora, propòsits i altres exemplars | Locks/lectura, sense actualitzacions | Comprovació de hashes íntegres, cap reimportació |
+| log, propòsits i altres exemplars | Locks/lectura, sense actualitzacions | Comprovació de hashes íntegres, cap reimportació |
 | Auth i convidats | Context JWT només local a la transacció; lectura/lock de convidats, sense canviar comptes o assignacions | Cap restauració ni exportació d’aquests registres |
 | Storage | Cap operació sobre bucket, polítiques, objectes, rutes o bytes | Cap restauració de Storage |
 
@@ -181,7 +181,7 @@ Mantenir escriptures pausades; còpia ZIP definitiva addicional i recomprovació
 
 La reversió es genera amb captures verificades anteriors/posteriors: una transacció SERIALIZABLE amb locks abans de llegir; exigeix exactament l’estat posterior capturat. Recupera únicament els camps canviats, retirant el marcador i restituint la RPC original; desactiva temporalment només els dos triggers de timestamps per recuperar dates exactes i els torna al seu estat original. No desactiva RLS ni els triggers de valoració/portada. Compara totes les files de les quatre taules i l’esquema lògic, índexs, triggers, funcions, ACL i RLS amb l’estat original abans del COMMIT. Dependències noves o qualsevol discrepància fan rollback de la reversió. No força una restauració v1. Una edició posterior necessita conciliació i autorització nova, no una sobreescriptura automàtica.
 
-**Prova local superada:** aplicar → capturar estat posterior → revertir, amb l’esquema contrastat i dades sintètiques; hashes inicials íntegres, timestamps, zero/null/espais/false, IDs/vincles, Bitàcora, propòsits, ACL/RLS i OID de l’RPC original exactes. També rollback d’una reversió amb valors originals incorrectes, rebuig d’edicions posteriors i d’accés anònim. Auth/convidats/metadades Storage ficticis intactes tant en aplicar com en recuperar; això no acredita les API o els bytes remots.
+**Prova local superada:** aplicar → capturar estat posterior → revertir, amb l’esquema contrastat i dades sintètiques; hashes inicials íntegres, timestamps, zero/null/espais/false, IDs/vincles, log, propòsits, ACL/RLS i OID de l’RPC original exactes. També rollback d’una reversió amb valors originals incorrectes, rebuig d’edicions posteriors i d’accés anònim. Auth/convidats/metadades Storage ficticis intactes tant en aplicar com en recuperar; això no acredita les API o els bytes remots.
 
 Reproducció: `node supabase/tests/local/recovery.mjs /ruta/privada/esquema-recuperacio.json`. El ZIP/informe d’esquema per si sols continuen sense equivaler a recuperació validada; el que s’ha provat és aquesta inversa limitada. Cap migració ni reversió remota executada; no s’ha publicat.
 

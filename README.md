@@ -1,6 +1,6 @@
 # 積みゲー · Tsumigē
 
-**Una col·lecció de videojocs i una bitàcora personal, en un mateix lloc.**
+**Una col·lecció de videojocs i un log personal, en un mateix lloc.**
 
 Tsumigē neix per consultar una col·lecció física i digital. També permet recordar què s’ha jugat al llarg dels anys, valorar els jocs, escriure comentaris i seguir els propòsits de cada any. La interfície és en català i busca una presentació clara, discreta i fàcil de consultar.
 
@@ -8,15 +8,15 @@ Tsumigē neix per consultar una col·lecció física i digital. També permet re
 
 ## Què permet fer?
 
-- **Inici:** recompte de jocs físics i digitals, portades dels jocs que s’estan jugant o es volen jugar aviat, tres portades aleatòries de la col·lecció i propòsits de l’any actual.
-- **Plataforma:** un camp únic per a consoles, botigues o altres vies d’accés; opcions noves sense modificar el codi. Físic/digital és independent. Emulador només a Bitàcora.
-- **Col·lecció:** consulta en llista o fitxes amb portada; filtres de plataforma, format i gènere; cerca i navegació d’un registre al següent.
-- **Bitàcora:** jocs agrupats per any, encara que no siguin a la col·lecció. Un joc pot tenir entrades de diversos anys.
+- **Inici:** recompte de jocs físics i digitals, portades dels jocs que s’estan jugant o es volen jugar aviat, fins a tres portades aleatòries de la col·lecció, estables durant la visita amb renovació explícita, i propòsits de l’any actual.
+- **Plataforma:** un camp únic per a consoles, botigues o altres vies d’accés; opcions noves sense modificar el codi. Físic/digital és independent. Emulador només al log.
+- **Col·lecció:** Galeria inicial amb portada o Llista, amb elecció conservada durant la navegació; filtres de plataforma, format i gènere; cerca i navegació d’un registre al següent.
+- **log:** galeria amb portades, plataforma, valoració i estat de completat, agrupada per anys del més recent al més antic, encara que els jocs no siguin a la col·lecció. Accés separat al detall de l’entrada i al de Col·lecció quan hi ha exemplars actius relacionats. Un joc pot tenir entrades de diversos anys; les entrades sense any es conserven fora de la vista principal.
 - **Valoracions i comentaris:** una valoració i un camp de comentaris per joc. A+ i A++ destaquen en vermell; una valoració en blanc és vàlida.
 - **Propòsits:** pendents, fets o descartats, identificats amb text i color.
 - **Estadístiques:** plataformes, gèneres, compres per any, jocs jugats i valoracions. Les categories enllaçades obren els registres corresponents.
 - **Portades:** consulta manual d’IGDB i RAWG o introducció d’una URL.
-- **Revisió de dades:** consulta de camps buits a Configuració, separada per joc, exemplar i entrada de Bitàcora, amb accés al detall i navegació entre resultats. Només per al propietari.
+- **Revisió de dades:** consulta de camps buits a Configuració, separada per joc, exemplar i entrada de log, amb accés al detall i navegació entre resultats. Només per al propietari.
 - **Còpies de seguretat:** ZIP amb dades i fitxers de les portades, vinculacions i informe d’errors; exportacions CSV per consultar amb Excel.
 - **Accés de convidats:** consulta sense poder modificar les dades, protegida també a la base de dades.
 - **Recuperació:** enllaç per correu per canviar la contrasenya, i restauració de còpies ZIP amb revisió prèvia i portades guardades a Supabase.
@@ -55,9 +55,14 @@ La base de dades requereix l’esquema, les funcions i les polítiques descrits 
 ```sh
 npm run typecheck
 npm run lint
-node --experimental-strip-types --test tests/backup-archive.test.ts tests/recovery-restore.test.ts tests/data-review.test.ts tests/platform.test.ts
+node_modules/.bin/esbuild tests/*.test.ts --outdir=/tmp/tsumige-tests --bundle --platform=node --format=esm
+node --test /tmp/tsumige-tests/*.js
+node_modules/.bin/esbuild tests/record-creation-view.test.tsx --outfile=/tmp/tsumige-view-tests.cjs --bundle --platform=node --format=cjs '--define:import.meta.env={}'
+node --test /tmp/tsumige-view-tests.cjs
 npm run build
 ```
+
+Les RPC dels formularis d’alta i els noms aprovats ja estan aplicats i validats. Les proves manuals d’altes noves continuen pendents perquè l’usuari no té registres reals per incorporar; no bloquegen aquesta publicació: [Formularis d’alta](docs/PROPOSTA-ALTES.md). Els noms de plataforma aprovats es presenten canònicament al client; la tanda conjunta de conversió i RPC es documenta a [Noms de plataformes](docs/NOMS-PLATAFORMES.md). Les proves PostgreSQL locals utilitzen metadades privades i registres sintètics; no connecten a Supabase.
 
 Consulta [Publicació i manteniment](docs/PUBLICACIO.md) per al circuit de canvis i [Treball pendent](docs/PENDENTS.md) per a les limitacions i properes millores.
 

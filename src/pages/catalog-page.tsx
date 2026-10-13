@@ -1,3 +1,4 @@
+import { initialCollectionView, rememberCollectionView, type CollectionView } from '@/lib/collection-view'
 import { collectionCopy, platformName } from '@/lib/platform'
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -39,7 +40,7 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
     }
   }, [])
   const [search, setSearch] = useState('')
-  const platforms = params.getAll('plataforma').map(platformName)
+  const platforms = [...new Set(params.getAll('plataforma').map(platformName))]
   const formats = params.has('format') ? params.getAll('format') : ['fisic', 'digital']
   const genre = params.get('genere') ?? ''
   function changeFilter(name: string, values: string[]) {
@@ -54,12 +55,24 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
     const next = checked ? [...values, value] : values.filter(item => item !== value)
     changeFilter(name, name === 'format' && !next.length ? [''] : next)
   }
-  const [view, setView] = useState<'list' | 'cards'>('list')
+  const explicitView = params.get('presentacio')
+  const [view, setView] = useState<CollectionView>(() => initialCollectionView(explicitView))
+  useEffect(() => {
+    if (explicitView === 'list' || explicitView === 'cards') setView(explicitView)
+  }, [explicitView])
+  function chooseView(next: CollectionView) {
+    setView(next)
+    rememberCollectionView(next)
+    changeFilter('presentacio', [next])
+  }
   const [onlyChildren, setOnlyChildren] = useState(false)
   const [order, setOrder] = useState('az')
   const [year, setYear] = useState(() => /^\d{1,4}$/.test(params.get('any') ?? '') ? params.get('any')! : 'all')
+  const fromHome = params.get('origen') === 'inici'
+  useEffect(() => { if (fromHome) { setSearch(''); setOnlyChildren(false) } }, [fromHome])
   const [navigationIds, setNavigationIds] = useState<string[]>([])
   const [selected, setSelected] = useState<string | null>(null)
+  const [initialCollectionId, setInitialCollectionId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const { data, error, isPending } = useQuery({ queryKey: ['catalog', session?.user.id], queryFn: getCatalog, enabled: Boolean(session) })
   const games = new Map(data?.jocs.map(j => [j.id, j]) ?? [])
@@ -76,22 +89,23 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
   const chosen = (history ? data?.experiencies : data?.exemplars)?.find(r => r.id === selected)
   const chosenGame = chosen ? games.get(chosen.joc_id) : undefined
   const navigationRows = history ? [...rows].sort((a, b) => ('any_jugat' in b ? b.any_jugat ?? 0 : 0) - ('any_jugat' in a ? a.any_jugat ?? 0 : 0)) : rows
-  function openRecord(id: string) {
+  function openRecord(id: string, collection = false) {
+    setInitialCollectionId(collection ? id : null)
     setNavigationIds(navigationRows.map(row => row.id))
     setSelected(id)
   }
   const currentIndex = navigationIds.indexOf(selected ?? '')
   const navigation = currentIndex < 0 ? undefined : {
     position: currentIndex + 1, total: navigationIds.length,
-    previous: currentIndex > 0 ? () => setSelected(navigationIds[currentIndex - 1]) : undefined,
-    next: currentIndex < navigationIds.length - 1 ? () => setSelected(navigationIds[currentIndex + 1]) : undefined,
+    previous: currentIndex > 0 ? () => { setInitialCollectionId(null); setSelected(navigationIds[currentIndex - 1]) } : undefined,
+    next: currentIndex < navigationIds.length - 1 ? () => { setInitialCollectionId(null); setSelected(navigationIds[currentIndex + 1]) } : undefined,
   }
   async function refresh() {
     await Promise.all([client.invalidateQueries({ queryKey: ['catalog'] }, { throwOnError: true }), client.invalidateQueries({ queryKey: ['jocs'] })])
     return client.getQueryData<Catalog>(['catalog', session?.user.id])
   }
-  return <div className="page-container">
-    <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="page-title">{history ? 'Bitàcora' : retired ? 'Jocs retirats' : 'Col·lecció'}</h1><div className="flex flex-wrap gap-2">{!history && <Button asChild variant="outline"><Link to={retired ? '/?vista=colleccio' : '/?vista=retirats'}>{retired ? 'Torna a la col·lecció' : 'Jocs retirats'}</Link></Button>}{canEdit && !retired && <Button disabled={!data} onClick={() => setCreating(true)}>{history ? 'Afegeix una experiència' : 'Afegeix a la col·lecció'}</Button>}</div></div>
+  return <div className="page-container collection-layout">
+    <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="page-title">{history ? 'log' : retired ? 'Jocs retirats' : 'Col·lecció'}</h1><div className="flex flex-wrap gap-2">{!history && <Button asChild variant="outline"><Link to={retired ? '/?vista=colleccio' : '/?vista=retirats'}>{retired ? 'Torna a la col·lecció' : 'Jocs retirats'}</Link></Button>}{canEdit && !retired && <Button disabled={!data} onClick={() => setCreating(true)}>{history ? 'Afegeix una entrada' : 'Afegeix un joc'}</Button>}</div></div>
     {retired && <p className="mt-3 text-sm text-muted-foreground">Exemplars que has retirat de la col·lecció. Obre’n un per consultar-lo o recuperar-lo; el seu historial de joc es conserva.</p>}
     {((history && params.has('any')) || params.has('plataforma') || params.has('genere')) && <Link to="/?vista=estadistiques" className="mt-4 inline-block text-sm underline">Torna a Estadístiques</Link>}
     <div className="mt-8 flex flex-wrap items-center gap-3 border-b pb-5">
@@ -102,12 +116,12 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
       {!history && <select aria-label="Filtra per gènere" value={genre} onChange={e => changeFilter('genere', e.target.value ? [e.target.value] : [])} className="h-10 max-w-full rounded-lg border bg-card px-3 text-sm"><option value="">Tots els gèneres</option>{[...new Set(records.map(r => games.get(r.joc_id)?.genere_principal?.trim() || 'Sense gènere'))].sort((a, b) => a === 'Sense gènere' ? 1 : b === 'Sense gènere' ? -1 : a.localeCompare(b, 'ca')).map(value => <option key={value} value={value}>{value}</option>)}</select>}
       {!history && <label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" checked={onlyChildren} onChange={e => setOnlyChildren(e.target.checked)} />Per jugar amb infants</label>}
       {!history && <select aria-label="Ordena els registres" value={order} onChange={e => setOrder(e.target.value)} className="h-10 rounded-lg border bg-card px-3 text-sm"><option value="az">Nom A–Z</option><option value="za">Nom Z–A</option></select>}
-      {!history && <div role="group" aria-label="Vista de la col·lecció" className="flex gap-1"><Button size="sm" variant={view === 'list' ? 'default' : 'outline'} aria-pressed={view === 'list'} onClick={() => setView('list')}>Llista</Button><Button size="sm" variant={view === 'cards' ? 'default' : 'outline'} aria-pressed={view === 'cards'} onClick={() => setView('cards')}>Fitxes</Button></div>}
+      {!history && <div role="group" aria-label="Vista de la col·lecció" className="flex gap-1"><Button size="sm" variant={view === 'list' ? 'default' : 'outline'} aria-pressed={view === 'list'} onClick={() => chooseView('list')}>Llista</Button><Button size="sm" variant={view === 'cards' ? 'default' : 'outline'} aria-pressed={view === 'cards'} onClick={() => chooseView('cards')}>Galeria</Button></div>}
     </div>
     {gameFilter && <p className="mt-4 text-sm">Mostrant {games.get(gameFilter)?.nom ?? 'un joc'}. <Link className="underline" to={history ? '/?vista=jugats' : retired ? '/?vista=retirats' : '/?vista=colleccio'}>Mostra tots els registres</Link></p>}
     {(!history || isPending) && <p role="status" className="mt-4 text-sm text-muted-foreground">{isPending ? 'Carregant…' : `${rows.length} exemplars`}</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error.message}</p>}
-    {history && data ? <HistoryList rows={rows.filter((r): r is import('@/lib/database.types').Experiencia => 'any_jugat' in r)} games={games} experiences={data.experiencies} year={year} onOpen={openRecord} /> : <section aria-label={history ? 'Llista d’experiències' : retired ? 'Exemplars retirats' : 'Jocs de la col·lecció'} className={history ? 'mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : view === 'cards' ? 'mt-5 grid gap-4 md:grid-cols-2' : 'mt-5 overflow-hidden rounded-xl border bg-card divide-y'}>
+    {history && data ? <HistoryList rows={rows.filter((r): r is import('@/lib/database.types').Experiencia => 'any_jugat' in r)} games={games} experiences={data.experiencies} year={year} onOpen={openRecord} copies={data.exemplars} onOpenCollection={id => openRecord(id, true)} /> : <section aria-label={history ? 'Llista d’entrades de log' : retired ? 'Exemplars retirats' : 'Jocs de la col·lecció'} className={history ? 'mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : view === 'cards' ? 'collection-gallery mt-5 grid gap-4' : 'mt-5 overflow-hidden rounded-xl border bg-card divide-y'}>
       {rows.map(r => {
         const j = games.get(r.joc_id)!
 
@@ -119,7 +133,7 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
     </section>}
     {(['igdb', 'rawg'] as const).map(provider => rows.some(r => games.get(r.joc_id)?.portada_font_url?.startsWith(provider === 'igdb' ? 'https://www.igdb.com/' : 'https://rawg.io/')) && <p key={provider} className="mt-3 text-xs text-muted-foreground">Algunes imatges provenen d’<a href={provider === 'igdb' ? 'https://www.igdb.com' : 'https://rawg.io'} target="_blank" rel="noreferrer" className="underline">{provider.toUpperCase()}</a>.</p>)}
     {!isPending && !error && rows.length === 0 && <p className="mt-8 text-sm text-muted-foreground">No hi ha registres amb aquests filtres.</p>}
-    {chosen && chosenGame && data && <RecordEditor key={chosen.id} kind={history ? 'experiencia' : 'exemplar'} record={chosen} game={chosenGame} catalog={data} navigation={navigation} onClose={() => setSelected(null)} onSaved={refresh} />}
+    {chosen && chosenGame && data && <RecordEditor key={chosen.id} kind={history ? 'experiencia' : 'exemplar'} record={chosen} game={chosenGame} catalog={data} navigation={navigation} initialCollection={initialCollectionId === chosen.id} onClose={() => setSelected(null)} onSaved={refresh} />}
     {canEdit && creating && data && <RecordCreator kind={history ? 'experiencia' : 'exemplar'} catalog={data} initialGameId={gameFilter ?? undefined} onClose={() => setCreating(false)} onSaved={refresh} />}
   </div>
 }

@@ -18,10 +18,10 @@ function Check({ label, name, checked }: { label: string; name: string; checked:
 function text(form: FormData, key: string): string | null { const result = String(form.get(key) ?? ''); return result === '' ? null : result }
 function number(form: FormData, key: string): number | null { const result = text(form, key); return result === null ? null : Number(result) }
 
-export function RecordEditor({ kind, record: initialRecord, game: initialGame, catalog: initialCatalog, onClose, onSaved, creating = false, existingGame = false, navigation }: {
+export function RecordEditor({ kind, record: initialRecord, game: initialGame, catalog: initialCatalog, onClose, onSaved, creating = false, existingGame = false, navigation, initialCollection = false }: {
   kind: 'exemplar' | 'experiencia'; record: Exemplar | Experiencia; game: FitxaJoc
   catalog: Catalog; onClose: () => void; onSaved: () => Promise<Catalog | void>
-  creating?: boolean; existingGame?: boolean
+  creating?: boolean; existingGame?: boolean; initialCollection?: boolean
   navigation?: { position: number; total: number; previous?: () => void; next?: () => void }
 }) {
   const { canEdit } = useAccess()
@@ -96,8 +96,8 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
   const retired = Boolean(copy && !copy.a_la_colleccio && !creating)
   const ownedCopies = catalog.exemplars.filter(e => e.joc_id === game.id && collectionCopy(e, game))
   const history = catalog.experiencies.filter(e => e.joc_id === game.id)
-  const [relatedCopyId, setRelatedCopyId] = useState<string | null>(null)
-  const [choosingCopy, setChoosingCopy] = useState(false)
+  const [relatedCopyId, setRelatedCopyId] = useState<string | null>(() => initialCollection && ownedCopies.length === 1 ? ownedCopies[0].id : null)
+  const [choosingCopy, setChoosingCopy] = useState(initialCollection && ownedCopies.length > 1)
   const copyChooser = useRef<HTMLElement>(null)
   useEffect(() => {
     if (choosingCopy) {
@@ -123,7 +123,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
     confirmation.current?.querySelector('button')?.focus()
   }, [confirmNavigation])
   async function retire() {
-    if (busy || !canEdit || !copy || !window.confirm(`Retirar «${game.nom}» (${copy.regio ?? game.plataforma}) de la col·lecció? Es conservaran les experiències, valoracions i notes de joc.`)) return
+    if (busy || !canEdit || !copy || !window.confirm(`Retirar «${game.nom}» (${copy.regio ?? game.plataforma}) de la col·lecció? Es conservaran les entrades de log, valoracions i notes de joc.`)) return
     setBusy(true); setError(null)
     try { await removeFromCollection(copy.id); await onSaved(); onClose() }
     catch (caught) { setError(caught instanceof Error ? caught.message : 'No s’ha pogut retirar.'); setBusy(false) }
@@ -150,7 +150,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
     const nextPlatform = platformName(text(form, 'plataforma') ?? '')
     if (!nextPlatform) { setError('Indica una plataforma.'); return }
     if ((!creating || existingGame) && nextPlatform !== platformName(game.plataforma)) {
-      setError('Una plataforma diferent necessita un registre de joc diferent. No es reassignen les entrades de Bitàcora des d’aquest formulari.')
+      setError('Una plataforma diferent necessita un registre de joc diferent. No es reassignen les entrades de log des d’aquest formulari.')
       return
     }
     if (creating && existingGame && kind === 'exemplar' && catalog.plataformaModel === 2 && !platformResolved) {
@@ -203,7 +203,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
       if (updated) resetDraft(updated)
       return updated
     }} />
-  return <dialog ref={dialog} onCancel={event => { event.preventDefault(); moveTo(onClose) }} aria-labelledby="detall-titol" className="m-auto max-h-[90dvh] w-[min(94vw,760px)] overflow-y-auto rounded-xl border bg-card p-6 text-foreground shadow-xl backdrop:bg-black/40">
+  return <dialog ref={dialog} onCancel={event => { event.preventDefault(); moveTo(onClose) }} aria-labelledby="detall-titol" className="m-auto max-h-[94dvh] w-[min(94vw,1160px)] max-w-none overflow-y-auto rounded-xl border bg-card p-4 sm:p-6 text-foreground shadow-xl backdrop:bg-black/40">
     {choosingCopy && <section ref={copyChooser} aria-label="Tria un exemplar de la col·lecció" className="mb-4 rounded-lg border p-4">
       <h3 className="font-semibold">Tria un exemplar</h3>
       <div className="mt-3 flex flex-col gap-2">
@@ -215,10 +215,10 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
       </div>
       <Button type="button" variant="outline" className="mt-3" onClick={() => setChoosingCopy(false)}>Cancel·la</Button>
     </section>}
-    <header className="grid items-start gap-4 sm:grid-cols-[minmax(0,1fr)_18rem]">
+    <header className="grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_18rem]">
       <div className="min-w-0">
         <h2 id="detall-titol" className="min-w-0 text-xl font-semibold [overflow-wrap:anywhere]">
-          {creating ? (copy ? 'Afegeix un exemplar' : 'Nova experiència de joc') : game.nom}
+          {creating ? (copy ? 'Afegeix un exemplar' : 'Nova entrada de log') : game.nom}
           {copy?.favorit && <span role="img" aria-label="Joc favorit" className="ml-2 inline-block align-middle text-sm font-normal text-muted-foreground"><span aria-hidden="true">★</span></span>}
         </h2>
         {!isEditing && !creating && <p className="mt-2 break-words text-base font-medium">{platformName(game.plataforma)}</p>}
@@ -240,18 +240,18 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
       </div>
     </header>
     {retired && <p className="mt-3 text-sm">Aquest exemplar està retirat. Pots consultar-ne les dades i recuperar-lo abans d’editar-lo.</p>}
-    {isEditing ? <form id="detall-formulari" key={formVersion} ref={formRef} onSubmit={submit} onChange={() => { if (canEdit) { setDirty(true); setSaved(false) } }} className="mt-6 space-y-6">
-      <fieldset disabled={busy || retired || !canEdit} className="space-y-6">
+    {isEditing ? <form id="detall-formulari" key={formVersion} ref={formRef} onSubmit={submit} onChange={() => { if (canEdit) { setDirty(true); setSaved(false) } }} className="mt-4 space-y-4">
+      <fieldset disabled={busy || retired || !canEdit} className="space-y-4">
       <div className="flex flex-wrap gap-x-6 gap-y-2 border-b pb-4">
         <Check name="jugant" label="Hi estic jugant" checked={Boolean(experience?.jugant || history.some(e => e.jugant))} />
         <Check name="per_jugar_aviat" label="Per jugar aviat" checked={game.per_jugar_aviat} />
       </div>
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] items-start gap-4 sm:grid-cols-[190px_minmax(0,1fr)] sm:gap-6">
-        <div className="flex min-w-0 flex-col items-center gap-3">
+      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[clamp(12rem,24vw,16rem)_minmax(0,1fr)] md:gap-6">
+        <div className="mx-auto flex w-full max-w-64 min-w-0 flex-col items-center gap-3">
           {displayImage && !imageError ? <img src={displayImage} alt={`Portada de ${game.nom || 'nou joc'}`} onError={() => setImageError(true)} className="max-h-72 w-full rounded-lg object-contain" /> : <div className="flex min-h-40 w-full items-center justify-center rounded-lg bg-muted"><BrandLogo className="w-12" /></div>}
           {imageError && <p className="text-xs text-muted-foreground">No s’ha pogut carregar la portada.</p>}
+          {rating && <GameRating rating={rating} className="text-center text-5xl leading-none" />}
           {imageSource && <a className="text-xs underline" href={imageSource} target="_blank" rel="noreferrer">Imatge d’{imageSource.startsWith('https://www.igdb.com/') ? 'IGDB' : 'RAWG'}</a>}
-          <GameRating rating={rating} className="mt-2 text-5xl leading-none" />
         </div>
         <div className="grid min-w-0 gap-3">
           <Field label="Nom"><input name="nom" required defaultValue={game.nom} className={control} /></Field>
@@ -278,7 +278,6 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
       <Field label="Valoració del joc"><select name="valoracio" value={rating ?? ''} onChange={e => setRating((e.target.value || null) as Valoracio | null)} className={`${control} ${ratingColor(rating)}`}><option value="" className="text-foreground">En blanc</option>{(['A++', 'A+', 'A', 'B', 'C', 'D'] as const).map(value => <option key={value} className={ratingColor(value)}>{value}</option>)}</select></Field>
       <Field label="Comentaris"><textarea name="comentaris" rows={4} defaultValue={comments.value} disabled={comments.conflict} className={control} /></Field>
       {comments.conflict && <p role="status" className="text-sm text-amber-800">Hi ha comentaris diferents en els registres d’aquest joc. Cal revisar-los abans d’unificar-los; es conserven tots.</p>}
-      {record.origen && <details className="text-xs"><summary className="cursor-pointer">Dades originals de l’Excel</summary><pre className="mt-3 max-h-56 overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3">{JSON.stringify(record.origen, null, 2)}</pre></details>}
     </fieldset>{experience && <section className="mt-7 border-t pt-5"><h3 className="font-medium">A la col·lecció</h3>
       {ownedCopies.length ? <><p className="mt-2 text-sm">{ownedCopies.length} {ownedCopies.length === 1 ? 'exemplar' : 'exemplars'}</p><button type="button" disabled={busy || confirmNavigation} onClick={() => moveTo(openCollection)} className="mt-3 inline-block text-sm underline">Veure el joc a la col·lecció</button></> : <p className="mt-2 text-sm text-muted-foreground">Aquest joc no és a la col·lecció.</p>}
     </section>}

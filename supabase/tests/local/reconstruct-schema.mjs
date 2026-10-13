@@ -4,7 +4,10 @@ export function reconstructSchema(report) {
 const quote=value=>'"'+value.replaceAll('"','""')+'"'
 const literal=value=>"'"+value.replaceAll("'","''")+"'"
 const omitted=value=>value.includes('[COS OMES')||value.includes('[LITERAL LLARG OMES]')||value.includes('[UUID OMITES]')||value.includes('[CORREU OMES]')
-const sql=[]
+// Els wrappers SQL de l’esquema real poden precedir les RPC auxiliars.
+// Desactivar només la validació de creació en aquesta base local; instal·lar
+// totes les definicions abans de les proves i reactivar-la al final.
+const sql=['set check_function_bodies=off;']
 for(const role of report.rols) sql.push(`create role ${quote(role.nom)} ${role.bypass_rls?'bypassrls':''};`)
 sql.push('create schema auth; create schema storage; create table auth.users(id uuid primary key);')
 const functions=report.funcions.filter(f=>!f.signatura.startsWith('storage.')||['storage.foldername(text)','storage.protect_delete()'].includes(f.signatura))
@@ -55,5 +58,6 @@ for(const f of functions) {
 }
 for(const b of report.bucket_portades)sql.push(`insert into storage.buckets values(${literal(b.id)},${literal(b.id)},${b.public},${b.file_size_limit},array[${b.allowed_mime_types.map(literal).join(',')}]);`)
 sql.push("insert into auth.users values('11111111-1111-4111-8111-111111111111'),('22222222-2222-4222-8222-222222222222'),('33333333-3333-4333-8333-333333333333'); insert into public.accessos_convidats values('22222222-2222-4222-8222-222222222222','11111111-1111-4111-8111-111111111111');")
+sql.push('set check_function_bodies=on;')
 return sql.join('\n')
 }

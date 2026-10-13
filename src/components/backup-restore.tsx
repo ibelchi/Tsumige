@@ -8,7 +8,7 @@ import { previewRestore, restoreArchive, type RestorePreview } from '@/lib/resto
 import { buildBackupArchive } from '@/lib/backup-archive'
 import { downloadBlob, getBackup } from '@/lib/backup'
 import { coverUrl } from '@/lib/cover-storage'
-const labels: Record<string, string> = {fitxes_joc: 'Jocs', exemplars: 'Exemplars', experiencies: 'Entrades de Bitàcora', proposits: 'Propòsits'}
+const labels: Record<string, string> = {fitxes_joc: 'Jocs', exemplars: 'Exemplars', experiencies: 'Entrades de log', proposits: 'Propòsits'}
 export function BackupRestore() {
   const { session } = useAuth()
   const { canEdit } = useAccess()

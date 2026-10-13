@@ -37,3 +37,9 @@ La conversió transaccional del pla 002 ja s’ha aplicat una vegada per l’aut
 Els SQL d’inspecció, generadors i proves del repositori són genèrics. Informes reals, CSV, ZIP, plans per identificadors i bundles/SQL generats de reversió es custodien fora del repositori. La migració de referència no s’ha de repetir sobre aquesta base. Una reversió de Git no substitueix la reversió de dades: el client publicat ha de continuar sent compatible amb l’esquema vigent.
 
 La verificació pública ha de relacionar el workflow amb el commit publicat i contrastar els recursos servits per Pages amb l’artefacte desplegat. Això acredita el lliurament de la versió, no les interaccions autenticades. Les comprovacions funcionals locals comunicades per l’usuari es registren com a confirmació de l’usuari; Auth/Storage, restauració remota i navegador públic no es donen per verificats sense executar-ne les proves.
+
+## Publicació posterior a altes i noms
+
+Les RPC d’altes i els noms canònics també estan aplicats i validats pel rebut privat post-COMMIT. Publicar el client no executa migracions, reversions ni cap escriptura a Supabase. Els fitxers SQL del repositori són referències i plantilles genèriques; no executar-los de nou sobre aquesta instància.
+
+Les proves manuals d’altes noves continuen pendents perquè l’usuari no té registres reals per incorporar. S’han de recordar abans de publicar, però l’usuari ha autoritzat aquesta publicació sense bloquejar-la per aquest motiu. Les proves sintètiques de formularis/RPC no substitueixen aquestes comprovacions ni la revisió visual real de les galeries i del detall.

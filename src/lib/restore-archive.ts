@@ -1,7 +1,9 @@
+import names from './platform-names.json'
 import { unzip, strFromU8 } from 'fflate'
 import { isEmulator, platformName, pcStore } from './platform.ts'
 import type { Backup } from './backup'
 import type { CoverEntry } from './backup-archive'
+const approvedPlatformAlias = (value: string) => Object.hasOwn(names, value.trim().toLowerCase()) && !pcStore(value) && !['PC', 'Emulador'].includes(platformName(value))
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const GRADES = ['A++', 'A+', 'A', 'B', 'C', 'D']
 export type RestoreArchive = { backup: Backup; covers: { gameId: string; file: string; bytes: Uint8Array; mime: string }[]; missingCovers: number }
@@ -61,9 +63,9 @@ export function validateBackup(value: unknown, owner: string): Backup {
   for (const row of [...backup.exemplars, ...backup.experiencies]) if (!games.has(row.joc_id)) fail()
   for (const game of backup.fitxes_joc) {
     if (game.plataforma_resolta === true) {
-      if (game.plataforma !== platformName(game.plataforma)) throw new Error('Una plataforma resolta ha de tenir el nom canònic. Cal revisar la còpia.')
+      if (game.plataforma !== platformName(game.plataforma) && !approvedPlatformAlias(game.plataforma)) throw new Error('Una plataforma resolta ha de tenir el nom canònic. Cal revisar la còpia.')
       const copies = backup.exemplars.filter(copy => copy.joc_id === game.id)
-      if (isEmulator(game.plataforma) && copies.length) throw new Error('Emulador només admet entrades de Bitàcora. Cal revisar els exemplars històrics abans de restaurar.')
+      if (isEmulator(game.plataforma) && copies.length) throw new Error('Emulador només admet entrades de log. Cal revisar els exemplars històrics abans de restaurar.')
       const active = copies.filter(copy => copy.a_la_colleccio)
       if (game.plataforma === 'PC' && active.some(copy => copy.format === 'digital' && pcStore(copy.botiga_servei ?? ''))) throw new Error('Un joc digital de botiga no pot quedar resolt com a PC. Cal revisar la conversió.')
       if (game.plataforma !== 'PC' && active.some(copy => copy.format === 'fisic') && active.some(copy => copy.format === 'digital')) throw new Error('Físic i digital pendents de consolidar: cal revisar les compres abans de restaurar.')

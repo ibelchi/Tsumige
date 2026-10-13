@@ -1,0 +1,14 @@
+{
+  "gb": "Game Boy", "game boy": "Game Boy",
+  "gba": "Game Boy Advance", "game boy advance": "Game Boy Advance",
+  "n64": "Nintendo 64", "nintendo 64": "Nintendo 64",
+  "nds": "Nintendo DS", "nintendo ds": "Nintendo DS",
+  "nes": "NES", "nintendo entertainment system": "NES",
+  "snes": "Super Nintendo", "super nintendo": "Super Nintendo", "super nintendo entertainment system": "Super Nintendo",
+  "md": "Mega Drive", "mega drive": "Mega Drive",
+  "xbox360": "Xbox 360", "xbox 360": "Xbox 360",
+  "ps4": "PlayStation 4", "playstation 4": "PlayStation 4",
+  "famicom": "Famicom", "msx": "MSX", "xbox": "XBOX",
+  "epic": "Epic Games", "epic games": "Epic Games", "epic games store": "Epic Games",
+  "steam": "Steam", "itch.io": "itch.io", "pc": "PC", "emulador": "Emulador"
+}

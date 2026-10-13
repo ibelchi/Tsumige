@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth'
 import { getReviewCatalog } from '@/lib/review-catalog'
 import { platformCoverage, platformIssues } from '@/lib/platform'
 
-const labels = { pendents: 'Conversió pendent', botigues: 'Plataforma i botiga', bitacora: 'Destí de Bitàcora', formats: 'Físic i digital', emulador: 'Emulador amb exemplars', coincidencies: 'Coincidències de registres', valoracions: 'Valoracions diferents', comentaris: 'Comentaris i notes diferents', compres: 'Dades de compra diferents' }
+const labels = { pendents: 'Conversió pendent', botigues: 'Plataforma i botiga', bitacora: 'Destí del log', formats: 'Físic i digital', emulador: 'Emulador amb exemplars', coincidencies: 'Coincidències de registres', valoracions: 'Valoracions diferents', comentaris: 'Comentaris i notes diferents', compres: 'Dades de compra diferents' }
 export function PlatformAudit() {
   const { canEdit } = useAccess()
   const { session } = useAuth()

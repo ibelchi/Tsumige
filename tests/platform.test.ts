@@ -120,3 +120,42 @@ test('coverage includes retired copies, undated entries, childless games and rep
  assert(platformCoverage(catalog).some(w=>w.includes('Plataforma buida')))
  assert(platformCoverage(catalog).some(w=>w.includes('Camps compartits')))
 })
+
+test('GB is Game Boy without duplicate options; statistics/CSV merge names, v1/v2 backups preserve IDs and raw aliases',()=>{
+ const catalog=fixture();catalog.jocs[0].plataforma='GB';catalog.jocs.push({...catalog.jocs[0],id:g2,nom:'Una altra prova',plataforma:'Game Boy'})
+ catalog.exemplars.push({...catalog.exemplars[0],id:c2,joc_id:g2})
+ assert.equal(platformName(' gb '),'Game Boy')
+ assert.equal(platformOptions(catalog).filter(name=>name==='Game Boy').length,1)
+ assert(!platformOptions(catalog).includes('GB'))
+ assert.deepEqual(statistics(catalog).platforms,[{label:'Game Boy',value:2}])
+ assert.match(buildCsv(backup(catalog),'colleccio').content,/Game Boy/)
+ for(const version of [1,2] as const) {
+  const restored=validateBackup(structuredClone(backup(catalog,version)),owner)
+  assert.equal(restored.fitxes_joc[0].id,g);assert.equal(restored.experiencies[0].joc_id,g)
+  assert.equal(restored.fitxes_joc[0].plataforma,'GB')
+ }
+})
+
+test('approved names preserve exact spelling and do not merge XBOX with other Xbox consoles',()=>{
+ const approved={GB:'Game Boy',GBA:'Game Boy Advance',N64:'Nintendo 64',NDS:'Nintendo DS',NES:'NES',SNES:'Super Nintendo',MD:'Mega Drive',XBOX360:'Xbox 360',PS4:'PlayStation 4',Famicom:'Famicom',MSX:'MSX',XBOX:'XBOX'}
+ for(const [alias,name] of Object.entries(approved)) {
+  assert.equal(platformName(` ${alias.toLowerCase()} `),name)
+  const c=fixture();c.jocs[0].plataforma=alias
+  for(const version of [1,2] as const)assert.equal(validateBackup(structuredClone(backup(c,version)),owner).fitxes_joc[0].plataforma,alias)
+  assert.match(buildCsv(backup(c),'colleccio').content,new RegExp(name))
+ }
+ assert.equal(platformName('Xbox One'),'Xbox One')
+ assert.notEqual(platformName('XBOX'),platformName('XBOX360'))
+ assert.notEqual(platformName('NDS'),platformName('Nintendo 3DS'))
+ assert.notEqual(platformName('Famicom'),platformName('NES'))
+})
+
+
+test('origin remains in v1/v2 copies despite removal of its viewer',()=>{
+ const c=fixture();c.exemplars[0].origen={prova:'Conservat'};c.experiencies[0].origen={prova:'Entrada conservada'}
+ for(const version of [1,2] as const) {
+  const restored=validateBackup(structuredClone(backup(c,version)),owner)
+  assert.deepEqual(restored.exemplars[0].origen,c.exemplars[0].origen)
+  assert.deepEqual(restored.experiencies[0].origen,c.experiencies[0].origen)
+ }
+})

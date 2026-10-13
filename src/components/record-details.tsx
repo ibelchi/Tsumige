@@ -10,7 +10,7 @@ import { GameRating } from '@/components/game-rating'
 import { useState } from 'react'
 
 function Detail({ label, value }: { label: string; value: ReactNode }) {
-  return <div className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 whitespace-pre-wrap break-words text-sm">{value === null || value === undefined || value === '' ? '—' : value}</dd></div>
+  return <div className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 whitespace-pre-wrap text-sm [overflow-wrap:anywhere]">{value === null || value === undefined || value === '' ? '—' : value}</dd></div>
 }
 
 function imageProvider(source: string | null | undefined) {
@@ -44,15 +44,14 @@ export function RecordDetails({ kind, record, game, catalog, onViewCollection }:
     { label: 'Reproducció', active: copy?.reproduccio },
     { label: 'No localitzat', active: copy?.no_localitzat },
   ].filter(tag => tag.active === true)
-  return <div className="mt-6 space-y-6">
-    <div className="grid items-start gap-5 sm:grid-cols-[190px_minmax(0,1fr)] sm:gap-6">
-      <div className="flex min-w-0 flex-col items-center gap-3">
+  return <div className="mt-4 grid items-start gap-5 md:grid-cols-[clamp(12rem,24vw,16rem)_minmax(0,1fr)] md:gap-6">
+      <div className="mx-auto flex w-full max-w-64 min-w-0 flex-col items-center gap-3">
         {image && failedImage !== image ? <img src={image} alt={`Portada de ${game.nom}`} onError={() => setFailedImage(image)} className="max-h-72 w-full rounded-lg object-contain" /> : <div className="flex min-h-40 w-full items-center justify-center rounded-lg bg-muted"><BrandLogo className="w-12" /></div>}
         {rating && <GameRating rating={rating} className="text-center text-5xl leading-none" />}
         {provider && game.portada_font_url && <a href={game.portada_font_url} target="_blank" rel="noreferrer" className="text-xs underline">{provider}</a>}
       </div>
-      <div className="min-w-0 space-y-5">
-        <dl className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2">
+      <div className="min-w-0 space-y-4">
+        <dl className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
           <Detail label="Desenvolupadora" value={game.desenvolupadora} />
           <Detail label="Gènere" value={game.genere_principal} />
           <Detail label="Any de llançament" value={game.any_llancament} />
@@ -69,12 +68,11 @@ export function RecordDetails({ kind, record, game, catalog, onViewCollection }:
             <Detail label="Completat" value={experience.completat === 'si' ? 'Sí' : experience.completat === 'no' ? 'No' : experience.completat === 'no_aplicable' ? 'No aplicable' : null} />
           </>}
         </dl>
+        {tags.length > 0 && <div aria-label="Etiquetes del joc" className="flex flex-wrap gap-2">
+          {tags.map(tag => <span key={tag.label} className="rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-xs text-primary">{tag.label}</span>)}
+        </div>}
+        <section><h3 className="text-sm font-medium">Comentaris</h3>{comments.conflict ? <ul className="mt-2 space-y-3">{legacyComments.map(value => <li key={value} className="whitespace-pre-wrap text-sm [overflow-wrap:anywhere]">{value}</li>)}</ul> : <p className="mt-2 whitespace-pre-wrap text-sm [overflow-wrap:anywhere]">{comments.value || '—'}</p>}</section>
+        {experience && <section className="border-t pt-4"><h3 className="text-sm font-medium">A la col·lecció</h3>{owned.length ? <button type="button" onClick={onViewCollection} className="mt-2 text-sm underline">Veure el joc a la col·lecció ({owned.length})</button> : <p className="mt-2 text-sm text-muted-foreground">Aquest joc no és a la col·lecció.</p>}</section>}
       </div>
-    </div>
-    {tags.length > 0 && <div aria-label="Etiquetes del joc" className="flex flex-wrap gap-2">
-      {tags.map(tag => <span key={tag.label} className="rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-xs text-primary">{tag.label}</span>)}
-    </div>}
-    <section><h3 className="text-sm font-medium">Comentaris</h3>{comments.conflict ? <ul className="mt-2 space-y-3">{legacyComments.map(value => <li key={value} className="whitespace-pre-wrap break-words text-sm">{value}</li>)}</ul> : <p className="mt-2 whitespace-pre-wrap break-words text-sm">{comments.value || '—'}</p>}</section>
-    {experience && <section className="border-t pt-4"><h3 className="text-sm font-medium">A la col·lecció</h3>{owned.length ? <button type="button" onClick={onViewCollection} className="mt-2 text-sm underline">Veure el joc a la col·lecció ({owned.length})</button> : <p className="mt-2 text-sm text-muted-foreground">Aquest joc no és a la col·lecció.</p>}</section>}
   </div>
 }

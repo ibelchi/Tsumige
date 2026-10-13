@@ -41,15 +41,15 @@ export function CollectionSummary() {
     retry: false,
   })
   const counters = [
-    { label: 'Jocs físics', value: data?.fisics },
-    { label: 'Jocs digitals', value: data?.digitals },
+    { label: 'Jocs físics', value: data?.fisics, format: 'fisic' },
+    { label: 'Jocs digitals', value: data?.digitals, format: 'digital' },
   ]
 
   return (
     <section aria-label="Resum de la col·lecció" aria-busy={isFetching} className="mt-8">
       <div className="grid grid-cols-2 gap-3">
-        {counters.map(({ label, value }) => (
-          <div key={label} className="rounded-xl border bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 font-mono text-2xl font-medium">{value ?? '—'}</p></div>
+        {counters.map(({ label, value, format }) => (
+          <Link key={label} to={`/?vista=colleccio&format=${format}&origen=inici`} className="block rounded-xl border bg-card px-5 py-4 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 font-mono text-2xl font-medium">{value ?? '—'}</p></Link>
         ))}
       </div>
       <div className="mt-3 grid items-start gap-3 sm:grid-cols-2">

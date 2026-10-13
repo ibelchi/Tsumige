@@ -11,7 +11,7 @@ import { useAccess } from '@/lib/access'
 const navigation = [
   { view: 'inici', label: 'Inici', icon: House, to: '/' },
   { view: 'colleccio', label: 'Col·lecció', icon: Library, to: '/?vista=colleccio' },
-  { view: 'jugats', label: 'Bitàcora', icon: History, to: '/?vista=jugats' },
+  { view: 'jugats', label: 'log', icon: History, to: '/?vista=jugats' },
   { view: 'proposits', label: 'Propòsits', icon: Target, to: '/?vista=proposits' },
   { view: 'estadistiques', label: 'Estadístiques', icon: BarChart3, to: '/?vista=estadistiques' },
   { view: 'configuracio', label: 'Configuració', icon: Settings2, to: '/?vista=configuracio' },

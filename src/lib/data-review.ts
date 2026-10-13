@@ -60,5 +60,5 @@ export function reviewTargetLabel(target: ReviewTarget): string {
   return target.kind === 'exemplar' && 'format' in r
     ? [r.format === 'fisic' ? 'Físic' : 'Digital', r.a_la_colleccio ? null : 'Retirat', r.regio, r.botiga_servei && !r.botiga_servei.trim() ? null : r.botiga_servei && platformName(r.botiga_servei),
       r.any_compra === null ? null : `Compra ${r.any_compra}`, r.preu === null ? null : `${r.preu} €`, `ID: ${r.id}`].filter(Boolean).join(' · ')
-    : [`Bitàcora: ${'any_jugat' in r ? r.any_jugat ?? 'seguiment sense any' : ''}`, `ID: ${r.id}`].join(' · ')
+    : [`log: ${'any_jugat' in r ? r.any_jugat ?? 'seguiment sense any' : ''}`, `ID: ${r.id}`].join(' · ')
 }

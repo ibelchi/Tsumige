@@ -1,6 +1,7 @@
 import { getSupabase } from '@/lib/supabase'
 import type { Exemplar, Experiencia, FitxaJoc, Json } from '@/lib/database.types'
 import { withStoredCovers } from '@/lib/cover-storage'
+import { CreationFailure, creationError, creationResult, type CreationKind } from '@/lib/record-creation'
 
 export type Catalog = { jocs: FitxaJoc[]; exemplars: Exemplar[]; experiencies: Experiencia[]; plataformaModel?: 2 }
 export async function getCatalog(): Promise<Catalog> {
@@ -28,6 +29,19 @@ export async function createRecord(kind: 'exemplar' | 'experiencia', gameId: str
   if (error) throw new Error(error.message.includes('ja existeix') ? 'Aquest joc ja existeix amb aquesta plataforma. Torna enrere i selecciona’l a la llista de jocs existents.' : 'No s’ha pogut afegir el registre. Comprova els camps i torna-ho a provar.')
   if (!data) throw new Error('No s’ha pogut confirmar el registre creat.')
   return data
+}
+
+export async function creationVersion(): Promise<boolean> {
+  const { data, error } = await getSupabase().rpc('versio_altes')
+  return !error && data === 1
+}
+export async function createRecordAtomic(input: { kind: CreationKind; id: string; gameId: string | null; game: Json; record: Json; editGame: boolean; updatedAt: string | null; retire: Json }) {
+  const { data, error } = await getSupabase().rpc('alta_registre', {
+    p_tipus: input.kind, p_id: input.id, p_joc: input.gameId, p_fitxa: input.game, p_dades: input.record,
+    p_edita: input.editGame, p_updated_at: input.updatedAt, p_retira: input.retire,
+  })
+  if (error) throw new CreationFailure(creationError(error.message), /^[0-9A-Z]{5}$/.test(error.code) && !error.code.startsWith('08') && error.code !== '57014')
+  return creationResult(data)
 }
 
 export async function setGamePlayingFromRecord(recordId: string, value: boolean, rating: Experiencia['valoracio'], kind: 'exemplar' | 'experiencia') {

@@ -8,7 +8,7 @@ Una mateixa base de dades Supabase relaciona quatre peces principals:
 | --- | --- |
 | `fitxes_joc` | Identitat i plataforma del joc, portada i atribució, gènere, valoració única, comentaris, seguiment i marca per jugar amb infants. |
 | `exemplars` | Propietat física/digital, regió, compra i preu, favorit, intercanvi, reproducció, no localitzat i retirada de la col·lecció. |
-| `experiencies` | Entrades de joc de diferents anys, resultat i seguiment. També admet jocs que no es posseeixen. |
+| `experiencies` | Entrades de log de diferents anys, resultat i seguiment. També admet jocs que no es posseeixen. |
 | `proposits` | Text, any i estat pendent/fet/descartat. |
 
 Retirar un exemplar no elimina la història del joc. Les notes i valoracions importades antigues es conserven fins a la seva conciliació; la interfície utilitza el comentari i la valoració únics del joc. Els camps buits no s’interpreten com a zero, com a no jugat ni com a valoració negativa.

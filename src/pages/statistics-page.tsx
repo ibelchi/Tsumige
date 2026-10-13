@@ -57,7 +57,7 @@ export function StatisticsPage() {
         </details>
         <BarChart title="Despesa per any" rows={stats.spending} money note="Inclou les compres d’exemplars retirats. Els zeros es compten; els preus desconeguts no s’estimen. Els imports sense any es mostren a part." />
       </section>
-      <section aria-labelledby="stats-bitacora"><h2 id="stats-bitacora" className="mb-4 text-xl font-semibold">Bitàcora i valoracions</h2>
+      <section aria-labelledby="stats-bitacora"><h2 id="stats-bitacora" className="mb-4 text-xl font-semibold">log i valoracions</h2>
         <div className="grid items-start gap-4 lg:grid-cols-2">
           <BarChart title="Jocs jugats per any" rows={stats.playedByYear} link={row => `/?vista=jugats&any=${row.label}`} note={`Cada joc compta una vegada per any, encara que tingui diverses entrades. ${stats.missingPlayedYear} entrades sense any queden fora del gràfic.`} />
           <BarChart title="Valoracions dels jocs" rows={stats.ratings} grades link={row => `/?vista=valoracions&valoracio=${encodeURIComponent(row.label)}`} note={`Cada joc compta una vegada, encara que no sigui a la col·lecció. ${stats.unrated} jocs sense valoració.`} />

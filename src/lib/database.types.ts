@@ -110,6 +110,8 @@ export type Database = {
     }
     Views: Record<string, never>
     Functions: {
+      versio_altes: { Args: Record<string, never>; Returns: number }
+      alta_registre: { Args: { p_tipus: string; p_id: string; p_joc: string | null; p_fitxa: Json; p_dades: Json; p_edita: boolean; p_updated_at: string | null; p_retira: Json }; Returns: Json }
       versio_plataforma: { Args: Record<string, never>; Returns: number }
       desar_registre_plataforma: { Args: { p_tipus: string; p_id: string; p_fitxa: Json; p_dades: Json }; Returns: undefined }
       crear_registre_plataforma: { Args: { p_tipus: string; p_joc: string | null; p_fitxa: Json; p_dades: Json }; Returns: string }

@@ -5,7 +5,6 @@ import { downloadBlob, downloadFile, getBackup } from '@/lib/backup'
 import { buildBackupArchive, type CoverEntry } from '@/lib/backup-archive'
 import { buildCsv, type CsvKind } from '@/lib/csv'
 import { BackupRestore } from '@/components/backup-restore'
-import { PlatformAudit } from '@/components/platform-audit'
 import { DataReview } from '@/components/data-review'
 import { coverUrl } from '@/lib/cover-storage'
 
@@ -25,7 +24,7 @@ export function SettingsPage() {
       const archive = await buildBackupArchive(backup, ({ completed, total }) => setProgress(completed === total ? 'Preparant el ZIP…' : `Descarregant portades: ${completed} de ${total}…`), fetch, coverUrl)
       downloadBlob(archive.blob, `tsumige-${backup.exported_at.replace(/[:.]/g, '-')}.zip`)
       setFailedCovers(archive.failed)
-      setMessage(`Còpia preparada: ${backup.fitxes_joc.length} jocs, ${backup.exemplars.length} exemplars, ${backup.experiencies.length} experiències, ${backup.proposits.length} propòsits i portades de ${archive.downloaded} jocs. Comprova la carpeta de descàrregues.`)
+      setMessage(`Còpia preparada: ${backup.fitxes_joc.length} jocs, ${backup.exemplars.length} exemplars, ${backup.experiencies.length} entrades de log, ${backup.proposits.length} propòsits i portades de ${archive.downloaded} jocs. Comprova la carpeta de descàrregues.`)
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'No s’ha pogut preparar la còpia.') }
     finally { setBusy(false); setProgress(null) }
   }
@@ -35,7 +34,7 @@ export function SettingsPage() {
       const backup = await getBackup()
       const result = buildCsv(backup, kind, includeRetired)
       downloadFile(result.content, `tsumige-${kind}${kind === 'colleccio' && includeRetired ? '-amb-retirats' : ''}-${backup.exported_at.replace(/[:.]/g, '-')}.csv`, 'text/csv;charset=utf-8')
-      setCsvMessage(`Exportació preparada: ${result.count} ${kind === 'colleccio' ? 'exemplars' : 'experiències'}. Comprova la carpeta de descàrregues.`)
+      setCsvMessage(`Exportació preparada: ${result.count} ${kind === 'colleccio' ? 'exemplars' : 'entrades de log'}. Comprova la carpeta de descàrregues.`)
     } catch (caught) { setCsvError(caught instanceof Error ? caught.message : 'No s’ha pogut preparar l’exportació.') }
     finally { setBusy(false) }
   }
@@ -45,7 +44,7 @@ export function SettingsPage() {
     <section className="min-w-0 rounded-xl border bg-card p-6 sm:p-8" aria-labelledby="backup-title">
       <h2 id="backup-title" className="text-lg font-semibold">Còpia de seguretat</h2>
       <h3 className="mt-5 font-medium">Descarrega una còpia</h3>
-      <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Descarrega totes les dades i els fitxers de les portades en un ZIP. Inclou jocs, exemplars actius i retirats, comentaris, experiències, valoracions i propòsits de tots els anys. Les imatges desades es conserven encara que el proveïdor deixi de funcionar.</p>
+      <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Descarrega totes les dades i els fitxers de les portades en un ZIP. Inclou jocs, exemplars actius i retirats, comentaris, entrades de log, valoracions i propòsits de tots els anys. Les imatges desades es conserven encara que el proveïdor deixi de funcionar.</p>
       <Button className="mt-5" disabled={busy} onClick={() => void exportBackup()}>Descarrega còpia de seguretat</Button>
       {progress && <p role="status" aria-live="polite" className="mt-4 text-sm">{progress}</p>}
       {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
@@ -55,14 +54,13 @@ export function SettingsPage() {
       <BackupRestore />
     </section>
     <section className="min-w-0 rounded-xl border bg-card p-6 sm:p-8" aria-labelledby="csv-title"><h2 id="csv-title" className="text-lg font-semibold">Exporta per consultar amb Excel</h2>
-      <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">La col·lecció inclou una fila per exemplar. El registre de jocs jugats inclou una fila per experiència, també dels jocs que no tens a la col·lecció.</p>
+      <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">La col·lecció inclou una fila per exemplar. El registre de jocs jugats inclou una fila per entrada de log, també dels jocs que no tens a la col·lecció.</p>
       <label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" disabled={busy} checked={includeRetired} onChange={event => setIncludeRetired(event.target.checked)} />Inclou els exemplars retirats a l’exportació de la col·lecció</label>
       <div className="mt-5 flex flex-wrap gap-3"><Button variant="outline" disabled={busy} onClick={() => void exportCsv('colleccio')}>Descarrega col·lecció CSV</Button><Button variant="outline" disabled={busy} onClick={() => void exportCsv('historial')}>Descarrega jocs jugats CSV</Button></div>
       {csvError && <p role="alert" className="mt-4 text-sm text-red-700">{csvError}</p>}{csvMessage && <p role="status" className="mt-4 text-sm">{csvMessage}</p>}
       <p className="mt-4 text-xs text-muted-foreground">Els canvis que facis al CSV no s’apliquen a l’aplicació. Per conservar totes les dades i relacions, descarrega també la còpia ZIP.</p>
     </section>
     </div>
-    <PlatformAudit />
     <DataReview />
   </div>
 }

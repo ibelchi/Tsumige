@@ -13,17 +13,17 @@ Primera versió local, autoritzada el 9 d’octubre de 2026. Configuració → R
 | Joc | Comentaris | Camp compartit nul/buit/només espais, sense notes antigues amb contingut en cap exemplar o entrada. |
 | Col·lecció | Any de compra | Nul en l’exemplar seleccionat. |
 | Col·lecció | Preu de compra | Nul en l’exemplar seleccionat; zero euros és informat. |
-| Bitàcora | Completat | Nul. Sí, No i No aplicable són valors informats. |
+| log | Completat | Nul. Sí, No i No aplicable són valors informats. |
 
-Una propietat opcional no carregada (`undefined`) indica manca d’informació confirmada, no buit. False tampoc és buit. No s’ofereixen booleans, identificadors, procedència, marques de revisió d’importació ni temps tècnics. Any/preu de compra només s’apliquen a exemplars, mai a entrades de Bitàcora ni directament al joc. Els exemplars històrics d’Emulador no generen resultats de compra; es conserven i es presenten al diagnòstic de conversió separat.
+Una propietat opcional no carregada (`undefined`) indica manca d’informació confirmada, no buit. False tampoc és buit. No s’ofereixen booleans, identificadors, procedència, marques de revisió d’importació ni temps tècnics. Any/preu de compra només s’apliquen a exemplars, mai a entrades de log ni directament al joc. Els exemplars històrics d’Emulador no generen resultats de compra; es conserven i es presenten al diagnòstic de conversió separat.
 
-Col·lecció consulta exemplars actius per defecte; permet incloure retirats i seleccionar físic/digital. Bitàcora consulta entrades amb any; l’opció Inclou seguiment sense any incorpora els registres de seguiment. El camp Any de joc queda fora: un registre sense any pot ser precisament seguiment, i no s’ha acordat distingir-lo d’una entrada anual incompleta. Regió, conservació i botiga/servei queden fora fins a decidir-ne l’aplicabilitat. Sinopsi i gèneres secundaris no s’ofereixen perquè el detall actual no els edita.
+Col·lecció consulta exemplars actius per defecte; permet incloure retirats i seleccionar físic/digital. log consulta entrades amb any; l’opció Inclou seguiment sense any incorpora els registres de seguiment. El camp Any de joc queda fora: un registre sense any pot ser precisament seguiment, i no s’ha acordat distingir-lo d’una entrada anual incompleta. Regió, conservació i botiga/servei queden fora fins a decidir-ne l’aplicabilitat. Sinopsi i gèneres secundaris no s’ofereixen perquè el detall actual no els edita.
 
 ## Resultats i detall
 
-- Joc: una fila per identificador de fitxa, encara que tingui diversos exemplars. Col·lecció i Bitàcora: una fila per exemplar o entrada. La cerca per títol només filtra la llista; mai crea vinculacions.
+- Joc: una fila per identificador de fitxa, encara que tingui diversos exemplars. Col·lecció i log: una fila per exemplar o entrada. La cerca per títol només filtra la llista; mai crea vinculacions.
 - Títol, plataforma i context del registre permeten distingir resultats. Es conserva l’identificador per distingir duplicats amb dades iguals.
-- Per obrir un joc s’ofereixen els seus exemplars actius; si no en té, les entrades de Bitàcora; si tampoc en té, els exemplars retirats. Una única vinculació s’obre directament. Si en té diverses, l’usuari escull explícitament. No s’escull la primera arbitràriament.
+- Per obrir un joc s’ofereixen els seus exemplars actius; si no en té, les entrades de log; si tampoc en té, els exemplars retirats. Una única vinculació s’obre directament. Si en té diverses, l’usuari escull explícitament. No s’escull la primera arbitràriament.
 - Les fitxes sense cap registre vinculat es compten com a no consultables i no tenen un botó que inventi un exemplar/entrada. Queda pendent un detall propi de fitxa de joc.
 - El detall s’obre en consulta amb Anterior/Següent a dalt i a baix. Es conserven el camp, l’àmbit, la cerca i els filtres en tancar.
 - S’enregistra l’ordre dels resultats en obrir. Després de desar es recarreguen les dades i la llista reflecteix el nou filtre. El registre obert es manté com a punt de navegació encara que deixi de complir-lo; no salta a un altre. La resta de resultats que ja no coincideixen es retiren de la navegació. Actualitza els resultats torna a carregar la consulta sense perdre els filtres. Els resultats nous s’incorporen en tornar a obrir des de la llista, sense alterar l’ordre durant la visita.
@@ -31,7 +31,7 @@ Col·lecció consulta exemplars actius per defecte; permet incloure retirats i s
 
 ## Lectura i límits
 
-Lectura específica paginada de fitxes, exemplars i experiències: blocs de 500, ordenats per ID i restringits al propietari. Es comproven `pot_editar` i la sessió, i s’utilitzen les polítiques existents. Aquesta lectura no depèn del límit del catàleg habitual ni descarrega còpies/propòsits. Com en les lectures actuals, no és una instantània transaccional de diverses taules: canvis simultanis des d’una altra sessió poden requerir tornar a carregar Configuració.
+Lectura específica paginada de fitxes, exemplars i entrades de log: blocs de 500, ordenats per ID i restringits al propietari. Es comproven `pot_editar` i la sessió, i s’utilitzen les polítiques existents. Aquesta lectura no depèn del límit del catàleg habitual ni descarrega còpies/propòsits. Com en les lectures actuals, no és una instantània transaccional de diverses taules: canvis simultanis des d’una altra sessió poden requerir tornar a carregar Configuració.
 
 Els jocs sense el camp opcional carregat i els comentaris buits amb notes antigues es compten com a exclosos, sense fusionar ni descartar informació. Les contradiccions antigues de valoració amb columna canònica absent no s’infereixen com una valoració buida. Favorit i la conciliació de notes/valoracions continuen pendents de les decisions de [l’auditoria](AUDITORIA-DETALL.md).
 

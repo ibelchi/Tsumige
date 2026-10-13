@@ -1,8 +1,54 @@
 # Treball pendent
 
+## Publicació de les tandes completades — 13 d’octubre de 2026
+
+- RPC d’altes i normalització de noms aplicades una vegada i validades amb el rebut post-COMMIT; no repetir migracions ni executar reversions. Material privat de recuperació custodiat fora del repositori.
+- Proves manuals d’altes noves encara pendents perquè l’usuari no té registres reals per incorporar. No es donen per superades i s’han de recordar abans de publicar; l’usuari autoritza publicar sense bloquejar-ho només per aquest motiu.
+- Es publiquen nomenclatura log, formularis d’alta, noms canònics, renovació/estabilitat dels jocs a l’atzar, accessos físic/digital, neteja d’eines temporals, galeries adaptables de Col·lecció/log i detall ampliat. Cap aplicació de SQL forma part de la publicació.
+- Pendents: revisió visual real de les darreres tandes, interaccions autenticades i altes noves, Auth/Storage API, recuperacions remotes i concurrència multiclient. Les confirmacions visuals prèvies de l’usuari es mantenen limitades als canvis que va comprovar.
+- Controls previs a aquesta publicació correctes: TypeScript, ESLint, sis fitxers de proves de lògica, renderitzat sintètic, tres proves PostgreSQL locals (altes/permisos, tanda conjunta/recuperació i Game Boy/restauració v1-v2) i compilació. Es manté l’avís de paquet JavaScript superior a 500 kB. GitHub Actions executa també les noves proves.
+- Les seccions següents documenten les tandes i la preparació històrica; l’estat aplicat anterior preval sobre notes antigues de dependències RPC/noms pendents.
+
+
+## log en galeria (13 d’octubre de 2026)
+
+- Decisió confirmada: el log es presenta en galeria, substituint el criteri anterior de vista llista. Es mantenen anys destacats del més recent al més antic i els filtres any → cerca → plataformes, sense selector d’ordre A–Z ni recompte global d’entrades. Entrades sense any fora de la vista principal, preservades.
+- Targetes compartides amb Col·lecció: portada sencera a l’esquerra, títol/plataforma/valoració i estat de completat quan existeix a la dreta. A+ i A++ en vermell. Un estat absent no es presenta com a «No». Mateixos llindars d’amplada útil: una columna, dues des de 41 rem i tres des de 62 rem, descomptant menú i padding.
+- Acció principal «Entrada de log» obre el detall de l’entrada; acció separada «Col·lecció», només amb exemplars actius relacionats per ID. Un exemplar obre directament el detall; diversos mostren el selector existent, sense elecció arbitrària. Botons separats, sense enllaços imbricats. Filtres preservats mentre es consulten els detalls; permisos i formularis d’alta sense canvis.
+- Controls correctes: ESLint, TypeScript i compilació, sis fitxers de proves de lògica i proves de renderitzat sintètiques. Comprovats anys descendents, filtres en l’ordre acordat, entrades sense any excloses, completat buit, valoració vermella, targetes amb portades de diversos formats, botons sense imbricació i accés a Col·lecció amb zero/un/diversos exemplars. Es manté l’avís existent de mida del paquet JavaScript.
+- Pendents visuals: targetes/anys en escriptori i mòbil, títols llargs, portades verticals i panoràmiques, teclat i retorn dels detalls. No hi ha navegador disponible per verificar aquestes interaccions. Les proves funcionals reals d’alta continuen ajornades per l’usuari i s’han de recordar abans de publicar. Cap canvi de dades/esquema de Supabase ni publicació.
+
+## Detall més ample i compacte (13 d’octubre de 2026)
+
+- Quadre adaptat a la finestra, fins a 1.160 px d’amplada i 94 % de l’alçada disponible, amb scroll vertical quan cal. En escriptori: portada a l’esquerra, valoració centrada sota la imatge i font a sota; dades, etiquetes activades i comentaris agrupats a la dreta. Dades repartides en fins a tres columnes internes, amb separacions més compactes i tipografia conservada.
+- En pantalles de menys de 768 px, portada i dades en una columna; portada limitada a 16 rem d’amplada, sense deformació ni retall. Títols, dades i comentaris llargs es poden partir en diverses línies. Cap garantia d’absència de scroll amb contingut llarg o poca alçada.
+- Conservades les zones pròpies del títol/favorit i dels botons, navegació superior/inferior, tots els camps, Configuració desplegable i proteccions actuals de permisos/canvis sense desar. Cap canvi en les operacions de desament o les dades de Supabase.
+- Verificació amb dades sintètiques: comentaris llargs íntegres, només etiquetes actives, ordre portada/valoració/font, absència de valoració, estrella accessible, convidats sense formulari/Edita i navegació duplicada conservada. ESLint, TypeScript, compilació i proves de renderitzat correctes; es manté l’avís existent de paquet JavaScript gran.
+- Pendent de revisió visual real: escriptori i mòbil, títols llargs, formats de portada, finestra de poca alçada, scroll, camps d’edició i Configuració desplegada. No hi ha navegador disponible en aquest entorn. Les proves reals dels formularis d’alta continuen explícitament ajornades per l’usuari; recordar-les abans de publicar i no donar-les per superades. Canvis locals, sense publicació.
+
+## Galeria de Col·lecció i proves d’alta ajornades (13 d’octubre de 2026)
+
+- Galeria ajustada a l’amplada útil del contenidor, després del menú lateral i dels marges interiors: una columna en espais estrets, dues des de 41 rem i tres des de 62 rem. Als llindars, cada targeta disposa de 20 rem com a mínim. Les notes històriques que deixaven les tres columnes com a proposta queden substituïdes per aquesta implementació autoritzada.
+- Es mantenen portada a l’esquerra i dades a la dreta, imatges senceres amb proporcions conservades, valoracions destacades, accés al detall, Galeria inicial, preferència Llista/Galeria i filtres. Títols i plataformes poden ocupar diverses línies, també amb paraules molt llargues.
+- L’usuari ha ajornat les comprovacions funcionals reals dels formularis d’alta. Continuen pendents i s’han de recordar explícitament abans de publicar; la validació de les RPC i les proves sintètiques no les substitueixen ni les donen per superades.
+- Controls correctes: ESLint, TypeScript i compilació, sis fitxers de proves de lògica i les proves de renderitzat dels formularis d’alta. Comprovat el CSS generat amb els llindars de contenidor; continua l’avís existent de paquet JavaScript superior a 500 kB. Les proves de renderitzat no són una comprovació visual ni una alta real.
+- Revisió visual pendent al navegador: una, dues i tres columnes amb menú lateral, finestres estretes i mòbil; títols llargs, portades verticals/panoràmiques i valoracions. No hi ha navegador disponible en aquest entorn per comprovar el resultat renderitzat. No s’han modificat dades ni esquema de Supabase ni publicat.
+
+## SQL Editor: tanda d’altes i noms compactada (13 d’octubre de 2026)
+
+- Tanda compacta aplicada una vegada per l’usuari i rebut post-COMMIT validat: `verificat=true`, cap diferència imprevista, 123 fitxes normalitzades i RPC d’altes presents amb definicions contrastades (només diferències CRLF de presentació). Totals: 453 fitxes, 440 exemplars, 437 actius (218 físics i 219 digitals), 3 històrics, 202 entrades, 4 propòsits; 122 entrades sense any i exemplars preexistents preservats. Rebut temporal amb ACL exclusiva de `postgres`; sense permisos de PUBLIC, anon, authenticated ni service_role. Reversió completa retornada contrastada amb la plantilla aplicada i les captures reals; custòdia privada, sense execució. Es poden reprendre les edicions i provar els formularis locals; la reversió protegida rebutjarà canvis posteriors. Pendents de comprovació funcional al navegador: altes Col·lecció/log, duplicats, dades compartides, any obligatori, Emulador, convidats i protecció de canvis sense desar. No repetir l’aplicació; cap publicació en aquesta tanda. No s’han comprovat Auth/Storage API ni concurrència multiclient real.
+
+- Investigació posterior del diagnòstic: el resultat `dades_coincideixen=false` era una diferència de representació, no una diferència de valors acreditada. L’empremta esperada es calculava després de `JSON.parse`/`JSON.stringify`, que elimina zeros decimals finals; PostgreSQL conserva aquesta escala en `jsonb::text`. La captura CSV original reprodueix exactament l’empremta remota. Igualtat `jsonb` completa entre CSV, captura desada i pla comprovada localment; esquema coincident i RPC noves absents segons el resultat remot. No cal una exportació addicional per explicar aquest resultat. Pla, ZIP i scripts originals intactes; informe explicatiu custodiat privadament. Les guardes del script compacte comparen valors `jsonb`, no empremtes del text, i continuen protegint les dades. Cap aplicació executada; qualsevol edició posterior continua subjecta a les guardes transaccionals.
+
+- L’intent amb el script revisat ha estat rebutjat per mida. El codi oficial del SQL Editor comprova el límit abans de fer la petició; això explica l’avís, però encara no s’ha consultat l’estat real del projecte després de l’intent.
+- Generador `scripts/altes-noms-compact.mjs`: elimina tretze còpies literals redundants; conserva totes les guardes de dades/esquema/permisos, la transacció única, la verificació i la reversió completa retornada després del COMMIT. Captura inicial carregada una vegada en una taula temporal privada, eliminada al COMMIT; ACL explícites i comprovació d’accés efectiu abans de carregar dades.
+- Script privat compactat: 910.373 bytes, davant dels aproximadament 2,57 MB anteriors. Preparada consulta privada de lectura per contrastar dades/esquema amb el pla i confirmar l’absència de les RPC noves. No s’han regenerat el pla ni la captura inicial.
+- Proves locals amb esquema contrastat i dades sintètiques: aplicació, reversió exacta, errors transaccionals, permisos insegurs de taula/columna i col·lisions. ESLint i compilació correctes; continua l’avís de mida del paquet JavaScript. Pendents: resultat de la consulta remota de lectura i execució real del script compactat al SQL Editor. Cap aplicació ni publicació executada per l’assistent.
+- El script compactat cap al límit conegut; no cal instal·lar ni configurar psql ara. Si l’editor imposa un altre límit, executar el mateix batch íntegre amb psql i TLS, sense dividir la transacció.
+
 ## Estat actual de Plataforma i publicació
 
-- Conversió del pla 002 aplicada una vegada per l’autor i verificada amb informes posteriors: `coincideix=true`, cap diferència, cap fitxa pendent i només els tres digitals aprovats fora del recompte actiu. Identificadors, compres, comentaris, valoracions, vincles, Bitàcora i propòsits preservats. No repetir la migració.
+- Conversió del pla 002 aplicada una vegada per l’autor i verificada amb informes posteriors: `coincideix=true`, cap diferència, cap fitxa pendent i només els tres digitals aprovats fora del recompte actiu. Identificadors, compres, comentaris, valoracions, vincles, log i propòsits preservats. No repetir la migració.
 - ZIP previ contrastat i captures reals de dades/esquema custodiades privadament. Reversió transaccional preparada, no executada; rebutja edicions posteriors. No és un dump global d’Auth/Storage ni una recuperació completa d’un projecte perdut.
 - Comprovacions funcionals locals de Plataforma confirmades per l’usuari. Publicació del codi autoritzada. Pendents de verificació independent: web desplegada, restauració/recuperació remotes, serveis Auth/Storage no comprovats explícitament i concurrència multiclient.
 - Favorit fora de Col·lecció, conciliació de comentaris, revisió general del disseny i altres propostes obertes de l’auditoria continuen pendents. Aquesta publicació no les aprova.
@@ -26,18 +72,20 @@
 - Obrir el detall en mode consulta, amb Edita per activar els camps. Desar o descartar torna al mode consulta del mateix joc. Els convidats només poden consultar.
 - Retirar de la interfície definitiva les marques, filtres i indicadors Revisat / Sense revisar.
 - Favorit és independent de la valoració i ja existeix; comprovar-ne la disponibilitat als jocs fora de la col·lecció.
-- Plataforma única sota el nom, sense tipus interns: Steam, Epic Games, itch.io, PC, consoles i Emulador al mateix nivell. Diferents plataformes són diferents registres de joc, sense fusió per títol; físic/digital independent i noves opcions de text. Epic es normalitza a Epic Games. Emulador només a Bitàcora; a la mateixa consola només compta el físic si també hi ha digital, després de revisar discrepàncies.
+- Plataforma única sota el nom, sense tipus interns: Steam, Epic Games, itch.io, PC, consoles i Emulador al mateix nivell. Diferents plataformes són diferents registres de joc, sense fusió per títol; físic/digital independent i noves opcions de text. Epic es normalitza a Epic Games. Emulador només al log; a la mateixa consola només compta el físic si també hi ha digital, després de revisar discrepàncies.
 
 ## Pendents de revisió o decisió
+
+- Revisar visualment la galeria del log implementada: distribució, tipografia, densitat d’informació i adaptació al mòbil. La decisió de galeria substitueix el criteri anterior de llista; la validació visual real continua pendent.
 
 Les propostes següents no estan aprovades per implementar-les.
 
 - Revisar la distribució del detall i reduir el control de valoració, amb una ubicació adequada.
 - Auditoria local del detall completada a [AUDITORIA-DETALL.md](AUDITORIA-DETALL.md). Pendent de contrastar l’esquema real de Supabase i decidir les correccions, omissions i camps condicionals; no assumir que tots s’han de mostrar.
 - Primera versió de Revisió de dades implementada localment a Configuració; criteris i exclusions a [REVISIO-DADES.md](REVISIO-DADES.md). Pendent de revisió visual i de decidir els camps condicionals, l’any de joc, la conciliació de notes/valoracions i el detall de fitxes sense registres vinculats.
-- Col·lecció ha de donar d’alta jocs; Bitàcora, entrades de joc. Es planteja cercar un joc existent o escriure un títol nou fora de la col·lecció a Bitàcora; el funcionament concret queda per decidir.
-- Substituir el terme experiència; proposta: entrada de Bitàcora.
-- Plataforma: criteris resolts, proposta substituïda i preparació local a [PROPOSTA-PLATAFORMA.md](PROPOSTA-PLATAFORMA.md). Pendents la inspecció SQL real i els destins de cada exemplar/entrada, valoracions, comentaris i compres dels casos ambigus. Migració preparada, sense aplicar conversions.
+- Formularis d’alta: implementació completada i RPC aplicades i validades. Proves manuals d’altes noves pendents perquè no hi ha registres reals per incorporar; no bloquegen aquesta publicació. Vegeu PROPOSTA-ALTES.md.
+- Nomenclatura confirmada i implementada: «log», sempre en minúscules, i «entrada de log».
+- Plataforma: pla 002 aplicat i verificat, tal com indica l’estat actual; no repetir-lo. Els canvis posteriors de noms tenen preparació separada a [NOMS-PLATAFORMES.md](NOMS-PLATAFORMES.md).
 - Revisar la vista llista de Col·lecció, inclosa una possible miniatura al costat del nom.
 - Possible pujada de portades pròpies. La presentació d’imatges panoràmiques s’ha ajustat en la segona tanda; queda pendent de revisió visual.
 - Validar visualment els llindars de dues i tres columnes de Jugant i Per jugar aviat, amb portades grans, títol i plataforma a sota (implementació autoritzada en la segona tanda).
@@ -69,7 +117,7 @@ La revisió manual dels registres no bloqueja aquestes millores.
 - Anterior i Següent disponibles a la part superior dreta i a la part inferior, amb la mateixa llista i els mateixos límits. La llista i l’ordre dels registres filtrats es fixen en obrir el detall: desar un camp que afecta els filtres o l’ordre no impedeix continuar navegant. Tanca conserva els filtres de la llista.
 - Desar manté oberta la fitxa del mateix joc, recarrega les dades desades i mostra «Canvis desats». Es poden tornar a editar i continuar amb Anterior/Següent.
 - «Desfés els canvis» restaura els camps, la valoració, la portada i els controls de botiga/format a les dades desades, sense tancar ni canviar de joc. «Tanca» és una acció diferenciada.
-- Anterior/Següent, Tanca, Esc i l’accés a la col·lecció des de Bitàcora protegeixen els canvis pendents amb les opcions Desa i continua / Descarta i continua / Continua editant. S’afegeix l’avís natiu en recarregar o sortir de la pàgina. Durant el desament es bloquegen les accions; si falla el desament o la recàrrega, es conserva l’esborrany i es mostra l’error.
+- Anterior/Següent, Tanca, Esc i l’accés a la col·lecció des de log protegeixen els canvis pendents amb les opcions Desa i continua / Descarta i continua / Continua editant. S’afegeix l’avís natiu en recarregar o sortir de la pàgina. Durant el desament es bloquegen les accions; si falla el desament o la recàrrega, es conserva l’esborrany i es mostra l’error.
 - Els convidats mantenen els camps desactivats i no tenen accions de desament o desfés. El mode consulta/edició s’ha implementat en la tanda següent; altres canvis de disseny continuen pendents. L’alta de registres conserva el tancament després de crear-los.
 - Verificació: TypeScript, ESLint, compilació, proves existents i comprovacions aïllades del component amb dades i desaments simulats (èxit, error, desfés, confirmació, límits, convidats, bloqueig mentre desa i continuïtat amb filtres). Cap prova escriu a Supabase.
 - Limitació: sense navegador disponible, no s’han verificat les interaccions DOM reals ni la presentació en escriptori/mòbil. Revisió manual pendent: desar i tornar a desfer, errors de desament, navegació superior/inferior amb filtres, primer/últim registre, Tanca/Esc amb canvis pendents i sessió de convidat.
@@ -102,15 +150,15 @@ La revisió manual dels registres no bloqueja aquestes millores.
 ## Retirada de la revisió d’importació i auditoria (canvis locals)
 
 - Retirats el filtre Sense revisar, la secció Revisió de la importació, les etiquetes Revisat/Sense revisar de la llista i el tic Revisat del detall. No hi havia un recompte separat de revisats a la interfície.
-- El desament conserva explícitament el valor existent de `revisat` en exemplars i experiències. El camp es manté als tipus, còpies ZIP, CSV i restauració; cap migració ni canvi de dades. Les funcions de consulta, edició i navegació es conserven.
-- [Auditoria del detall](AUDITORIA-DETALL.md) completada amb inventari separat de joc, col·lecció i Bitàcora: camps visibles, editables, condicionals, absents i tècnics. Només codi/tipus/migració locals; l’esquema real i les definicions dels RPC no estan disponibles per a aquesta inspecció.
-- Discrepàncies principals: Favorit és d’exemplar i no es pot marcar als jocs sense exemplar; sinopsi i gèneres secundaris no apareixen al detall; valoracions/notes antigues conviuen amb els camps compartits; Jugant actua sobre el conjunt del joc. Per jugar amb infants és un camp de joc i sí que és editable des de Bitàcora encara que el joc no es posseeixi.
+- El desament conserva explícitament el valor existent de `revisat` en exemplars i entrades de log. El camp es manté als tipus, còpies ZIP, CSV i restauració; cap migració ni canvi de dades. Les funcions de consulta, edició i navegació es conserven.
+- [Auditoria del detall](AUDITORIA-DETALL.md) completada amb inventari separat de joc, col·lecció i log: camps visibles, editables, condicionals, absents i tècnics. Només codi/tipus/migració locals; l’esquema real i les definicions dels RPC no estan disponibles per a aquesta inspecció.
+- Discrepàncies principals: Favorit és d’exemplar i no es pot marcar als jocs sense exemplar; sinopsi i gèneres secundaris no apareixen al detall; valoracions/notes antigues conviuen amb els camps compartits; Jugant actua sobre el conjunt del joc. Per jugar amb infants és un camp de joc i sí que és editable des de log encara que el joc no es posseeixi.
 - Documentada la proposta de Revisió de dades, sense implementar-la. Pendent de decidir Favorit de joc/exemplar, camps absents/condicionals i àmbits/selector/actualització de resultats de l’eina. Les propostes no s’han donat per aprovades.
 - Controls: TypeScript, ESLint, compilació, proves existents i comprovacions aïllades amb dades sintètiques de consulta/edició/navegació i preservació de true/false de `revisat`. Sense navegador real: pendent de verificació visual. Sense escriure a Supabase ni publicar.
 
 ## Revisió de la interfície
 
-- Continuar refinant el detall dels jocs i la presentació de la Bitàcora.
+- Continuar refinant el detall dels jocs i la presentació del log.
 - Revisar què es mostra a les fitxes de la col·lecció i al detall.
 - Revisar l’accessibilitat, la vista mòbil i la coherència dels filtres amb cada canvi.
 
@@ -131,11 +179,11 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 - Mode fosc i instal·lació PWA, per decisió de l’autor.
 - Filtre físic/digital per any; es mantenen els de plataforma i gènere.
 
-## Bitàcora: accés al detall de Col·lecció (canvis locals)
+## log: accés al detall de Col·lecció (canvis locals)
 
 - L’accés utilitza exclusivament `joc_id` i l’identificador de l’exemplar, mai coincidències de títol. Només considera exemplars actius.
-- Un exemplar: obre directament el seu detall en consulta, amb portada i les dades disponibles. Diversos: ofereix una selecció amb format, regió, botiga, conservació, compra, preu i identificador per distingir fins i tot duplicats. Cap exemplar: no mostra cap enllaç a resultats buits; el detall de Bitàcora continua accessible.
-- Tanca/Esc del detall de Col·lecció torna al detall de Bitàcora. La llista original continua muntada: conserva any, cerca, filtres i ordre de navegació. No es canvia la ruta ni s’escull un exemplar arbitràriament.
+- Un exemplar: obre directament el seu detall en consulta, amb portada i les dades disponibles. Diversos: ofereix una selecció amb format, regió, botiga, conservació, compra, preu i identificador per distingir fins i tot duplicats. Cap exemplar: no mostra cap enllaç a resultats buits; el detall de log continua accessible.
+- Tanca/Esc del detall de Col·lecció torna al detall de log. La llista original continua muntada: conserva any, cerca, filtres i ordre de navegació. No es canvia la ruta ni s’escull un exemplar arbitràriament.
 - Es conserven els permisos dels convidats i la confirmació dels canvis pendents, també abans de seleccionar un exemplar i en tancar-ne el detall.
 - Verificació amb dades sintètiques: zero, un i tres exemplars; exclusió de retirats i d’un joc amb un altre identificador; selecció explícita, retorn, propietari/convidat i protecció dels canvis pendents. Regressions de consulta, edició, desament, error i navegació superades. TypeScript, ESLint, compilació i proves existents superades.
 - Sense navegador disponible: pendent de comprovar focus i obertura/tancament dels diàlegs reals, selecció en mòbil/escriptori i conservació visual dels filtres. La comprovació aïllada no substitueix aquesta revisió. Sense modificar Supabase ni publicar.
@@ -143,8 +191,8 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 
 ## Configuració: Revisió de dades (canvis locals)
 
-- Consulta reservada al propietari, amb àmbits Joc / Col·lecció / Bitàcora, camp seleccionable, cerca per títol i filtres de format, retirats o seguiment quan pertoquen. Sense marques Revisat/Sense revisar.
-- Camps inclosos: portada, gènere principal, valoració i comentaris compartits confirmats; any/preu de compra per exemplar; completat de Bitàcora. Text buit o només espais és buit; zero i false no ho són. No tenir valoració no s’etiqueta com a error.
+- Consulta reservada al propietari, amb àmbits Joc / Col·lecció / log, camp seleccionable, cerca per títol i filtres de format, retirats o seguiment quan pertoquen. Sense marques Revisat/Sense revisar.
+- Camps inclosos: portada, gènere principal, valoració i comentaris compartits confirmats; any/preu de compra per exemplar; completat de log. Text buit o només espais és buit; zero i false no ho són. No tenir valoració no s’etiqueta com a error.
 - Lectura paginada específica, llista compacta i detall en consulta amb selecció explícita si hi ha diverses vinculacions. Anterior/Següent conserva l’ordre de revisió; desar actualitza resultats mantenint el registre obert encara que deixi de coincidir. Tanca conserva camp i filtres; es mantenen els permisos i la protecció d’esborranys.
 - Exclosos els camps opcionals no carregats, comentaris amb notes antigues i camps amb aplicabilitat pendent. Fitxes sense exemplar/entrada es compten a part i no generen registres ficticis. Vegeu [REVISIO-DADES.md](REVISIO-DADES.md) per als límits i decisions pendents.
 - Controls: TypeScript, ESLint, compilació, proves existents i noves proves sintètiques de buits/espais/zero/false/no aplicable, vinculacions i navegació; comprovacions aïllades de permisos, filtres i desament. Proves sense dades reals ni migracions. Sense navegador: pendent de revisar escriptori/mòbil, focus, selecció i interaccions reals del detall. Canvis locals, sense publicar.
@@ -153,7 +201,7 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 
 - Primera fila: Còpia de seguretat a l’esquerra i Recupera una còpia a la dreta, en dues columnes a partir de 1024 px. Els quadres s’alineen a dalt i mantenen alçades independents segons el contingut. Per sota, una sola columna en aquest mateix ordre.
 - Exporta per consultar amb Excel ocupa la fila següent. Revisió de dades queda al final, a tota l’amplada, sense opcions de configuració sota les llistes llargues. Canvia la contrasenya continua abans dels quadres.
-- Retirat només el quadre Jocs retirats de Configuració; es conserven els registres, la Bitàcora i els mecanismes existents de consulta, còpia, restauració i exportació de retirats. Funcions i permisos preservats.
+- Retirat només el quadre Jocs retirats de Configuració; es conserven els registres, el log i els mecanismes existents de consulta, còpia, restauració i exportació de retirats. Funcions i permisos preservats.
 - Controls: ESLint, TypeScript i compilació; proves existents de còpia/restauració i revisió de dades. Ordre dels components i classes de distribució comprovats. Sense navegador disponible: pendent de revisar l’alineació real en escriptori, el pas a una columna en finestres estretes i mòbil, els quadres amb missatges/previsualització de restauració i la revisió amb una llista llarga. Sense modificar Supabase ni publicar.
 
 ## Configuració: còpia integrada i selector ZIP (canvis locals)
@@ -168,7 +216,7 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 ## Unificació de Plataforma: anàlisi inicial (substituïda)
 
 - Inventari d’usos i combinacions completat. La proposta inicial de tipus interns i seleccions per exemplar/entrada ha estat descartada; [PROPOSTA-PLATAFORMA.md](PROPOSTA-PLATAFORMA.md) recull ara els criteris confirmats i la preparació vigent.
-- Plataforma actual pertany al joc; Botiga o servei a l’exemplar; Bitàcora no identifica l’exemplar utilitzat. No es poden propagar botigues a entrades ni unir fitxes pel títol.
+- Plataforma actual pertany al joc; Botiga o servei a l’exemplar; log no identifica l’exemplar utilitzat. No es poden propagar botigues a entrades ni unir fitxes pel títol.
 - L’abast per fitxa i l’absència de classificació estan resolts en la tanda següent. Continuen pendents les discrepàncies concretes de conversió i la inspecció real, així com les altres discrepàncies de l’auditoria general.
 - Aquella tanda només va modificar documentació. Esquema, RPC, importador original i freqüències reals encara no verificats; la preparació de codi posterior es descriu a continuació.
 
@@ -176,7 +224,7 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 
 - Substituïda la proposta de classificació i excepcions per registre pels criteris confirmats: una plataforma de text per fitxa, sense tipus ni agrupació de botigues sota PC. Mateix títol en plataformes diferents conserva fitxes independents. Suggeriments i noves opcions lliures.
 - Codi compatible amb dades antigues; Botiga es conserva en pendents i desapareix als resolts. Preparats marcador tècnic de transició, RPC i proteccions d’Emulador, plataforma amb vincles i físic/digital; cap conversió aplicada. Entrades antigues no reben botiga deduïda dels exemplars.
-- Diagnòstic privat de lectura a Configuració amb grups de plataforma/botiga, Bitàcora, formats, compres, valoracions, comentaris, Emulador i coincidències. No té acció d’aplicar conversions.
+- Diagnòstic privat de lectura a Configuració amb grups de plataforma/botiga, log, formats, compres, valoracions, comentaris, Emulador i coincidències. No té acció d’aplicar conversions.
 - Preparades lectura v1/v2 de còpies, nova exportació v2 quan el servidor l’admeti, restauració amb bloqueig de sobreescriptures antigues ambigües, CSV i Revisió de dades. Originals, IDs, retirats i compres preservats.
 - SQL de lectura d’inspecció, migració i proves SQL amb rollback preparats, no executats. No hi ha connexió d’inspecció ni PostgreSQL local: esquema i combinacions reals no verificats. Abans de migrar cal contrastar RPC/triggers i presentar les discrepàncies reals agrupades.
 - Respostes pendents només per als casos concrets: destí d’entrades en separar PC/botigues, repartiment de valoracions/comentaris, exemplar/fitxa que es conserva i compra del digital retirat, i conservació d’exemplars antics d’Emulador. No s’ha programat un executor de conversió massiva.
@@ -185,7 +233,7 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 
 ## Plataforma: casos resolts i proves locals de conversió
 
-- L’autor resol els tres conflictes Switch que apareixien duplicats als grups Formats/Compres: conservar físics i compres aprovades; retirar només digitals del recompte, mantenint dades i Bitàcora. No s’incorporen dades personals al repositori. Els altres grups es declaren a zero en el diagnòstic privat; contrast independent encara pendent.
+- L’autor resol els tres conflictes Switch que apareixien duplicats als grups Formats/Compres: conservar físics i compres aprovades; retirar només digitals del recompte, mantenint dades i log. No s’incorporen dades personals al repositori. Els altres grups es declaren a zero en el diagnòstic privat; contrast independent encara pendent.
 - «Conversió pendent: 453» són fitxes sense marcador tècnic confirmat, no errors ni exemplars. Lectura reforçada amb recomptes exactes, paginació segons files rebudes, empremta abans/després i avisos d’orfes/IDs/plataformes buides/camps no disponibles. No s’han consultat els recomptes reals aquí.
 - Executor SQL preparat amb IDs explícits i empremta, només propietari, transacció i bloqueig de conflictes. Cap execució automàtica, deducció de botiga, fusió o reassignació; conserva preus, anys, null, zero, false i camps històrics.
 - Migracions i restauracions v1/v2 executades en PostgreSQL local incrustat (PGlite), amb esquema i usuaris sintètics. Corregit àlies ambigu del SQL de restauració. Fixture amb 453 fitxes: pendents 453→0, exemplars 6→6, actius 6→3, físics 3→3, entrades 6→6; comparació íntegra de dades. Convidat consulta però no edita/converteix/restaura. Lectura amb límit de 200, 1001 registres per taula i errors comprovada.
@@ -205,7 +253,7 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 - Informe de metadades rebut privadament, sense incorporar-lo al repositori. Contrastades columnes, signatures/cossos públics, constraints, RLS i triggers reals. Bucket privat de 20 MiB/MIME confirmats a l’informe. Claus compostes validades protegeixen joc/propietari; política de lectura del propietari sense exclusions internes.
 - Esquema públic/RPC/triggers/RLS reconstruïts en PostgreSQL local amb comptes sintètics. Migració, conversió 453 fitxes, restauracions v1/v2, alta/desament, valoració compartida, convidat, compte aliè i anònim superats. Detectada i corregida variable SQL ambigua d’alta; no s’ha aplicat a Supabase.
 - Contrastades RLS i protecció DELETE de Storage amb objectes ficticis. Interns de Storage només parcialment reproduïts perquè alguns noms/ACL van quedar redactats. API/Auth/PostgREST, fitxers/URL signades i navegador continuen pendents; no donar-los per verificats.
-- Prova amb timestamps antics: preserva created_at, físics i Bitàcora; updated_at canvia als registres modificats segons els triggers existents. Evitades actualitzacions redundants del marcador en restaurar i de jocs ja resolts en convertir.
+- Prova amb timestamps antics: preserva created_at, físics i log; updated_at canvia als registres modificats segons els triggers existents. Evitades actualitzacions redundants del marcador en restaurar i de jocs ja resolts en convertir.
 - TypeScript, ESLint, compilació i proves locals superades; avís habitual de mida del bundle. Totals i IDs reals encara pendents de diagnòstic/pla privat; 453 són fitxes pendents, els tres casos estan resolts. Sense conversions reals ni publicació. Detall i reproducció a [VALIDACIO-PLATAFORMA.md](VALIDACIO-PLATAFORMA.md).
 
 ## Plataforma: comprovació final de dades preparada
@@ -219,7 +267,7 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 
 - Informe real validat independentment: totals globals i per propietari, conjunts complets d’IDs, vincles i empremtes. Inclou exemplars i entrades sense any; cap bloqueig ni altre grup de discrepàncies. Els tres casos aprovats tenen un físic i un digital actius i compres físiques coincidents; els buits digitals es conserven.
 - Pla per identificadors i lectures prèvia/posterior generats fora del repositori, sense dades personals als documents públics. Primera base real: no hi havia una empremta antiga amb què acreditar absència de canvis històrics. Cap migració ni publicació.
-- Recomptes previstos contrastats: es mantenen fitxes, exemplars totals, físics, Bitàcora i propòsits; només tres digitals passen a històrics i es resolen les fitxes pendents. Detall privat i procediment a [PLA-FINAL-PLATAFORMA.md](PLA-FINAL-PLATAFORMA.md).
+- Recomptes previstos contrastats: es mantenen fitxes, exemplars totals, físics, log i propòsits; només tres digitals passen a històrics i es resolen les fitxes pendents. Detall privat i procediment a [PLA-FINAL-PLATAFORMA.md](PLA-FINAL-PLATAFORMA.md).
 - ZIP definitiu immediatament abans de la futura aplicació autoritzada, amb edicions pausades i recomprovació per IDs; renovar pla/còpia si canvien dades. Auth/PostgREST, serveis i bytes de Storage, recuperació remota i navegador continuen pendents.
 
 ## Plataforma: recuperació persistent, pendent de nova lectura
@@ -237,7 +285,7 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 ## Plataforma: script final transaccional preparat, no aplicat
 
 - Generador sense dades personals i script privat persistent basat en el pla nou: comprovacions d’esquema/RLS/permisos, identificadors, compres, empremtes i totes les files; locks abans de fixar la instantània serialitzable. Migració i conversió en una única transacció amb assercions abans del COMMIT.
-- Script complet provat amb esquema públic contrastat i dades sintètiques: només tres digitals deixen el recompte actiu; IDs, compres, comentaris, valoracions, Bitàcora i propòsits preservats. Rollback de dades i DDL davant dades/IDs/RLS canviats i fallada després de convertir; convidat/anònim rebutjats i reexecució bloquejada.
+- Script complet provat amb esquema públic contrastat i dades sintètiques: només tres digitals deixen el recompte actiu; IDs, compres, comentaris, valoracions, log i propòsits preservats. Rollback de dades i DDL davant dades/IDs/RLS canviats i fallada després de convertir; convidat/anònim rebutjats i reexecució bloquejada.
 - Lectures prèvia/posterior, manifest i procediment privats preparats. ZIP definitiu i recomprovació immediata abans de la futura aplicació autoritzada; renovar el pla si hi ha canvis. Auth/PostgREST, API/bytes de Storage, navegador i concurrència multiclient real pendents. Cap migració remota ni publicació.
 - TypeScript, ESLint, compilació i regressions locals d’esquema, restauració v1/v2, RPC/RLS i timestamps superats; avís de mida de bundle existent. Detall a [PLA-FINAL-PLATAFORMA.md](PLA-FINAL-PLATAFORMA.md).
 
@@ -255,7 +303,7 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 
 ## Plataforma: recuperació acotada provada, exportació original pendent
 
-- Analitzat el script exacte: només estructura/RPC/triggers Plataforma, plataforma/updated_at de fitxes i actiu/updated_at dels tres digitals. Sense canviar Auth, assignacions de convidats, Bitàcora, propòsits o Storage.
+- Analitzat el script exacte: només estructura/RPC/triggers Plataforma, plataforma/updated_at de fitxes i actiu/updated_at dels tres digitals. Sense canviar Auth, assignacions de convidats, log, propòsits o Storage.
 - Procediment equivalent de reversió transaccional preparat amb captures de lectura anteriors/posteriors, preservació d’OID/owner/ACL de la RPC original, dades/metadata exactes i protecció contra edicions noves. Materials/eines privats persistents, permisos 0700/0600.
 - Prova aïllada sobre esquema contrastat i dades sintètiques superada: aplicar/revertir recupera hashes de dades i esquema/RLS/ACL, timestamps i vincles; reversió incorrecta avorta sense canvis parcials i edició posterior no es sobreescriu. Regressions de la transacció i ESLint superats.
 - Pendent SELECT privat de captura dels valors originals reals: sense retornar i verificar aquest resultat no es dona per custodiada la recuperació real. Després cal ZIP definitiu addicional i recomprovació immediata; captura posterior obligatòria després d’una futura aplicació, abans de generar/autoritzar la reversió. No cal recuperar Auth/convidats/Storage per aquesta inversa en la mateixa base; pèrdua externa del projecte continua fora d’abast. Cap execució remota ni publicació.
@@ -265,3 +313,86 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 - Captura anterior rebuda, CSV/JSON privat persistent 0600; 453 fitxes i tres digitals exactes, dades/esquema coincidents amb el pla i timestamps/camps dels tres casos contrastats. Bundle de reversió completat amb valors originals reals i esquema, manifest de hashes i eines provades.
 - Ja no falta l’exportació dels originals. Següent: pausar escriptures, descarregar/verificar ZIP definitiu i recomprovar immediatament per IDs; qualsevol canvi obliga a revisar/renovar pla/captura/material. Autorització d’aplicació pendent.
 - Després d’una futura aplicació cal capturar l’estat posterior per generar i autoritzar la reversió executable; cap empremta posterior inventada. No s’ha aplicat ni publicat.
+
+## Nomenclatura log i proposta d’altes (canvis locals)
+
+- Aplicat «log», en minúscules, i «entrada de log» als textos de menú, títols, botons, alta actual, detall, seguiment, estadístiques, Configuració, restauració, missatges i documentació. Cap canvi de rutes, taules, camps, identificadors tècnics o relacions.
+- [PROPOSTA-ALTES.md](PROPOSTA-ALTES.md) descriu els recorreguts separats de Col·lecció i log, dades del joc/exemplar/entrada, exemples i decisions obertes. Criteris confirmats: no crear entrades des de l’alta de Col·lecció, no crear exemplars des del log, distingir joc/plataforma per ID, Emulador només al log i valoració/comentaris compartits per fitxa.
+- Nous formularis no implementats. L’alta actual manté la selecció prèvia existent/nou i el control compartit Jugant; la separació d’aquest comportament correspon a la proposta següent.
+- Verificació: cerca de variants antigues als textos del client i documentació, comparació dels identificadors tècnics, TypeScript, ESLint, compilació i suites existents. Sense proves que modifiquin Supabase.
+- Sense navegador disponible: pendent de revisió visual dels textos, dels salts de línia en mòbil i del menú. Canvis locals, sense publicació.
+
+
+## 2026-10-11 — Formularis d’alta aprovats, preparats localment
+
+- Col·lecció: alta directa joc/exemplar, sense crear entrades; log: títol amb suggeriments per plataforma/ID, any obligatori actual, sense exemplar. Duplicats ofereixen obrir el registre; no es fusionen fitxes ni entrades antigues sense any.
+- Dades compartides en consulta amb edició explícita; Jugant global només al log. Plataformes noves, 0 € i Emulador només al log. Físic sobre digital requereix confirmació i conserva l’històric.
+- Desament atòmic, reintents idempotents, protecció de canvis i detall posterior en consulta. RPC preparada en `202610110001_altes_atomiques.sql`, **no aplicada**: formularis no operatius al servidor fins a aplicar-la amb autorització. Diagnòstic només de lectura preparat; cap restricció global sobre registres antics.
+- Proves sintètiques locals amb esquema contrastat: altes, duplicats, anys antics, dades compartides, rollback, reintents i permisos. Revisió visual/interaccions al navegador i comprovació de la RPC en servidor pendents. No s’han escrit dades reals ni publicat.
+- [PROPOSTA-ALTES.md](PROPOSTA-ALTES.md) substitueix les decisions obertes anteriors pels criteris aprovats i documenta la dependència, el recorregut i les limitacions.
+
+- Controls finals d’aquesta tanda: TypeScript, ESLint, compilació, cinc suites de regressió/helpers, consulta inicial HTML sintètica i RPC PostgreSQL local superats. Avís existent de paquet >500 kB. Sense navegador: pendents interaccions, escriptori/mòbil i desament amb RPC aplicada; diagnòstic real no executat.
+
+## 2026-10-13 — Continuació local: Inici, Galeria, plataformes i neteja
+
+### Canvis preparats i operatius al client local
+
+- Jocs a l’atzar: selecció per sessió/usuari en memòria fora del component; es conserva en obrir/tancar detalls, navegar i refrescar dades. Només es renova amb el botó circular de dues fletxes verdes (nom accessible «Renova els jocs a l’atzar», focus visible, 44 × 44 px) o amb una recàrrega completa. Fins a tres actius amb portada, sense duplicats; renovació amb un conjunt diferent si hi ha alternatives. Si un joc deixa de ser elegible, només se substitueix aquell. Amb menys de tres elegibles se’n mostren els disponibles. No s’implementen Tots / Els millors / Favorits.
+- Col·lecció inicia en Galeria si no hi ha preferència explícita. Llista/Galeria es recorden durant la navegació amb URL i preferència de sessió; si Storage no està disponible, la preferència dura la visita en memòria. Els enllaços d’Inici a físics/digitals creen una consulta nova amb el filtre `format` real i sense plataformes, gèneres o joc residuals. Es mantenen recomptes i consulta dels convidats.
+- GB es mostra com a Game Boy en opcions, registres relacionats, filtres, estadístiques i CSV. Es dedupliquen els àlies al selector. Les còpies v1/v2 amb GB es poden llegir sense canviar IDs ni vincles; els ZIP preserven el valor real original mentre no s’apliqui la conversió.
+- Retirada la interfície «Conversió de Plataforma: discrepàncies» de Configuració perquè el pla 002 ja està aplicat i verificat. Codi històric, RPC/migracions, proves i recuperació es conserven; còpies, recuperació, Excel i Revisió de dades es mantenen. No hi ha cap altra ruta d’importació/migració activa a l’aplicació. El visor de lectura «Dades originals de l’Excel» al detall és dubtós: conserva un ús de procedència documentat i no es retira sense resposta.
+
+### Dependències i decisions pendents
+
+- Formularis d’alta aprovats revisats i provats novament: Col·lecció sense log; log sense exemplar; any actual obligatori, una entrada per joc/any sense consolidar antics; camps compartits amb edició explícita, Jugant global, consulta després de desar, permisos i atomicitat. **Segueixen depenent de la RPC `202610110001_altes_atomiques.sql`, preparada i no aplicada**. Diagnòstic real d’altes pendent. Vegeu [PROPOSTA-ALTES.md](PROPOSTA-ALTES.md).
+- Game Boy: migració `202610120001_game_boy.sql` i lectura `GAME-BOY-LECTURA.sql` preparades; no aplicades. Abans cal diagnòstic actual de coincidències, còpia/verificació i reversió específica. No reutilitzar el bundle del pla 002 com a cobertura d’aquest nou canvi. Dependència del servidor per al desament/restauració canònics.
+- [NOMS-PLATAFORMES.md](NOMS-PLATAFORMES.md) agrupa les propostes GBA/N64/NDS/NES/SNES/Famicom, MD/XBOX/XBOX360 i PS4/MSX. Inventari històric, no lectura actual; totes excepte GB requereixen resposta abans de convertir. No es dedueix cap plataforma pel títol.
+
+### Idees futures: només documentades
+
+- Tràiler de YouTube al detall, com a enllaç o vídeo incrustat. Estudiar cerca assistida/automàtica amb títol, plataforma/edició i altres metadades, mostrant candidats per confirmar el vídeo correcte; evitar una càrrega manual massiva. No s’afegeixen camps ni integracions encara.
+- Enllaços a fitxes externes, amb MobyGames com a font preferida. Concretar identificadors, atribucions i confirmació abans d’implementar-los.
+- Eina de revisió d’enllaços quan aquests existeixin: separar 404/410 confirmat de bloqueig/CORS, autenticació, límit de peticions o error temporal; estats «correcte», «trencat», «no comprovable» i «pendent de reintent», amb data i revisió manual. No declarar trencat un enllaç només perquè el navegador no el pot comprovar. Proposar el servei de comprovació i la política de reintents en aquella tanda.
+
+### Verificació d’aquesta tanda
+
+- Proves sintètiques de selecció persistent, canvis d’elegibilitat, renovació alternativa, zero/menys de tres candidats, Game Boy/opcions/CSV/estadístiques/còpies i renderitzat HTML de Galeria, Llista explícita, filtres reals, enllaços nets d’Inici i convidats.
+- Proves PostgreSQL locals d’altes atòmiques i Game Boy sobre esquema reconstruït: preservació de dades, errors/rollback, duplicats i permisos. Sense dades reals ni connexió a Supabase.
+- Navegador no disponible: pendents clics reals, navegació/remuntatge, focus, presentació escriptori/mòbil, recàrrega i desament després d’aplicar les RPC autoritzades. Auth/Storage/PostgREST reals i diagnòstics actuals no verificats. No s’ha publicat ni executat cap migració remota.
+
+- Controls finals superats: TypeScript, ESLint, compilació, sis suites de regressió/helpers, cinc casos de renderitzat HTML i les dues proves PostgreSQL locals (altes/Game Boy amb restauració v1/v2 i ACL). Avís existent de paquet >500 kB; cap verificació visual DOM real.
+
+
+## 2026-10-13 — Noms aprovats i dependències en una única tanda
+
+- Noms exactes confirmats i aplicats al client: Game Boy, Game Boy Advance, Nintendo 64, Nintendo DS, NES, Super Nintendo, Mega Drive, Xbox 360, PlayStation 4, Famicom, MSX i XBOX. XBOX és la primera Xbox; no es fusiona amb altres consoles. Mapa únic client/SQL, opcions sense duplicats, filtres/estadístiques/CSV i compatibilitat v1/v2.
+- Retirat només el visor Dades originals de l’Excel. `origen`, notes, dades originals i còpies/restauració es conserven; no es modifica cap fila real.
+- L’usuari confirma satisfactòriament els canvis visuals anteriors. Pendent comprovar els ajustos nous i el desament remot després d’aplicar les RPC amb autorització.
+- [NOMS-PLATAFORMES.md](NOMS-PLATAFORMES.md) substitueix les propostes de noms i agrupa RPC d’altes + normalització. Una sola captura privada només de lectura inclou metadades, dades, col·lisions i diagnòstic; es reutilitza també per a la captura posterior/recuperació. No cal exportar successivament informes separats.
+- Generadors conjunts de pla/aplicació/reversió privats preparats, amb guardes d’esquema/RLS/ACL/files i postvalidació. Plantilla pública explícitament no executable. Es preserven migracions històriques, proves i recuperació del pla 002. No s’han generat plans reals nous amb captures antigues.
+- Proves sintètiques: permisos, altes atòmiques, duplicats, noms exactes, còpies, preservació, captura READ ONLY, rollback de DDL/dades i recuperació exacta; modificacions posteriors d’ACL bloquegen la reversió. Pendents captura real, contrast, conflictes/totals, ZIP, bundle vigent i autorització. Cap migració aplicada, dades reals modificades o publicació.
+- Galeria de tres columnes: proposta pendent, no implementada. Es mantenen les columnes actuals i les idees futures de tràilers/enllaços/revisió d’enllaços.
+
+- Controls finals d’aquesta tanda superats: TypeScript, ESLint, compilació, sis suites de regressió/helpers i sis casos HTML, més altes/permisos i tanda conjunta/reversió en PostgreSQL local. Es manté l’avís de paquet >500 kB. Confirmació visual anterior de l’usuari registrada; no es dona per comprovat el servei remot ni la concurrència amb clients antics.
+
+## Procediment agrupat d’altes i noms (2026-10-13)
+
+- Substituït el circuit de captures successives pel procediment de `docs/NOMS-PLATAFORMES.md`: tres intervencions manuals en cas d’èxit —una captura inicial conjunta, ZIP definitiu i execució única amb desament del mateix resultat—. La recomprovació immediata i la verificació de dades/permisos van dins del script; no es demanen exportacions separades d’informació ja coberta.
+- Preparació local del batch que retorna després del COMMIT la captura posterior i la reversió exacta, sense objectes persistents nous. Provats aplicar/recuperar, fallada després del DDL, dades desactualitzades i col·lisions, amb esquema contrastat i registres sintètics. Falta contrastar una captura actual única: noms/IDs/col·lisions, definicions i permisos vigents, valors originals de recuperació. No es donen aquests punts reals per comprovats.
+- Accés des d’Ubuntu proposat amb psql i configuració privada guiada; no instal·lat ni configurat. No s’han aplicat canvis a Supabase ni publicat. Auth/Storage API, navegador i presentació del resultat final al SQL Editor real continuen sense comprovació independent.
+- Les tres columnes de la Galeria continuen pendents; aquesta tanda no les implementa.
+
+## Altes i noms: captura conjunta validada i pla privat preparat (2026-10-13)
+
+- Captura actual contrastada independentment: cobertura de les cinc taules, IDs únics, vincles i propietaris consistents, cap col·lisió entre noms aprovats ni grup joc/any repetit; definicions i metadades necessàries sense omissions. Les dues RPC d’alta encara no existeixen. No s’ha executat cap canvi remot.
+- 123 fitxes es normalitzaran sense fusionar-les ni canviar-ne vincles. Totals abans/després: 453 fitxes, 440 exemplars, 437 actius (218 físics i 219 digitals), 3 històrics, **202** entrades de log i 4 propòsits. El recompte anterior de 201 entrades no és la base d’aquesta tanda. Els tres casos aprovats del pla 002 contrastats per IDs continuen resolts.
+- Es conserven 122 entrades sense any i un joc amb dos exemplars físics actius; aquesta tanda no consolida registres antics ni imposa restriccions globals. Qualsevol futura consolidació dels exemplars necessita una decisió separada.
+- Pla, captura, metadades, validació, procediment i script únic desats fora del repositori a la carpeta privada persistent, amb permisos restringits i manifest d’empremtes. El script integra recomprovació exacta, aplicació, verificació i resultat post-COMMIT amb reversió; no cal cap altra exportació SQL rutinària.
+- Proves locals amb l’esquema de la captura actual i dades sintètiques: altes atòmiques/permisos, aplicar/verificar/recuperar, rollback davant canvis o col·lisions i restauració v1/v2 dels àlies aprovats. Reconstrucció local ajustada per resoldre les dependències entre wrappers SQL i auxiliars durant la creació, reactivant-ne la validació abans de les proves i sense reexecutar la migració Plataforma quan ja hi és.
+- Següent pas: pausar edicions i retornar la ruta del ZIP definitiu per validar-lo. Després, només amb autorització, una execució sencera i desament del seu resultat complet. No s’ha aplicat ni publicat. SQL Editor real, navegador i serveis Auth/Storage/PostgREST continuen sense verificació independent en aquesta tanda. Revisió de l’aparença del log i tres columnes de Galeria continuen pendents.
+
+## Rebut d’aplicació: revisió de seguretat abans d’executar
+
+- L’usuari ha cancel·lat la confirmació del SQL Editor. Revisat el rebut: taula temporal de sessió `pg_temp_N`, una columna JSONB amb dades/inversa, sense taula permanent exposada. Nova versió privada revoca PUBLIC/anon/authenticated/service_role i verifica ACL de taula/columnes, herència efectiva, propietari i temporalitat abans del COMMIT. No es modifica RLS de cap taula d’aplicació.
+- Provat localment amb esquema contrastat i dades sintètiques: lectura denegada als rols API i PUBLIC, defaults globals permissius neutralitzats, concessions inesperades de taula/columna avorten tota la tanda; verificació, v1/v2 i recuperació exacta superades. Avís de destrucció revisat: DROP de la inversa només dins de text; cap DROP/DELETE/TRUNCATE executat en aplicar.
+- Utilitzar únicament el nou script privat revisat. Al diàleg RLS, Run without RLS conserva el batch provat; no afegir ALTER TABLE automàtics després del resultat. Documentació completa a NOMS-PLATAFORMES.md. Pla, captura i ZIP continuen custodiats i no es regeneren amb dades diferents. No s’ha executat res a Supabase ni publicat. API remota i diàleg real encara no provats independentment.

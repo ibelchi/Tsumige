@@ -2,7 +2,7 @@
 
 ## Estat vigent: conversió aplicada i verificada
 
-El 10 d’octubre de 2026 l’autor ha executat una vegada el script transaccional privat del pla 002. Els informes posteriors rebuts confirmen `coincideix=true`, cap diferència, totes les fitxes resoltes i els recomptes aprovats. Es preserven identificadors, compres, comentaris, valoracions, Bitàcora i propòsits; només els tres digitals aprovats passen a històrics inactius. El ZIP previ, les captures anteriors/posteriors i el material de reversió complet estan verificats i custodiats fora del repositori. La reversió no s’ha executat.
+El 10 d’octubre de 2026 l’autor ha executat una vegada el script transaccional privat del pla 002. Els informes posteriors rebuts confirmen `coincideix=true`, cap diferència, totes les fitxes resoltes i els recomptes aprovats. Es preserven identificadors, compres, comentaris, valoracions, log i propòsits; només els tres digitals aprovats passen a històrics inactius. El ZIP previ, les captures anteriors/posteriors i el material de reversió complet estan verificats i custodiats fora del repositori. La reversió no s’ha executat.
 
 L’usuari confirma que les comprovacions funcionals locals de Plataforma han passat. És una confirmació de l’usuari, no una prova de navegador executada per l’agent ni una verificació de la versió publicada. Continuen pendents les restauracions i recuperacions remotes, els serveis Auth/Storage no comprovats explícitament i la concurrència multiclient. Les restauracions v1/v2 i la inversa acotada estan provades localment amb dades sintètiques.
 
@@ -46,7 +46,7 @@ No s’executa cap RPC de l’aplicació: només se’n llegeixen les definicion
 - Bucket **tsumige-portades**: públic/privat, límit de mida i MIME. S’inclouen totes les polítiques de `storage.objects`/`storage.buckets`, perquè una regla general també pot afectar aquest bucket.
 - Objectes i RPC absents. Les RPC de Plataforma absents abans de migrar són esperables.
 
-No consulta files de jocs, exemplars, Bitàcora, propòsits, accessos de convidats o `auth.users`; tampoc noms/rutes/propietaris de fitxers de `storage.objects`, Vault, credencials o contingut d’imatges. L’única fila de configuració consultada és la del bucket indicat.
+No consulta files de jocs, exemplars, log, propòsits, accessos de convidats o `auth.users`; tampoc noms/rutes/propietaris de fitxers de `storage.objects`, Vault, credencials o contingut d’imatges. L’única fila de configuració consultada és la del bucket indicat.
 
 Redacció addicional de UUID, correus i literals llargs susceptibles de ser tokens, també dins de polítiques/defaults/definicions. Un cos de funció amb indicis de credencials s’omet sencer amb un avís. Això pot ocultar també algun literal tècnic: no s’inventa el que manca. Les definicions administratives poden contenir altres literals o comentaris particulars; revisa el resultat abans d’enviar-lo i substitueix qualsevol valor privat que hi detectis per `[OMES]`. No cal retornar aquest valor original per provar amb usuaris sintètics.
 
@@ -78,12 +78,12 @@ També accepta JSON. Tot s’executa en una base PostgreSQL **en memòria**, sen
 Resultats superats:
 
 - Aplicació local de la migració de Plataforma sobre l’esquema públic reconstruït, sense tornar a aplicar la migració de restauració ja present al servidor.
-- Conversió sintètica de 453 fitxes: 453 fitxes i IDs conservats; 6 exemplars totals conservats; 6→3 actius, 3 físics conservats; 6 entrades de Bitàcora conservades. Empremta antiga i pla incomplet rebutjats, amb rollback íntegre.
+- Conversió sintètica de 453 fitxes: 453 fitxes i IDs conservats; 6 exemplars totals conservats; 6→3 actius, 3 físics conservats; 6 entrades de log conservades. Empremta antiga i pla incomplet rebutjats, amb rollback íntegre.
 - Restauració completa v1 en base buida i v2 en base buida/sobre existents, amb les RPC i els triggers reals. Bloqueig de v1 sobre fitxes resoltes.
 - Alta real via RPC preparada, normalització d’Epic, afegir entrades al mateix joc, desament de zero/preu, any null, favorit, infants i comentaris; valoració sincronitzada pels triggers de l’informe. Proteccions de plataforma, formats i Emulador.
 - Convidat consulta però no escriu ni converteix/restaura; un altre compte no veu les dades alienes; anònim no pot executar la conversió. `pot_editar` real considera editor qualsevol autenticat que no figuri com a convidat; les dades de cada editor continuen aïllades per `user_id` i RLS. No s’ha canviat aquesta política.
 - RLS reals de Storage sobre objectes ficticis: carpeta pròpia, consulta del propietari i convidat, rebuig d’alta/eliminació del convidat i d’accés aliè. Referència de portada conservada en restaurar. Reutilitzat també el trigger real que rebutja DELETE SQL directe; eliminació local amb context de servei simulat i RLS contrastada.
-- Timestamps antics: `created_at`, dades/metadata dels físics i tota Bitàcora es conserven. Els triggers existents actualitzen `updated_at` dels jocs convertits i digitals retirats; no es considera una pèrdua de dades. La restauració evita reescriure el marcador si ja té el valor correcte.
+- Timestamps antics: `created_at`, dades/metadata dels físics i tota log es conserven. Els triggers existents actualitzen `updated_at` dels jocs convertits i digitals retirats; no es considera una pèrdua de dades. La restauració evita reescriure el marcador si ja té el valor correcte.
 
 **Correcció trobada gràcies a les RPC reals:** la variable `plataforma` de l’RPC d’alta preparada era ambigua amb la columna homònima. Renomenada `v_plataforma` i verificades les altes/desaments. La migració segueix local i no aplicada a Supabase.
 

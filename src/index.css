@@ -44,4 +44,14 @@
   .page-title { @apply mt-2 text-3xl font-semibold tracking-tight sm:text-4xl; }
   .eyebrow { @apply text-xs font-medium tracking-wider text-muted-foreground; }
   .skip-link { @apply fixed top-3 left-3 z-50 -translate-y-24 rounded-lg bg-primary px-4 py-3 text-sm text-primary-foreground focus:translate-y-0; }
+  .collection-layout { container: collection / inline-size; }
+  .collection-gallery { grid-template-columns: minmax(0, 1fr); }
+  /* Una targeta conserva almenys 20 rem; els llindars inclouen els gaps.
+     El contenidor ja exclou el menú lateral i el padding de la pàgina. */
+  @container collection (min-width: 41rem) {
+    .collection-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @container collection (min-width: 62rem) {
+    .collection-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
 }

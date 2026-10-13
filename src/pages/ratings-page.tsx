@@ -34,7 +34,7 @@ export function RatingsPage() {
       </button>)}
     </section>
     {!isPending && !error && !games.length && <p className="mt-5 text-sm text-muted-foreground">No hi ha jocs amb aquesta valoració.</p>}
-    {selected && game && !record && <p className="mt-4 text-sm text-muted-foreground">Aquest joc no té cap exemplar ni experiència per obrir.</p>}
+    {selected && game && !record && <p className="mt-4 text-sm text-muted-foreground">Aquest joc no té cap exemplar ni entrada de log per obrir.</p>}
     {game && record && data && <RecordEditor key={record.id} kind={experience ? 'experiencia' : 'exemplar'} record={record} game={game} catalog={data} onClose={() => setSelected(null)} onSaved={refresh} navigation={{ position: index + 1, total: games.length, previous: index > 0 ? () => setSelected(games[index - 1].id) : undefined, next: index < games.length - 1 ? () => setSelected(games[index + 1].id) : undefined }} />}
   </div>
 }
