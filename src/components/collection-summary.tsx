@@ -1,6 +1,8 @@
+import { Button } from '@/components/ui/button'
+import { summaryExpansion } from '@/lib/summary-expansion'
 import { platformName } from '@/lib/platform'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useId, useState, useSyncExternalStore } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandLogo } from '@/components/brand-logo'
 import { isSupabaseConfigured } from '@/lib/supabase'
@@ -15,17 +17,22 @@ function SummaryCover({ game }: { game: JocLlista }) {
   </div>
 }
 
-function GameList({ title, games, isLoading }: { title: string; games: JocLlista[] | undefined; isLoading: boolean }) {
+export function GameList({ title, games, isLoading, owner = "" }: { title: string; games: JocLlista[] | undefined; isLoading: boolean; owner?: string }) {
+  const key = `${owner}:${title}`
+  const expanded = useSyncExternalStore(summaryExpansion.subscribe, () => summaryExpansion.get(key), () => summaryExpansion.get(key))
+  const listId = useId()
+  const visible = expanded ? games : games?.slice(0, 3)
+  const hidden = Math.max(0, (games?.length ?? 0) - 3)
   return (
-    <section aria-label={title} className="@container min-w-0 rounded-xl border bg-card px-5 py-4">
-      <h2 className="text-sm font-medium">{title}</h2>
+    <section aria-label={title} className={`@container min-w-0 rounded-xl border bg-card px-5 py-4 ${games?.length ? "md:min-h-[26rem]" : ""}`}>
+      <header className="flex items-center justify-between gap-3"><h2 className="text-sm font-medium">{title}</h2>{hidden > 0 && <Button type="button" variant="ghost" size="sm" className="min-h-10" aria-expanded={expanded} aria-controls={listId} aria-label={expanded ? `Mostra només els tres primers jocs de ${title}` : `Mostra els ${hidden} jocs amagats de ${title}`} title={expanded ? "Mostra’n tres" : "Mostra tots els jocs"} onClick={() => summaryExpansion.set(key, !expanded)}>{expanded ? "−" : `+${hidden}`}</Button>}</header>
       {games === undefined ? (
         <p className="mt-4 text-sm text-muted-foreground">{isLoading ? 'Carregant jocs…' : 'Dades pendents de connectar.'}</p>
       ) : games.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">Cap joc marcat.</p>
       ) : (
-        <ul className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-6">
-          {games.map((game) => <li key={game.id} className="min-w-0 shrink-0 grow-0 basis-full @min-[22rem]:basis-[calc((100%_-_1rem)/2)] @min-[32rem]:basis-[calc((100%_-_2rem)/3)]"><Link to={`/?vista=detall&joc=${game.id}`} aria-label={`Obre el detall de ${game.nom}`} className="block rounded-lg text-center hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><SummaryCover key={`${game.id}-${game.portada_url}`} game={game} /><div className="mt-3 min-w-0"><p className="break-words text-sm font-medium leading-snug">{game.nom}</p><p className="mt-1 break-words text-xs text-muted-foreground">{platformName(game.plataforma)}</p></div></Link></li>)}
+        <ul id={listId} className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-6">
+          {visible!.map((game) => <li key={game.id} className="min-w-0 shrink-0 grow-0 basis-full @min-[22rem]:basis-[calc((100%_-_1rem)/2)] @min-[32rem]:basis-[calc((100%_-_2rem)/3)]"><Link to={`/?vista=detall&joc=${game.id}`} aria-label={`Obre el detall de ${game.nom}`} className="block rounded-lg text-center hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><SummaryCover key={`${game.id}-${game.portada_url}`} game={game} /><div className="mt-3 min-w-0"><p className="break-words text-sm font-medium leading-snug">{game.nom}</p><p className="mt-1 break-words text-xs text-muted-foreground">{platformName(game.plataforma)}</p></div></Link></li>)}
         </ul>
       )}
     </section>
@@ -47,14 +54,14 @@ export function CollectionSummary() {
 
   return (
     <section aria-label="Resum de la col·lecció" aria-busy={isFetching} className="mt-8">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex flex-wrap justify-start gap-3">
         {counters.map(({ label, value, format }) => (
-          <Link key={label} to={`/?vista=colleccio&format=${format}&origen=inici`} className="block rounded-xl border bg-card px-5 py-4 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 font-mono text-2xl font-medium">{value ?? '—'}</p></Link>
+          <Link key={label} to={`/?vista=colleccio&format=${format}&origen=inici`} className="block min-w-0 rounded-lg border bg-card px-4 py-2 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 font-mono text-2xl font-medium">{value ?? '—'}</p></Link>
         ))}
       </div>
-      <div className="mt-3 grid items-start gap-3 sm:grid-cols-2">
-        <GameList title="Jugant" games={data?.jugant} isLoading={isFetching} />
-        <GameList title="Per jugar aviat" games={data?.per_jugar_aviat} isLoading={isFetching} />
+      <div className="mt-3 grid items-start gap-3 md:grid-cols-2">
+        <GameList title="Jugant" games={data?.jugant} isLoading={isFetching} owner={session?.user.id} />
+        <GameList title="Per jugar aviat" games={data?.per_jugar_aviat} isLoading={isFetching} owner={session?.user.id} />
       </div>
       {!isSupabaseConfigured && <p className="mt-3 text-xs text-muted-foreground">Connecta Supabase per consultar les dades de la col·lecció.</p>}
       {error && <p role="alert" className="mt-3 text-sm text-muted-foreground">{error.message}</p>}

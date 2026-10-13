@@ -20,8 +20,8 @@ function initialDraft(game?: FitxaJoc) {
     comentaris: game?.comentaris ?? '', per_infants: game?.per_infants === true, per_jugar_aviat: game?.per_jugar_aviat ?? false }
 }
 function optionalNumber(value: string) { return value.trim() === '' ? null : Number(value) }
-export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved, initialGameId }: {
-  kind: CreationKind; catalog: Catalog; onClose: () => void; onSaved: () => Promise<Catalog | void>; initialGameId?: string
+export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved, initialGameId, collectionOnly = false }: {
+  kind: CreationKind; catalog: Catalog; onClose: () => void; onSaved: () => Promise<Catalog | void>; initialGameId?: string; collectionOnly?: boolean
 }) {
   const { canEdit } = useAccess()
   const { session } = useAuth()
@@ -46,6 +46,7 @@ export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved,
   const [notice, setNotice] = useState('')
   const [discardAction, setDiscardAction] = useState<(() => void) | null>(null)
   const [opened, setOpened] = useState<{ kind: CreationKind; id: string; catalog: Catalog } | null>(null)
+  const submitting = useRef(false)
   const request = useRef(crypto.randomUUID())
   const committed = useRef<{ id: string; joc_id: string } | null>(null)
   const retryPayload = useRef<Parameters<typeof createRecordAtomic>[0] | null>(null)
@@ -62,10 +63,11 @@ export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved,
   const selected = catalog.jocs.find(game => game.id === gameId)
   const activeCopies = selected ? catalog.exemplars.filter(copy => copy.joc_id === selected.id && copy.a_la_colleccio) : []
   const annual = selected ? existingAnnualEntries(catalog, selected.id, Number(year)) : []
-  const retire = kind === 'exemplar' && format === 'fisic' && activeCopies.length === 1 && activeCopies[0].format === 'digital' ? activeCopies[0] : null
+  const retire = !collectionOnly && kind === 'exemplar' && format === 'fisic' && activeCopies.length === 1 && activeCopies[0].format === 'digital' ? activeCopies[0] : null
   const samePlatform = !selected && draft.nom.trim() && draft.plataforma.trim() ? sameGamePlatform(catalog, draft.nom, draft.plataforma) : []
   const suggestions = !selected ? creationSuggestions(catalog, draft.nom).filter(game => kind !== 'exemplar' || !isEmulator(game.plataforma)) : []
-  const sharedEditable = !selected || editGame
+  const sharedEditable = !collectionOnly && (!selected || editGame)
+  const historicalCopies = selected ? catalog.exemplars.filter(copy => copy.joc_id === selected.id && !copy.a_la_colleccio) : []
   function guard(action: () => void) { if (!busy) { if (dirty) setDiscardAction(() => action); else action() } }
   function changeDraft<K extends keyof typeof draft>(key: K, value: typeof draft[K]) { setDraft(previous => ({ ...previous, [key]: value })); setDirty(true) }
   function selectGame(game: FitxaJoc) {
@@ -95,7 +97,8 @@ export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved,
   }
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (!canEdit || busy || access.data !== true) return
+    if (!canEdit || busy || submitting.current || access.data !== true) return
+    if (collectionOnly && (!selected || isEmulator(selected.plataforma))) { setError('Aquest joc no es pot incorporar a Col·lecció.'); return }
     if (!committed.current && !retryPayload.current) {
       if (samePlatform.length) { setError('Aquest joc ja existeix amb aquesta plataforma. Selecciona’l explícitament als suggeriments.'); return }
       if (kind === 'exemplar' && isEmulator(draft.plataforma)) { setError('Emulador només es pot afegir al log.'); return }
@@ -109,8 +112,18 @@ export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved,
       retryPayload.current = { kind, id: request.current, gameId, game, record, editGame, updatedAt: selected?.updated_at ?? null,
         retire: retire && retireConfirmed ? { id: retire.id, updated_at: retire.updated_at } : null }
     }
+    submitting.current = true
     setBusy(true); setError('')
     try {
+      if (collectionOnly && !committed.current && !retryPayload.current) throw new Error('No s’ha pogut preparar l’exemplar.')
+      if (collectionOnly && !committed.current) {
+        const latest = await getCatalog()
+        setCatalog(latest)
+        if (latest.exemplars.some(copy => copy.joc_id === gameId && copy.a_la_colleccio)) {
+          retryPayload.current = null
+          throw new Error('Aquest joc ja té un exemplar actiu. Obre’l; els valors del formulari es conserven.')
+        }
+      }
       if (!committed.current) {
         const result = await createRecordAtomic(retryPayload.current!)
         committed.current = result
@@ -125,7 +138,7 @@ export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved,
       setError(message)
       // Només errors de negoci inequívocs permeten ajustar l'esborrany; errors de transport repeteixen la mateixa petició.
       if (!committed.current && caught instanceof CreationFailure && caught.definitive) retryPayload.current = null
-    } finally { setBusy(false) }
+    } finally { submitting.current = false; setBusy(false) }
   }
   if (!canEdit) return null
   if (opened) {
@@ -135,13 +148,13 @@ export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved,
     return record && game ? <RecordEditor key={`${opened.kind}:${opened.id}`} kind={opened.kind} record={record} game={game} catalog={current} onClose={onClose} onSaved={refresh} /> : <p role="alert">No s’ha pogut carregar el registre.</p>
   }
   return <dialog ref={dialog} onCancel={event => { event.preventDefault(); guard(onClose) }} aria-labelledby="alta-titol" className="m-auto max-h-[90dvh] w-[min(94vw,760px)] overflow-y-auto rounded-xl border bg-card p-6 text-foreground shadow-xl backdrop:bg-black/40">
-    <header className="flex flex-wrap items-start justify-between gap-3"><h2 id="alta-titol" className="text-xl font-semibold">{kind === 'exemplar' ? 'Afegeix un joc' : 'Afegeix una entrada'}</h2><Button type="button" variant="ghost" disabled={busy} onClick={() => guard(onClose)}>Tanca</Button></header>
+    <header className="flex flex-wrap items-start justify-between gap-3"><h2 id="alta-titol" className="text-xl font-semibold">{collectionOnly ? 'Afegeix a la col·lecció' : kind === 'exemplar' ? 'Afegeix un joc' : 'Afegeix una entrada'}</h2><Button type="button" variant="ghost" disabled={busy} onClick={() => guard(onClose)}>Tanca</Button></header>
     {access.isPending ? <p role="status" className="mt-3 text-sm">Comprovant la disponibilitat de l’alta…</p> : access.data !== true && <p role="alert" className="mt-3 text-sm">L’alta encara no està disponible al servidor. Pots consultar els registres existents.</p>}
     {notice && <p role="status" className="mt-3 text-sm">{notice}</p>}
     <form ref={form} onSubmit={submit} onChange={() => setDirty(true)} className="mt-5 space-y-5">
       <fieldset disabled={busy || Boolean(retryPayload.current) || Boolean(committed.current)} className="space-y-5">
         <Field label="Nom"><input required value={draft.nom} readOnly={Boolean(selected)} onChange={event => changeDraft('nom', event.target.value)} className={control} autoComplete="off" aria-controls="alta-suggeriments" /></Field>
-        {selected && <div className="flex flex-wrap items-center gap-2 text-sm"><span>{selected.nom} · {platformName(selected.plataforma)}</span><Button type="button" variant="outline" size="sm" onClick={() => guard(() => { setGameId(null); setDraft(initialDraft()); setEditGame(false); setRetireConfirmed(false); setDirty(true) })}>Canvia de joc</Button></div>}
+        {selected && !collectionOnly && <div className="flex flex-wrap items-center gap-2 text-sm"><span>{selected.nom} · {platformName(selected.plataforma)}</span><Button type="button" variant="outline" size="sm" onClick={() => guard(() => { setGameId(null); setDraft(initialDraft()); setEditGame(false); setRetireConfirmed(false); setDirty(true) })}>Canvia de joc</Button></div>}
         {!selected && suggestions.length > 0 && <ul id="alta-suggeriments" aria-label="Jocs existents" className="max-h-48 overflow-y-auto rounded-lg border">{suggestions.map(game => <li key={game.id}><button type="button" onClick={() => { if (sharedEditable && Object.entries(draft).some(([key, value]) => key !== 'nom' && value !== initialDraft()[key as keyof typeof draft])) guard(() => selectGame(game)); else selectGame(game) }} className="w-full px-3 py-2 text-left text-sm hover:bg-muted [overflow-wrap:anywhere]">{game.nom} · {platformName(game.plataforma)} <span className="text-xs text-muted-foreground">· ID: {game.id}</span></button></li>)}</ul>}
         <Field label="Plataforma"><input required readOnly={Boolean(selected)} list="alta-plataformes" value={draft.plataforma} onChange={event => { changeDraft('plataforma', event.target.value); setRetireConfirmed(false) }} className={control} /><datalist id="alta-plataformes">{platformOptions(catalog).filter(option => kind !== 'exemplar' || !isEmulator(option)).map(option => <option key={option} value={option} />)}</datalist></Field>
         {samePlatform.length > 0 && <p role="status" className="text-sm">Ja hi ha un joc amb aquest títol i plataforma. Selecciona’l als suggeriments; no es crearà un duplicat.</p>}
@@ -150,7 +163,7 @@ export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved,
           <GameRating rating={draft.valoracio} className="text-center text-4xl" />
           <dl className="grid gap-3 text-sm sm:grid-cols-2">{[['Desenvolupadora', draft.desenvolupadora], ['Gènere', draft.genere_principal], ['Any de llançament', draft.any_llancament], ['Gèneres secundaris', draft.generos_secundaris], ['Sinopsi', draft.sinopsi], ['Comentaris', draft.comentaris]].map(([label, value]) => <div key={label}><dt className="text-muted-foreground">{label}</dt><dd className="whitespace-pre-wrap break-words">{value || '—'}</dd></div>)}</dl>
           <div className="flex flex-wrap gap-2 text-sm">{draft.per_infants && <span>Per jugar amb infants</span>}{draft.per_jugar_aviat && <span>Per jugar aviat</span>}</div>
-          <Button type="button" variant="outline" onClick={() => { setEditGame(true); setDirty(true) }}>Edita les dades del joc</Button>
+          {!collectionOnly && <Button type="button" variant="outline" onClick={() => { setEditGame(true); setDirty(true) }}>Edita les dades del joc</Button>}
         </section>}
         {selected && editGame && <p className="text-sm text-muted-foreground">Aquests canvis afecten el joc i totes les seves entrades, inclosos la valoració i els comentaris.</p>}
         {sharedEditable && <>
@@ -164,6 +177,7 @@ export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved,
         {kind === 'experiencia' ? <section className="space-y-4 border-t pt-4"><h3 className="font-medium">Entrada de log</h3><div className="grid gap-4 sm:grid-cols-2"><Field label="Any de joc"><input required type="number" min="1" max="9999" value={year} onChange={e => setYear(e.target.value)} className={control} /></Field><Field label="Completat"><select value={completed} onChange={e => setCompleted(e.target.value)} className={control}><option value="">En blanc</option><option value="si">Sí</option><option value="no">No</option><option value="no_aplicable">No aplicable</option></select></Field></div><label className="text-sm"><input type="checkbox" checked={playing} onChange={e => setPlaying(e.target.checked)} /> Jugant</label><p className="text-xs text-muted-foreground">Jugant afecta el joc en conjunt i el quadre d’Inici.</p>
           {annual.length > 0 && <div role="status" className="space-y-2 text-sm"><p>Ja hi ha {annual.length === 1 ? 'una entrada' : 'diverses entrades antigues'} d’aquest joc i any. No se’n crearà cap altra.</p>{annual.map(entry => <Button key={entry.id} type="button" variant="outline" onClick={() => guard(() => void openExisting('experiencia', entry.id))}>Obre l’entrada · {entry.completat ?? 'En blanc'} · {entry.id}</Button>)}</div>}
         </section> : <section className="space-y-4 border-t pt-4"><h3 className="font-medium">Dades de Col·lecció</h3><div className="grid gap-4 sm:grid-cols-2"><Field label="Format"><select value={format} onChange={e => { setFormat(e.target.value as 'fisic' | 'digital'); setRetireConfirmed(false) }} className={control}><option value="fisic">Físic</option><option value="digital">Digital</option></select></Field><Field label="Regió"><input value={region} onChange={e => setRegion(e.target.value)} className={control} /></Field><Field label="Conservació"><input value={condition} onChange={e => setCondition(e.target.value)} className={control} /></Field><Field label="Any de compra"><input type="number" min="1" max="9999" value={purchaseYear} onChange={e => setPurchaseYear(e.target.value)} className={control} /></Field><Field label="Preu (€)"><input type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} className={control} /></Field></div><div className="flex flex-wrap gap-4">{([['favorit', 'Favorit'], ['canvi', 'Possible intercanvi'], ['reproduccio', 'Reproducció'], ['no_localitzat', 'No localitzat']] as const).map(([key, label]) => <label key={key} className="text-sm"><input type="checkbox" checked={flags[key]} onChange={e => setFlags(value => ({ ...value, [key]: e.target.checked }))} /> {label}</label>)}</div>
+          {collectionOnly && historicalCopies.length > 0 && <p role="status" className="text-sm text-muted-foreground">Hi ha {historicalCopies.length} exemplars històrics. S’afegirà un exemplar nou: no es reactivaran ni se sobreescriuran les seves dades de compra.</p>}
           {activeCopies.length > 0 && <div role="status" className="space-y-2 text-sm"><p>Aquest joc ja és a Col·lecció. Preval l’exemplar físic.</p>{activeCopies.map(copy => <Button key={copy.id} type="button" variant="outline" className="h-auto whitespace-normal" onClick={() => guard(() => void openExisting('exemplar', copy.id))}>Obre l’exemplar · {copy.format === 'fisic' ? 'Físic' : 'Digital'} · {copy.regio || 'Sense regió'} · {copy.id}</Button>)}</div>}
           {retire && <div role="alert" className="space-y-2 rounded-lg border border-amber-400 p-4 text-sm"><p>En afegir el físic, el digital deixarà de comptar com a actiu. Es conserven totes les dades i entrades. Revisa les possibles diferències amb la compra del físic.</p><p>Digital: any {retire.any_compra ?? 'buit'} · preu {retire.preu === null ? 'buit' : `${retire.preu} €`} · regió {retire.regio || 'buida'} · conservació {retire.estat_conservacio || 'buida'} · notes {retire.notes || 'buides'}.</p><label><input type="checkbox" checked={retireConfirmed} onChange={e => setRetireConfirmed(e.target.checked)} /> Confirmo conservar el digital com a històric inactiu i afegir el físic.</label></div>}
         </section>}

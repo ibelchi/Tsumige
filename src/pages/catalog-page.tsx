@@ -8,7 +8,7 @@ import { HistoryList } from '@/components/history-list'
 import { gameRating } from '@/lib/game-rating'
 import { RecordEditor } from '@/components/record-editor'
 import { RecordCreator } from '@/components/record-creator'
-import { CollectionCard } from '@/components/collection-card'
+import { CollectionCard, CollectionListRow } from '@/components/collection-card'
 import { getCatalog, type Catalog } from '@/lib/catalog'
 import { useAuth } from '@/lib/auth'
 import { useAccess } from '@/lib/access'
@@ -73,6 +73,7 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
   const [navigationIds, setNavigationIds] = useState<string[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [initialCollectionId, setInitialCollectionId] = useState<string | null>(null)
+  const [addingCollectionGame, setAddingCollectionGame] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const { data, error, isPending } = useQuery({ queryKey: ['catalog', session?.user.id], queryFn: getCatalog, enabled: Boolean(session) })
   const games = new Map(data?.jocs.map(j => [j.id, j]) ?? [])
@@ -121,12 +122,12 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
     {gameFilter && <p className="mt-4 text-sm">Mostrant {games.get(gameFilter)?.nom ?? 'un joc'}. <Link className="underline" to={history ? '/?vista=jugats' : retired ? '/?vista=retirats' : '/?vista=colleccio'}>Mostra tots els registres</Link></p>}
     {(!history || isPending) && <p role="status" className="mt-4 text-sm text-muted-foreground">{isPending ? 'Carregant…' : `${rows.length} exemplars`}</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error.message}</p>}
-    {history && data ? <HistoryList rows={rows.filter((r): r is import('@/lib/database.types').Experiencia => 'any_jugat' in r)} games={games} experiences={data.experiencies} year={year} onOpen={openRecord} copies={data.exemplars} onOpenCollection={id => openRecord(id, true)} /> : <section aria-label={history ? 'Llista d’entrades de log' : retired ? 'Exemplars retirats' : 'Jocs de la col·lecció'} className={history ? 'mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : view === 'cards' ? 'collection-gallery mt-5 grid gap-4' : 'mt-5 overflow-hidden rounded-xl border bg-card divide-y'}>
+    {history && data ? <HistoryList rows={rows.filter((r): r is import('@/lib/database.types').Experiencia => 'any_jugat' in r)} games={games} experiences={data.experiencies} year={year} onOpen={openRecord} copies={data.exemplars} onOpenCollection={id => openRecord(id, true)} onAddCollection={canEdit ? setAddingCollectionGame : undefined} /> : <section aria-label={history ? 'Llista d’entrades de log' : retired ? 'Exemplars retirats' : 'Jocs de la col·lecció'} className={history ? 'mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : view === 'cards' ? 'collection-gallery mt-5 grid gap-4' : 'mt-5 overflow-hidden rounded-xl border bg-card divide-y'}>
       {rows.map(r => {
         const j = games.get(r.joc_id)!
 
         const c = 'format' in r ? r : null
-        if (!history && view === 'list') return <article key={r.id}><button onClick={() => openRecord(r.id)} className="flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-2 px-4 py-3 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><div className="min-w-0 flex-1 basis-48"><h2 className="break-words text-sm font-medium">{j.nom}</h2><p className="mt-1 text-xs text-muted-foreground">{platformName(j.plataforma)}{c?.regio ? ` · ${c.regio}` : ''}</p></div><div className="text-right text-xs text-muted-foreground"><p>{c?.format === 'fisic' ? 'Físic' : 'Digital'}{c?.no_localitzat ? ' · No localitzat' : ''}{c?.reproduccio ? ' · Reproducció' : ''}</p></div></button></article>
+        if (!history && view === 'list' && c) return <CollectionListRow key={r.id} game={j} copy={c} rating={gameRating(j, data?.experiencies ?? [])} onOpen={() => openRecord(r.id)} />
         if (c) return <CollectionCard key={r.id} game={j} copy={c} rating={gameRating(j, data?.experiencies ?? [])} onOpen={() => openRecord(r.id)} />
         return null
       })}
@@ -134,6 +135,7 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
     {(['igdb', 'rawg'] as const).map(provider => rows.some(r => games.get(r.joc_id)?.portada_font_url?.startsWith(provider === 'igdb' ? 'https://www.igdb.com/' : 'https://rawg.io/')) && <p key={provider} className="mt-3 text-xs text-muted-foreground">Algunes imatges provenen d’<a href={provider === 'igdb' ? 'https://www.igdb.com' : 'https://rawg.io'} target="_blank" rel="noreferrer" className="underline">{provider.toUpperCase()}</a>.</p>)}
     {!isPending && !error && rows.length === 0 && <p className="mt-8 text-sm text-muted-foreground">No hi ha registres amb aquests filtres.</p>}
     {chosen && chosenGame && data && <RecordEditor key={chosen.id} kind={history ? 'experiencia' : 'exemplar'} record={chosen} game={chosenGame} catalog={data} navigation={navigation} initialCollection={initialCollectionId === chosen.id} onClose={() => setSelected(null)} onSaved={refresh} />}
+    {canEdit && addingCollectionGame && data && <RecordCreator kind="exemplar" catalog={data} initialGameId={addingCollectionGame} collectionOnly onClose={() => setAddingCollectionGame(null)} onSaved={refresh} />}
     {canEdit && creating && data && <RecordCreator kind={history ? 'experiencia' : 'exemplar'} catalog={data} initialGameId={gameFilter ?? undefined} onClose={() => setCreating(false)} onSaved={refresh} />}
   </div>
 }

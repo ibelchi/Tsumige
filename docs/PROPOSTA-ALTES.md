@@ -57,3 +57,7 @@ Criteris aprovats i proves locals d’atomicitat/permisos repetits i superats. L
 ## Tanda conjunta del 2026-10-13
 
 La RPC d’alta s’aplicarà conjuntament amb els noms aprovats, mitjançant un únic bundle privat transaccional. No executar els fitxers separats: procediment, captura agrupada i recuperació a [NOMS-PLATAFORMES.md](NOMS-PLATAFORMES.md). Les proves d’alta s’han repetit amb la normalització conjunta. La confirmació visual de l’usuari no dona per comprovat el desament remot, encara pendent de RPC.
+
+## Incorporar una fitxa del log a Col·lecció
+
+Des de la galeria del log, el propietari pot afegir un exemplar d’un joc sense exemplar actiu, excepte Emulador. Es reutilitza explícitament el seu ID i plataforma; el formulari limita l’edició a les dades de l’exemplar. La RPC d’altes existent protegeix el desament atòmic i les duplicacions. Si només hi ha històrics, es crea un exemplar nou després de mostrar-ne l’avís; no es reactiven ni es modifiquen les compres antigues. No cal cap SQL addicional. En acabar, es mostra el detall en consulta i s’actualitza l’acció de la targeta, mantenint els filtres del log.

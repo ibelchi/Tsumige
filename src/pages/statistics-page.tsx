@@ -1,34 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getCatalog } from '@/lib/catalog'
 import { useAuth } from '@/lib/auth'
-import { statistics, type StatisticRow } from '@/lib/statistics'
-import { ratingColor } from '@/lib/game-rating'
-import type { Valoracio } from '@/lib/database.types'
+import { statistics } from '@/lib/statistics'
+import { BarChart } from '@/components/bar-chart'
 
-const euros = new Intl.NumberFormat('ca-ES', { style: 'currency', currency: 'EUR' })
 function FormatFilter({ label, selected, onChange }: { label: string; selected: string[]; onChange: (values: string[]) => void }) {
   return <fieldset className="flex flex-wrap gap-4 text-sm"><legend className="sr-only">{label}</legend>{[{ value: 'fisic', label: 'Físics' }, { value: 'digital', label: 'Digitals' }].map(format => <label key={format.value} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={selected.includes(format.value)} onChange={e => onChange(e.target.checked ? [...selected, format.value] : selected.filter(value => value !== format.value))} />{format.label}</label>)}</fieldset>
-}
-function BarChart({ title, rows, note, money = false, grades = false, controls, link }: { title: string; rows: StatisticRow[]; note: string; money?: boolean; grades?: boolean; controls?: ReactNode; link?: (row: StatisticRow) => string }) {
-  const max = Math.max(...rows.map(row => row.value), 1)
-  return <section className="min-w-0 rounded-xl border bg-card p-5 sm:p-6" aria-label={title}>
-    <h3 className="text-base font-semibold">{title}</h3>
-    <p className="mt-2 text-xs leading-5 text-muted-foreground">{note}</p>
-    {controls && <div className="mt-3">{controls}</div>}
-    {rows.length ? <table className="mt-5 w-full table-fixed text-sm"><caption className="sr-only">{title}: {money ? 'imports en euros' : 'nombre de jocs'}</caption>
-      <thead className="sr-only"><tr><th scope="col">Categoria</th><th scope="col">{money ? 'Despesa' : 'Jocs'}</th></tr></thead>
-      <tbody>{rows.map(row => <tr key={row.label}>
-        <th scope="row" className={`w-[42%] break-words py-2 pr-3 text-left font-normal ${grades ? ratingColor(row.label as Valoracio) : ''}`}>{link ? <Link className="inline-block rounded-sm underline decoration-current/40 underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-ring" aria-label={`Veure els jocs: ${row.label}`} to={link(row)}>{row.label}</Link> : row.label}</th>
-        <td className="py-2"><div className="flex items-center gap-3">
-          <div aria-hidden="true" className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary/70" style={{ width: `${row.value / max * 100}%` }} /></div>
-          <span className={`${money ? 'w-28' : 'w-8'} shrink-0 text-right tabular-nums ${grades ? ratingColor(row.label as Valoracio) : ''}`}>{money ? euros.format(row.value) : row.value}</span>
-        </div></td>
-      </tr>)}</tbody>
-    </table> : <p className="mt-5 text-sm text-muted-foreground">Encara no hi ha dades per mostrar.</p>}
-  </section>
 }
 export function StatisticsPage() {
   const { session } = useAuth()

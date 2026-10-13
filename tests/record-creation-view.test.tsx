@@ -158,3 +158,117 @@ test('direct Collection action selects one copy by relation or offers multiple c
  const several=render(2);assert.match(several,/Tria un exemplar/);assert.match(several,/copy1/);assert.match(several,/copy2/)
  assert.doesNotMatch(render(0),/Veure el joc a la col·lecció|Tria un exemplar/)
 })
+
+
+test('log offers owner-only collection additions by ID, excluding Emulador; historical-only games stay eligible', async()=>{
+ const {HistoryList}=await import('../src/components/history-list')
+ const games=[{...catalog.jocs[0],id:'missing'}, {...catalog.jocs[0],id:'owned'}, {...catalog.jocs[0],id:'emulated',plataforma:'Emulador'}]
+ const rows=games.map((g,i)=>({id:`entry${i}`,joc_id:g.id,any_jugat:2026,completat:null})) as Catalog['experiencies']
+ const copies=[{id:'history',joc_id:'missing',a_la_colleccio:false,format:'digital'},{id:'active',joc_id:'owned',a_la_colleccio:true,format:'fisic'}] as Catalog['exemplars']
+ const markup=(owner:boolean)=>renderToStaticMarkup(<HistoryList rows={rows} games={new Map(games.map(g=>[g.id,g]))} experiences={rows} copies={copies} year="2026" onOpen={()=>{}} onOpenCollection={()=>{}} onAddCollection={owner ? ()=>{} : undefined}/>)
+ const html=markup(true)
+ assert.equal((html.match(/>Afegeix a la col·lecció<span/g)??[]).length,1)
+ assert.equal((html.match(/>Col·lecció<span/g)??[]).length,1)
+ assert.equal((html.match(/min-h-15/g)??[]).length,3)
+ assert.doesNotMatch(markup(false),/Afegeix a la col·lecció/)
+ assert((html.match(/<button\b[^>]*>[\s\S]*?<\/button>/g)??[]).every(b=>(b.match(/<button\b/g)??[]).length===1))
+ const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'synthetic-owner'}} as Session
+ client.setQueryData(['access',session.user.id],true);client.setQueryData(['creation-version',session.user.id],true)
+ const form=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><RecordCreator kind="exemplar" catalog={{...catalog,jocs:games,exemplars:copies}} initialGameId="missing" collectionOnly onClose={()=>{}} onSaved={async()=>catalog}/></QueryClientProvider></AuthContext.Provider>)
+ assert.match(form,/Afegeix a la col·lecció/);assert.match(form,/exemplars històrics/)
+ assert.doesNotMatch(form,/Canvia de joc|Edita les dades del joc|<textarea|Any de joc/)
+ assert.match(form,/readOnly=""/);assert.match(form,/step="0.01"/)
+})
+
+
+test('home chart supports persisted views, guest consultation, accessible switch and encoded bar links',async()=>{
+ const {HomeStatistics}=await import('../src/components/home-statistics')
+ const {MemoryRouter}=await import('react-router-dom')
+ const previous=Object.getOwnPropertyDescriptor(globalThis,'window')
+ try {
+  for(const [view,title,path] of [['played','Jocs jugats per any','vista=jugats'],['ratings','Valoracions','valoracio=A%2B%2B'],['platforms','Plataformes de la col·lecció','plataforma=Steam']]) {
+   Object.defineProperty(globalThis,'window',{configurable:true,value:{localStorage:{getItem:()=>view}}})
+   const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'synthetic-owner'}} as Session
+   client.setQueryData(['access',session.user.id],false)
+   client.setQueryData(['catalog',session.user.id],{...catalog,exemplars:[{joc_id:'game',format:'digital',a_la_colleccio:true}],experiencies:[{joc_id:'game',any_jugat:new Date().getFullYear()}]})
+   const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter><HomeStatistics/></MemoryRouter></QueryClientProvider></AuthContext.Provider>)
+   assert(html.includes(title));assert.equal((html.match(/aria-pressed="true"/g)??[]).length,1);assert.equal((html.match(/aria-pressed="false"/g)??[]).length,2);assert.match(html,/bg-green-100/);assert(html.includes(path));assert.match(html,/focus-visible:outline/)
+   assert.doesNotMatch(html,/NaN|Infinity|<input|<form/)
+  }
+ } finally {if(previous)Object.defineProperty(globalThis,'window',previous);else Reflect.deleteProperty(globalThis,'window')}
+})
+
+
+test('home game lists keep first three in order, handle 0/1/2/3/more and persist independent expansion',async()=>{
+ const {GameList}=await import('../src/components/collection-summary')
+ const {summaryExpansion}=await import('../src/lib/summary-expansion')
+ const {MemoryRouter}=await import('react-router-dom')
+ const games=Array.from({length:5},(_,i)=>({id:`synthetic-${i}`,nom:`Joc ${i}`,plataforma:'Game Boy',portada_url:'https://example.invalid/cover.jpg'})) as import('../src/lib/database.types').JocLlista[]
+ const render=(count:number,title='Jugant')=>renderToStaticMarkup(<MemoryRouter><GameList owner="test-expansion" title={title} games={games.slice(0,count)} isLoading={false}/></MemoryRouter>)
+ try {
+  for(const count of [0,1,2,3,5]) {
+   const html=render(count)
+   assert.equal((html.match(/<li /g)??[]).length,Math.min(count,3))
+   assert.equal(html.includes('md:min-h-[26rem]'),count>0)
+   if(count>3)assert.match(html,/Mostra els 2 jocs amagats de Jugant/)
+   else assert.doesNotMatch(html,/aria-expanded/)
+   if(count)assert.match(html,/object-contain|justify-center/)
+  }
+  summaryExpansion.set('test-expansion:Jugant',true)
+  assert.equal((render(5).match(/<li /g)??[]).length,5)
+  assert.match(render(5),/Mostra només els tres primers/)
+  assert.equal((render(5,'Per jugar aviat').match(/<li /g)??[]).length,3)
+  assert.equal((render(5).match(/<li /g)??[]).length,5)
+  summaryExpansion.set('test-expansion:Jugant',false)
+  assert.equal((render(5).match(/<li /g)??[]).length,3)
+  const html=render(5)
+  assert(html.indexOf('Joc 0')<html.indexOf('Joc 1'));assert(html.indexOf('Joc 1')<html.indexOf('Joc 2'))
+ } finally {summaryExpansion.set('test-expansion:Jugant',false)}
+})
+
+test('dashboard puts compact counters first and statistics after goals and random games',async()=>{
+ const {DashboardPage}=await import('../src/pages/dashboard-page')
+ const {MemoryRouter}=await import('react-router-dom')
+ const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'dashboard-synthetic'}} as Session
+ client.setQueryData(['access',session.user.id],false)
+ client.setQueryData(['catalog',session.user.id],catalog)
+ client.setQueryData(['jocs',session.user.id,'resum'],{fisics:3,digitals:2,jugant:[],per_jugar_aviat:[]})
+ client.setQueryData(['proposits',session.user.id,'resum',new Date().getFullYear()],[])
+ const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter><DashboardPage/></MemoryRouter></QueryClientProvider></AuthContext.Provider>)
+ assert(html.indexOf('Jocs físics')<html.indexOf('aria-label="Jugant"'))
+ assert(html.indexOf('aria-label="Per jugar aviat"')<html.indexOf('Propòsits de l’any actual'))
+ assert(html.indexOf('Jocs a l’atzar')<html.indexOf('aria-label="Jocs jugats per any"'))
+ assert.match(html,/format=fisic/);assert.match(html,/format=digital/)
+ assert.match(html,/Llegenda dels estats/);assert.match(html,/grid items-start gap-3 md:grid-cols-2/)
+})
+
+test('home year chart shows only five recent available years with no expansion controls',async()=>{
+ const {HomeStatistics}=await import('../src/components/home-statistics')
+ const {MemoryRouter}=await import('react-router-dom')
+ const years=[2026,2020,2015,2002,1997,1988,1980]
+ const markup=(count:number)=>{
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'years-synthetic'}} as Session
+  client.setQueryData(['catalog',session.user.id],{...catalog,experiencies:years.slice(0,count).flatMap(year=>[{joc_id:'game',any_jugat:year},{joc_id:'game',any_jugat:year}])})
+  return renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter><HomeStatistics/></MemoryRouter></QueryClientProvider></AuthContext.Provider>)
+ }
+ for(const count of [0,2,5,7]) {
+  const html=markup(count)
+  assert.equal((html.match(/<th scope="row"/g)??[]).length,Math.min(count,5))
+  assert.doesNotMatch(html,/anys amagats|Mostra’n menys|aria-expanded|NaN|Infinity|any=1980/)
+  if(count)assert.match(html,/any=2026/)
+ }
+})
+
+test('collection list rows keep full thumbnails, long titles, format and red ratings without destructive actions',async()=>{
+ const {CollectionListRow}=await import('../src/components/collection-card')
+ const copy={id:'copy',joc_id:'game',format:'fisic',regio:'PAL'} as Catalog['exemplars'][number]
+ for(const image of [null,'https://example.invalid/portrait.jpg','https://example.invalid/wide.jpg']) {
+  const game={...catalog.jocs[0],nom:'Títol llarg '.repeat(30),portada_url:image}
+  const html=renderToStaticMarkup(<CollectionListRow game={game} copy={copy} rating="A++" onOpen={()=>{}}/>)
+  assert(html.includes(game.nom));assert.match(html,/h-14 w-10/);assert.match(html,/overflow-wrap:anywhere/);assert.match(html,/Físic/);assert.match(html,/text-\[#e02424\]/)
+  if(image)assert.match(html,/object-contain/)
+  assert.doesNotMatch(html,/Retira|Elimina|object-cover|truncate/)
+ }
+ const html=renderToStaticMarkup(<CollectionListRow game={catalog.jocs[0]} copy={copy} rating={null} onOpen={()=>{}}/>)
+ assert.doesNotMatch(html,/text-2xl/)
+})

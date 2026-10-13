@@ -57,6 +57,20 @@ try {
  assert.equal((await call('exemplar',copy.joc_id,{}, {format:'digital'})).id,physical.id)
  await db.query('insert into public.experiencies(user_id,joc_id,any_jugat) values($1,$2,2026)',[owner,copy.joc_id])
  await fails(()=>call('experiencia',copy.joc_id,{}, {any_jugat:2026}),/ALTA_MULTIPLES/)
+ // Incorporar una fitxa de log existent: dades compartides i històrics intactes.
+ const logGame=emulated.joc_id
+ const ordinary=await call('experiencia',null,game('Nom compartit','Game Boy'),{any_jugat:2027})
+ const sharedBefore=(await db.query('select to_jsonb(j) game from public.fitxes_joc j where id=$1',[ordinary.joc_id])).rows
+ const logsBefore=(await db.query('select to_jsonb(e) entry from public.experiencies e where joc_id=$1 order by id',[ordinary.joc_id])).rows
+ await db.query("insert into public.exemplars(user_id,joc_id,format,preu,any_compra,a_la_colleccio) values($1,$2,'digital',19,2020,false)",[owner,ordinary.joc_id])
+ const historyBefore=(await db.query('select to_jsonb(e) copy from public.exemplars e where joc_id=$1',[ordinary.joc_id])).rows
+ const newCopy=await call('exemplar',ordinary.joc_id,{}, {format:'fisic',preu:0,any_compra:null})
+ assert.deepEqual((await db.query('select to_jsonb(j) game from public.fitxes_joc j where id=$1',[ordinary.joc_id])).rows,sharedBefore)
+ assert.deepEqual((await db.query('select to_jsonb(e) entry from public.experiencies e where joc_id=$1 order by id',[ordinary.joc_id])).rows,logsBefore)
+ assert.deepEqual((await db.query('select to_jsonb(e) copy from public.exemplars e where joc_id=$1 and not a_la_colleccio',[ordinary.joc_id])).rows,historyBefore)
+ assert.equal((await call('exemplar',ordinary.joc_id,{}, {format:'fisic',preu:99})).id,newCopy.id)
+ assert.equal((await db.query('select count(*)::int n from public.exemplars where joc_id=$1 and a_la_colleccio',[ordinary.joc_id])).rows[0].n,1)
+ await fails(()=>call('exemplar',logGame,{}, {format:'digital'}),/ALTA_EMULADOR/)
  await db.query("select set_config('request.jwt.claim.sub',$1,false)",[guest])
  await fails(()=>call('experiencia',copy.joc_id,{}, {any_jugat:2029}),/ALTA_PERMIS/)
  await db.query("select set_config('request.jwt.claim.sub',$1,false)",['33333333-3333-4333-8333-333333333333'])
