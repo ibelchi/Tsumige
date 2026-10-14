@@ -1,3 +1,4 @@
+import { GenreSelect } from '@/components/genre-select'
 import { FavoriteIndicator } from '@/components/favorite-indicator'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
@@ -258,7 +259,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
           <Field label="Nom"><input name="nom" required defaultValue={game.nom} className={control} /></Field>
           <Field label="Plataforma"><input name="plataforma" list="plataforma-opcions" required defaultValue={platformName(game.plataforma)} className={control} /><datalist id="plataforma-opcions">{platformOptions(catalog).map(option => <option key={option} value={option} />)}</datalist></Field>
           <Field label="Desenvolupadora"><input name="desenvolupadora" defaultValue={game.desenvolupadora ?? ''} className={control} /></Field>
-          <Field label="Gènere"><input name="genere_principal" defaultValue={game.genere_principal ?? ''} className={control} /></Field>
+          <GenreSelect genres={catalog.jocs.map(game => game.genere_principal)} defaultValue={game.genere_principal ?? ''} onChange={() => setDirty(true)} canAdd={canEdit} />
           <Field label="Any de llançament"><input name="any_llancament" type="number" min="1" max="9999" defaultValue={game.any_llancament ?? ''} className={control} /></Field>
         </div>
       </div>

@@ -353,3 +353,47 @@ test('collection quick filters prioritize favorites on legacy URLs and combine w
  assert.match(render('favorits=1&infants=1&format=fisic'),/Només favorit/)
  assert.match(render('favorits=1&format=fisic&plataforma=Steam'),/No hi ha registres amb aquests filtres/)
 })
+
+test('genre dropdown preserves current value, has blank option and owner-only add, and replaces primary text inputs in both creators',async()=>{
+ const {GenreSelect}=await import('../src/components/genre-select')
+ const options=['Acció','accio','Rol']
+ for(const owner of [true,false]) {
+  const html=renderToStaticMarkup(<GenreSelect genres={options} defaultValue="accio" canAdd={owner}/>)
+  assert.match(html,/<select[^>]*name="genere_principal"/)
+  assert.match(html,/<option value="">Sense gènere/)
+  assert.match(html,/<option value="accio" selected="">accio/)
+  assert.doesNotMatch(html,/<option value="Acció"/)
+  assert.equal(html.includes('Afegeix un gènere…'),owner)
+  assert.doesNotMatch(html,/<input/)
+ }
+ for(const kind of ['exemplar','experiencia'] as const) {
+  const html=render(kind)
+  assert.match(html,/<select[^>]*name="genere_principal"/)
+  assert.doesNotMatch(html,/<input[^>]*name="genere_principal"/)
+ }
+})
+
+test('both existing editor form variants use the genre dropdown and retain the stored genre spelling',async()=>{
+ const {RecordEditor}=await import('../src/components/record-editor')
+ for(const kind of ['exemplar','experiencia'] as const) {
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'genre-editor-synthetic'}} as Session
+  client.setQueryData(['access',session.user.id],true)
+  const game={...catalog.jocs[0],genere_principal:' Acció ',plataforma_resolta:true}
+  const record={id:'record',joc_id:game.id,format:'fisic',a_la_colleccio:true,any_jugat:2026,completat:null,notes:null} as unknown as Catalog['exemplars'][number] & Catalog['experiencies'][number]
+  const data={...catalog,jocs:[game],exemplars:kind==='exemplar' ? [record] : [],experiencies:kind==='experiencia' ? [record] : []}
+  const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><RecordEditor kind={kind} record={record} game={game} catalog={data} creating onClose={()=>{}} onSaved={async()=>data}/></QueryClientProvider></AuthContext.Provider>)
+  assert.match(html,/<select[^>]*name="genere_principal"/)
+  assert.match(html,/<option value=" Acció " selected="">Acció/)
+  assert.doesNotMatch(html,/<input[^>]*name="genere_principal"/)
+ }
+})
+
+test('collection genre filters keep existing trim semantics after introducing genre dropdown',async()=>{
+ const {CatalogPage}=await import('../src/pages/catalog-page')
+ const {MemoryRouter}=await import('react-router-dom')
+ const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'genre-filter-synthetic'}} as Session
+ client.setQueryData(['access',session.user.id],false)
+ client.setQueryData(['catalog',session.user.id],{...catalog,jocs:[{...catalog.jocs[0],id:'action',nom:'Acció visible',genere_principal:' Acció '},{...catalog.jocs[0],id:'role',nom:'Rol exclòs',genere_principal:'Rol'}],exemplars:[{id:'one',joc_id:'action',format:'fisic',a_la_colleccio:true},{id:'two',joc_id:'role',format:'fisic',a_la_colleccio:true}]})
+ const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter initialEntries={['/?vista=colleccio&genere=Acci%C3%B3']}><CatalogPage/></MemoryRouter></QueryClientProvider></AuthContext.Provider>)
+ assert.match(html,/Acció visible/);assert.doesNotMatch(html,/Rol exclòs/)
+})

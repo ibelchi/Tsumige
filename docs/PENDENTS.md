@@ -1,5 +1,33 @@
 # Treball pendent
 
+## Publicació de Gènere i ordre manual descartat (14 d’octubre de 2026)
+
+- Ordenació manual de Jugant/Per jugar aviat descartada per decisió explícita de l’usuari. No implementar ni preparar SQL/migracions. [PROPOSTA-ORDRE-INICI.md](PROPOSTA-ORDRE-INICI.md) es conserva únicament com a historial descartat; no queda pendent d’autorització. Ordre actual sense canvis.
+- Publicació autoritzada dels canvis completats de Gènere i la documentació associada. Cap migració, reversió ni modificació de dades de Supabase; excloure materials privats.
+- Controls previs correctes: TypeScript, ESLint, deu fitxers de lògica, renderitzat sintètic i compilació. Comprovats desplegables, deduplicació, valors preservats, permisos de presentació i compatibilitat de filtres/estadístiques/còpies/CSV. Es manté l’avís existent de mida del JavaScript.
+- Comprovació manual de Gènere en mòbil i escriptori ajornada: confirmació/cancel·lació, duplicats i desament real del desplegable no es donen per comprovats al navegador.
+- L’alta real informada per l’usuari al mòbil es manté com a observació limitada. Proves d’altes encara no verificades, errors, duplicats, permisos i incorporació des del log continuen pendents; les proves sintètiques no les substitueixen. Revisió i compleció de dades/portades ajornada.
+- Les notes següents de publicació ajornada o preparació d’ordenació són històriques i queden substituïdes per aquesta decisió.
+
+## Ajornaments i preparació d’ordre manual — historial (14 d’octubre de 2026)
+
+- Comprovació de Gènere en mòbil i escriptori ajornada; les proves automàtiques superades no acrediten confirmació/cancel·lació ni desament real del desplegable al navegador.
+- Publicació dels canvis locals acumulats pendent. No publicar en aquesta tanda; les publicacions anteriors es mantenen com a historial, sense donar aquests canvis locals per desplegats.
+- Revisió i compleció de dades i portades ajornada; proposta de pujada pròpia encara sense implementar.
+- L’usuari ha informat d’una alta real al mòbil amb Gènere lliure. Es conserva aquesta observació concreta, però continuen pendents les comprovacions reals no acreditades: modalitats d’alta, duplicats, errors, dades compartides, permisos, retorn al detall i afegir a Col·lecció des del log.
+- Ordre manual de Jugant/Per jugar aviat: anàlisi a [PROPOSTA-ORDRE-INICI.md](PROPOSTA-ORDRE-INICI.md). El model i les RPC contrastats no tenen persistència d’ordre; `resum_jocs` serveix ordre alfabètic. Cal SQL: dues posicions independents per fitxa, desament atòmic restringit al propietari, lectura i manteniment de pertinença perquè nous membres vagin al final, i compatibilitat de còpies. Anàlisi històrica posteriorment descartada: no preparar migracions. Cap alternativa amb localStorage ni interfície d’ordenació implementada.
+- Proposta d’interacció: Ordena només per al propietari, tots els jocs visibles, controls Abans/Després aptes per teclat/mòbil, Desa/Cancel·la i convidats en consulta. Els tres primers segueixen l’ordre desat; baixa d’un joc no reordena els altres. Preparació de proves i recuperació descartada amb la proposta. Anàlisi només de codi/captura contrastada, sense consulta remota nova ni dades modificades.
+
+## Gènere: desplegable compartit d’alta i edició (14 d’octubre de 2026)
+
+- Observació de l’usuari: ha fet una alta real des del mòbil i hi ha detectat Gènere com a text lliure. Els inputs de gènere principal eren compartits entre mòbil i escriptori, no una variant mòbil. Es registra aquesta observació concreta, sense donar per superats tots els recorreguts d’alta, duplicats, errors, permisos ni incorporació des del log; la resta de proves manuals continuen pendents.
+- Substituïts els inputs de gènere principal en altes de Col·lecció/log, edició explícita de dades compartides i formulari del detall per un únic component accessible de desplegable. Opcions alfabètiques a partir de totes les fitxes accessibles, deduplicades per espais, majúscules i accents; Sense gènere permet null i no es preselecciona cap gènere nou.
+- Valor actual preservat exactament, encara que sigui una variant antiga; la deduplicació només afecta les opcions de la interfície, no reanomena ni fusiona dades. Principal continua sent un únic text nullable. Els gèneres secundaris preexistents i el seu model no es modifiquen.
+- Afegeix un gènere… només per al propietari: camp separat amb Confirma/Cancel·la, validació de text no buit i detecció de duplicats que selecciona l’opció existent. Retorn confirma, Esc cancel·la només aquest camp i es retorna el focus al selector. Cal confirmar o cancel·lar abans de desar el formulari; seleccionar/confirmar una opció no escriu per si sol a Supabase.
+- Catàleg reutilitzat: els valors de genere_principal ja persistits. Una opció nova es desa amb el joc i reapareix en les consultes següents; cancel·lar el joc no crea una categoria independent. No cal SQL ni RPC nova per aquest funcionament. Si es vol un catàleg persistent també per a gèneres sense cap joc, cal una decisió separada i avisar abans de preparar qualsevol SQL; no s’ha implementat.
+- Controls correctes: TypeScript, ESLint, deu fitxers de proves de lògica, renderitzat sintètic i compilació. Provats ordre/deduplicació, espais/majúscules/accents, valor antic preservat, gènere buit, nova opció recuperable des de fitxa desada, desplegables en les dues altes i els dos formularis del detall, opció d’alta només del propietari, filtre de Col·lecció, estadístiques i còpies v1/v2/CSV sense canvis. Es manté l’avís existent de mida del JavaScript. Confirmar/cancel·lar i desament real encara necessiten comprovació interactiva.
+- Filtres/estadístiques/còpies/CSV conserven la lògica i els valors existents. Revisió visual/interactiva pendent en mòbil i escriptori: selector natiu, addició/duplicat/cancel·lació, focus/teclat, desament/error/desfer i opció recuperada després de recarregar. No hi ha navegador disponible. Cap prova amb dades reals, migració o publicació.
+
 ## Publicació dels filtres de Col·lecció (14 d’octubre de 2026)
 
 - Revisats Favorits/Amb infants: excloents, clic sobre l’actiu desactiva, URL antiga normalitzada a Favorits. Combinació amb cerca, plataforma i format conservada; mateix estat a Galeria/Llista i en tornar del detall. Convidats poden filtrar sense escriptures ni canvis de marques.
@@ -209,7 +237,7 @@ Les propostes següents no estan aprovades per implementar-les.
 - Revisar la vista llista de Col·lecció, inclosa una possible miniatura al costat del nom.
 - Possible pujada de portades pròpies. La presentació d’imatges panoràmiques s’ha ajustat en la segona tanda; queda pendent de revisió visual.
 - Validar visualment els llindars de dues i tres columnes de Jugant i Per jugar aviat, amb portades grans, títol i plataforma a sota (implementació autoritzada en la segona tanda).
-- Ordre de Jugant i Per jugar aviat encara no decidit; l’ordre manual és només una proposta.
+- Ordenació manual de Jugant i Per jugar aviat descartada el 14 d’octubre; es manté l’ordre actual.
 
 ## Primera tanda del 9 d’octubre de 2026
 

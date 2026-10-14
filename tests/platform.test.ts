@@ -159,3 +159,19 @@ test('origin remains in v1/v2 copies despite removal of its viewer',()=>{
   assert.deepEqual(restored.experiencies[0].origen,c.experiencies[0].origen)
  }
 })
+
+test('genre selector helpers leave raw genres, secondary genres, statistics, filters and v1/v2 backups unchanged',async()=>{
+ const {genreOptions,confirmGenre}=await import('../src/lib/genres')
+ const c=fixture();c.jocs[0].genere_principal=' Acció ';c.jocs[0].generos_secundaris=['Arcade','Puzzle']
+ const before=structuredClone(c)
+ const options=genreOptions(c.jocs.map(g=>g.genere_principal),c.jocs[0].genere_principal)
+ assert.equal(confirmGenre('ACCIO',options),' Acció ')
+ assert.deepEqual(statistics(c).genres,[{label:'Acció',value:1}])
+ for(const version of [1,2] as const) {
+  const restored=validateBackup(structuredClone(backup(c,version)),owner)
+  assert.equal(restored.fitxes_joc[0].genere_principal,' Acció ')
+  assert.deepEqual(restored.fitxes_joc[0].generos_secundaris,['Arcade','Puzzle'])
+  assert.match(buildCsv(backup(c,version),'colleccio').content,/ Acció /)
+ }
+ assert.deepEqual(c,before)
+})

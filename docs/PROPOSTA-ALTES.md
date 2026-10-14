@@ -4,7 +4,7 @@
 
 Criteris aprovats i implementats. La tanda conjunta de RPC d’altes i noms de plataforma s’ha aplicat una vegada per l’usuari i el rebut post-COMMIT s’ha validat: `verificat=true`, cap diferència imprevista i definicions/permisos contrastats. No tornar a executar les migracions ni fer un push global de SQL. El client comprova `versio_altes()` i desactiva el desament si la RPC no està disponible.
 
-Les proves manuals d’altes noves continuen pendents perquè l’usuari no té registres reals per incorporar. S’han de recordar abans de publicar, sense donar-les per superades ni bloquejar la publicació només per aquest motiu. Les proves locals d’atomicitat, duplicats i permisos són sintètiques. Auth/Storage API i concurrència multiclient real no es donen per verificats.
+El 14 d’octubre l’usuari informa d’una alta real al mòbil i del gènere presentat com a text lliure. Aquesta observació no acredita tots els casos d’alta: les comprovacions manuals restants continuen pendents. S’han de recordar abans de publicar, sense donar-les per superades ni bloquejar la publicació només per aquest motiu. Les proves locals d’atomicitat, duplicats i permisos són sintètiques. Auth/Storage API i concurrència multiclient real no es donen per verificats.
 
 La migració incorpora únicament `versio_altes` i `alta_registre`, amb permisos del propietari i RLS vigents. No crea índexs únics, no consolida registres antics ni modifica taules, Auth, assignacions de convidats o Storage. El diagnòstic conjunt real ja es va contrastar; els SQL d’inspecció es conserven com a referència, sense necessitat de repetir-los per publicar el client.
 
@@ -61,3 +61,7 @@ La RPC d’alta s’aplicarà conjuntament amb els noms aprovats, mitjançant un
 ## Incorporar una fitxa del log a Col·lecció
 
 Des de la galeria del log, el propietari pot afegir un exemplar d’un joc sense exemplar actiu, excepte Emulador. Es reutilitza explícitament el seu ID i plataforma; el formulari limita l’edició a les dades de l’exemplar. La RPC d’altes existent protegeix el desament atòmic i les duplicacions. Si només hi ha històrics, es crea un exemplar nou després de mostrar-ne l’avís; no es reactiven ni es modifiquen les compres antigues. No cal cap SQL addicional. En acabar, es mostra el detall en consulta i s’actualitza l’acció de la targeta, mantenint els filtres del log.
+
+## Selector de gènere principal
+
+Alta i edició comparteixen un desplegable únic, també al mòbil, amb Sense gènere, opcions existents ordenades i detecció de duplicats per espais/majúscules/accents. El propietari pot confirmar o cancel·lar un gènere nou en un camp separat. La categoria es persisteix quan es desa el joc; no hi ha catàleg independent de gèneres sense ús. Els valors antics es conserven literalment i els gèneres secundaris no es modifiquen. No cal SQL per aquest funcionament; un catàleg independent requeriria una proposta separada.
