@@ -1,5 +1,35 @@
 # Treball pendent
 
+## Publicació dels filtres de Col·lecció (14 d’octubre de 2026)
+
+- Revisats Favorits/Amb infants: excloents, clic sobre l’actiu desactiva, URL antiga normalitzada a Favorits. Combinació amb cerca, plataforma i format conservada; mateix estat a Galeria/Llista i en tornar del detall. Convidats poden filtrar sense escriptures ni canvis de marques.
+- Controls previs correctes: TypeScript, ESLint, nou fitxers de proves de lògica, renderitzat sintètic i compilació. Transicions, prioritat de URL antiga, resultats buits, formats/plataformes, propietari/convidat i dues vistes coberts amb dades sintètiques. Continua l’avís existent de mida del JavaScript.
+- Les proves manuals reals dels formularis d’alta i d’afegir a Col·lecció des del log continuen ajornades per l’usuari; no es donen per superades. Tampoc s’ha executat verificació visual/interactiva al navegador (teclat, clics, retorn real de detall, mòbil).
+- Document de portades pròpies inclòs només com a anàlisi sol·licitada: no aprova ni implementa pujades, RPC, canvis de bucket o SQL. Publicació limitada als canvis aprovats i documentació genèrica; sense materials privats, migracions ni escriptures a Supabase. Les notes de tandes següents són historial i mantenen les limitacions pendents.
+
+## Filtres ràpids excloents de Col·lecció (14 d’octubre de 2026)
+
+- Criteri vigent: Favorits i Amb infants són excloents. Prémer un activa només aquell; tornar a prémer l’actiu els desactiva tots dos. Amb infants substitueix només el text del control, no les etiquetes/tics d’edició dels registres.
+- Estat conservat a la URL amb els paràmetres existents. Si una URL antiga conté tots dos filtres, els resultats i controls prioritzen Favorits immediatament i es retira infants amb replace, sense afegir una entrada artificial a l’historial. Alternar vista/detalls conserva l’estat; cerca, plataforma, format i altres filtres no s’esborren.
+- Substitueix la intersecció dels dos accessos de la tanda anterior. Botons, icones, fons actiu, aria-pressed i ús amb teclat conservats; propietari/convidat poden filtrar sense editar dades.
+- Controls correctes: TypeScript, ESLint, nou fitxers de lògica, renderitzat sintètic i compilació. Provades les transicions cap → Favorits → Amb infants → cap, repetir Favorits → cap, prioritat de Favorits a URL antiga, eliminació de l’altre paràmetre i conservació dels altres filtres/vista. Es manté l’avís existent de mida del JavaScript.
+- Revisió visual/interactiva al navegador pendent; no hi ha navegador disponible. Proves manuals d’altes i d’afegir des del log continuen ajornades. Canvis i proposta de portades locals preservats; cap modificació de dades/esquema ni publicació.
+
+## Accessos ràpids de Col·lecció (14 d’octubre de 2026)
+
+- Dos controls compactes sota la cerca: Favorits amb estrella plena ocre i Per jugar amb infants amb icona Baby de Lucide. El filtre d’infants existent es reutilitza i el seu tic anterior es retira per evitar duplicació. Fons verd suau quan és actiu, aria-pressed, focus i botons natius de teclat; controls adaptables amb salt de línia al mòbil.
+- Favorits selecciona l’exemplar marcat; infants reutilitza `fitxa.per_infants === true`. S’apliquen en intersecció entre si i amb cerca, plataformes, formats, gènere i la resta de filtres. Els camps ja existeixen al catàleg: no cal SQL. Convidats poden filtrar sense poder editar marques.
+- Estat a la URL existent (`favorits=1`, `infants=1`), conservat en Galeria/Llista, detalls i navegació del navegador. Desactivar elimina el paràmetre corresponent; el missatge existent informa si no hi ha resultats i els botons continuen accessibles. Enllaços nets des d’Inici no hereten aquests filtres. Galeria inicial i funcions d’alta/detall sense canvis.
+- Controls correctes: TypeScript, ESLint, renderitzat sintètic i compilació. Comprovats Favorits/infants separats i combinats, intersecció amb plataforma/format, mateixes dades en Galeria/Llista, accés de propietari/convidat, desactivació via URL i resultats buits. Es manté l’avís existent de mida del JavaScript.
+- Revisió visual/interactiva real pendent: posició sota la cerca, amplades petites, teclat, activar/desactivar, alternança de vista, retorn del detall i enrere/endavant. No hi ha navegador disponible. Proves manuals d’altes i d’afegir des del log encara ajornades. Proposta de portades pròpies i resta del treball local preservats; cap modificació de dades/esquema ni publicació.
+
+## Comprovació de publicació i proposta de portada pròpia (14 d’octubre de 2026)
+
+- Tots/Top complet i ja publicat al commit `b972026`: cap commit nou necessari per l’ajust. Revisats criteris A+/A++, renovació a cada clic, retirada de Favorits/fletxes del quadre i persistència de seleccions per visita. Main local/remot coincidents, workflow de Pages correcte i tots els recursos públics contrastats per HTTP amb l’artefacte del commit, sense diferències. Controls locals repetits: TypeScript, ESLint, vuit fitxers de lògica, renderitzat sintètic i compilació correctes, amb l’avís existent de mida de JavaScript.
+- Verificació visual/interactiva real de mòbil, teclat i retorn del detall no executada; no hi ha navegador disponible. Les proves automàtiques no la substitueixen. Proves manuals d’altes i d’afegir des del log continuen ajornades, sense donar-les per superades.
+- Anàlisi de pujada manual a [PROPOSTA-PORTADES-PROPIES.md](PROPOSTA-PORTADES-PROPIES.md), només proposta local. Reutilitzables bucket privat, RLS/URL signades i camp portada_fitxer; estat revisat a partir del codi i captura d’esquema contrastada, sense comprovació administrativa nova de Supabase.
+- Dependències descobertes: RPC de desament no tracta el fitxer privat i exportació ZIP exclou imatges sense URL externa. Caldria ampliar el desament transaccional (requereix SQL futur, advertit; no preparat ni executat) i adaptar manifest/backup/restauració abans de permetre pujades. No inventar atribucions ni URL i preservar la portada antiga en cancel·lar o fallar. Formats/límit de píxels i enfocament pendents d’aprovació. Sense implementació, migracions o dades reals modificades.
+
 ## Revisió prèvia de cercador, atzar i Favorit (13 d’octubre de 2026)
 
 - Publicació autoritzada amb Tots/Top confirmat explícitament per l’usuari: cada clic renova, sense Favorits ni fletxes en aquest quadre. Es mantenen les funcionalitats generals de Favorit.

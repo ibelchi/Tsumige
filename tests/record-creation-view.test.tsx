@@ -328,3 +328,28 @@ test('home search is one accessible field for guests and owners, while standalon
  const html=renderToStaticMarkup(<RecordDetails kind="joc" record={null} game={catalog.jocs[0]} catalog={catalog} onViewCollection={()=>{}}/>)
  assert.match(html,/Comentari compartit/);assert.match(html,/A\+/);assert.doesNotMatch(html,/<input|<textarea/)
 })
+
+test('collection quick filters prioritize favorites on legacy URLs and combine with platforms/format in both views, including guests and empty results',async()=>{
+ const {CatalogPage}=await import('../src/pages/catalog-page')
+ const {MemoryRouter}=await import('react-router-dom')
+ const c={...catalog,jocs:[{...catalog.jocs[0],id:'both',nom:'Coincideix',plataforma:'Steam',per_infants:true},{...catalog.jocs[0],id:'favorite',nom:'Només favorit',plataforma:'PC',per_infants:false},{...catalog.jocs[0],id:'child',nom:'Només infants',plataforma:'Steam',per_infants:true}],exemplars:[{id:'one',joc_id:'both',format:'digital',a_la_colleccio:true,favorit:true},{id:'two',joc_id:'favorite',format:'fisic',a_la_colleccio:true,favorit:true},{id:'three',joc_id:'child',format:'fisic',a_la_colleccio:true,favorit:false}]} as unknown as Catalog
+ const render=(query:string,owner=false)=>{
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'quick-filters-owner'}} as Session
+  client.setQueryData(['access',session.user.id],owner);client.setQueryData(['catalog',session.user.id],c)
+  return renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter initialEntries={[`/?vista=colleccio&${query}`]}><CatalogPage/></MemoryRouter></QueryClientProvider></AuthContext.Provider>)
+ }
+ for(const view of ['cards','list']) {
+  for(const owner of [false,true]) {
+   const html=render(`presentacio=${view}&favorits=1&infants=1&format=digital&plataforma=Steam`,owner)
+   assert.match(html,/Coincideix/);assert.doesNotMatch(html,/Només favorit|Només infants/)
+   assert.equal((html.match(/>Amb infants</g)??[]).length,1)
+   assert.match(html,/aria-pressed="true"[^>]*><svg[^>]*[\s\S]*?Favorits/)
+   assert.match(html,/bg-primary\/10/)
+  }
+ }
+ const all=render('');assert.match(all,/Coincideix/);assert.match(all,/Només favorit/);assert.match(all,/Només infants/)
+ const favorites=render('favorits=1');assert.match(favorites,/Només favorit/);assert.doesNotMatch(favorites,/Només infants/)
+ const children=render('infants=1');assert.match(children,/Només infants/);assert.doesNotMatch(children,/Només favorit/)
+ assert.match(render('favorits=1&infants=1&format=fisic'),/Només favorit/)
+ assert.match(render('favorits=1&format=fisic&plataforma=Steam'),/No hi ha registres amb aquests filtres/)
+})
