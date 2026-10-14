@@ -16,3 +16,18 @@ test('targets follow IDs: active collection, logs, historical copies and no fabr
  assert.deepEqual(gameReviewTargets(c,'c'),[])
  assert.equal(gameReviewTargets(c,'d')[0].record.id,'retired')
 })
+
+test('after deletion, the other domain and finally the orphan game remain reachable by ID',()=>{
+ const game={id:'linked',nom:'Joc conservat',plataforma:'Steam',valoracio:'A+',comentaris:'Comentaris',portada_url:'https://example.invalid/cover.jpg'}
+ const catalog={jocs:[game],exemplars:[{id:'copy',joc_id:game.id,a_la_colleccio:true}],experiencies:[{id:'entry',joc_id:game.id,any_jugat:2026}]} as unknown as Catalog
+ assert.equal(gameReviewTargets(catalog,game.id)[0].record.id,'copy')
+ const withoutCopy={...catalog,exemplars:[]}
+ assert.equal(gameReviewTargets(withoutCopy,game.id)[0].record.id,'entry')
+ assert.deepEqual(homeSearchGames(withoutCopy,'conservat'),[game])
+ const withoutEntry={...catalog,experiencies:[]}
+ assert.equal(gameReviewTargets(withoutEntry,game.id)[0].record.id,'copy')
+ assert.deepEqual(homeSearchGames(withoutEntry,'conservat'),[game])
+ const orphan={...withoutCopy,experiencies:[]}
+ assert.deepEqual(gameReviewTargets(orphan,game.id),[])
+ assert.deepEqual(homeSearchGames(orphan,'conservat'),[game])
+})

@@ -13,10 +13,10 @@ La migració incorpora únicament `versio_altes` i `alta_registre`, amb permisos
 1. «Afegeix un joc» obre directament Nom i Plataforma amb suggeriments distingits per plataforma i ID. Una selecció explícita vincula el joc existent; un text nou crea una fitxa diferent. Coincidències de títol/plataforma bloquegen un duplicat i ofereixen seleccionar/obrir el registre existent; mai es vincula automàticament pel nom.
 2. El formulari inclou portada/font, desenvolupadora, gèneres, sinopsi, any de llançament, valoració, comentaris, Per jugar aviat i Per jugar amb infants; i format, regió, conservació, compra, Favorit, intercanvi, reproducció i No localitzat. Els camps opcionals buits es conserven com a buits; 0 € és conegut. Plataformes noves s’escriuen lliurement; Emulador no es permet.
 3. Les dades d’un joc seleccionat es mostren de lectura, amb «Edita les dades del joc» explícit. No es canvia la seva identitat ni plataforma. Una plataforma diferent requereix un altre joc.
-4. Si ja hi ha un exemplar actiu, es pot obrir. El físic preval: no s’afegeix un digital sobre un físic ni una segona còpia del mateix format. Afegir físic quan només hi ha un digital exigeix revisar la seva compra/regió/conservació/notes i confirmar que queda històric inactiu. No s’eliminen dades ni entrades; els IDs anteriors es conserven. Diversos actius no es consoliden automàticament.
-5. Una transacció desa fitxa/exemplar i, si s’ha confirmat, retira el digital del recompte actiu. **Mai crea entrades de log ni executa el circuit Jugant.** Després obre el detall de l’exemplar en consulta.
+4. Si ja hi ha un exemplar actiu, es pot obrir. El físic preval: no s’afegeix un digital sobre un físic ni una segona còpia del mateix format. Si ja hi ha un digital, s’ofereix obrir-lo sense retirar-lo ni sobreescriure’l; la substitució requereix una decisió explícita fora d’aquesta alta. No s’eliminen dades ni entrades; els IDs anteriors es conserven. Diversos actius no es consoliden automàticament.
+5. Una transacció desa fitxa/exemplar, sense retirar exemplars existents. **Mai crea entrades de log ni executa el circuit Jugant.** Després obre el detall de l’exemplar en consulta.
 
-Exemple sintètic: Prova · Nintendo Switch, físic, compra 2026 i 0 €: fitxa i exemplar, cap entrada. Prova · Steam és una altra fitxa. Si Switch ja té digital, les compres continuen separades i el digital queda històric només amb confirmació.
+Exemple sintètic: Prova · Nintendo Switch, físic, compra 2026 i 0 €: fitxa i exemplar, cap entrada. Prova · Steam és una altra fitxa. Si Switch ja té un exemplar actiu, s’ofereix obrir-lo sense modificar-lo ni duplicar-lo.
 
 ## log: recorregut aprovat
 

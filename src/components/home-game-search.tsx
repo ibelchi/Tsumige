@@ -1,3 +1,4 @@
+import { DeleteRecord } from '@/components/delete-record'
 import {useEffect, useId, useMemo, useRef, useState} from 'react'
 import {useQuery, useQueryClient} from '@tanstack/react-query'
 import {useAuth} from '@/lib/auth'
@@ -10,12 +11,13 @@ import {RecordEditor} from '@/components/record-editor'
 import {RecordDetails} from '@/components/record-details'
 import {Button} from '@/components/ui/button'
 
-function GameOnlyDetail({row,catalog,onClose}: {row: ReviewRow; catalog: Catalog; onClose: () => void}) {
+export function GameOnlyDetail({row,catalog,onClose,onSaved}: {row: ReviewRow; catalog: Catalog; onClose: () => void; onSaved: () => Promise<unknown>}) {
   const dialog=useRef<HTMLDialogElement>(null)
   useEffect(()=>{dialog.current?.showModal()},[])
   return <dialog ref={dialog} onCancel={event=>{event.preventDefault();onClose()}} aria-labelledby="search-game-title" className="m-auto max-h-[94dvh] w-[min(94vw,1160px)] max-w-none overflow-y-auto rounded-xl border bg-card p-6 text-foreground backdrop:bg-black/40">
     <header className="flex items-start justify-between gap-4"><div className="min-w-0"><h2 id="search-game-title" className="text-xl font-semibold [overflow-wrap:anywhere]">{row.game.nom}</h2><p className="mt-2 [overflow-wrap:anywhere]">{platformName(row.game.plataforma)}</p></div><Button variant="outline" onClick={onClose}>Tanca</Button></header>
     <RecordDetails kind="joc" record={null} game={row.game} catalog={catalog} onViewCollection={()=>{}}/>
+    {!catalog.exemplars.some(copy=>copy.joc_id===row.game.id) && !catalog.experiencies.some(entry=>entry.joc_id===row.game.id) && <div className="mt-5"><DeleteRecord target={{kind:'joc',id:row.game.id,gameId:row.game.id,ownerId:row.game.user_id,updatedAt:row.game.updated_at}} title={row.game.nom} platform={platformName(row.game.plataforma)} onDeleted={async()=>{await onSaved();onClose()}}/></div>}
   </dialog>
 }
 export function HomeGameSearch() {
@@ -65,7 +67,7 @@ export function HomeGameSearch() {
       <ul id={listId} role="listbox" aria-label="Jocs trobats">{!error && results.map((game,i)=><li key={game.id} role="option" id={`${listId}-${i}`} aria-selected={i===index} onPointerMove={()=>setActive(i)} onClick={()=>choose(game.id)} className={`cursor-pointer rounded-md px-3 py-2 text-sm ${i===index ? 'bg-primary/10' : ''}`}><span className="block font-medium [overflow-wrap:anywhere]">{game.nom}</span><span className="text-xs text-muted-foreground [overflow-wrap:anywhere]">{platformName(game.plataforma)}</span></li>)}</ul>
     </div>}
     {selected && !target && selected.targets.length>1 && <TargetChooser row={selected} onChoose={setTarget} onClose={close}/>}
-    {selected && currentGame && data && selected.targets.length===0 && <GameOnlyDetail row={{...selected,game:currentGame}} catalog={data} onClose={close}/>}
+    {selected && currentGame && data && selected.targets.length===0 && <GameOnlyDetail row={{...selected,game:currentGame}} catalog={data} onClose={close} onSaved={refresh}/>}
     {selected && target && currentGame && currentRecord && data && <RecordEditor key={`${target.kind}:${currentRecord.id}`} kind={target.kind} record={currentRecord} game={currentGame} catalog={data} onClose={close} onSaved={refresh}/>}
   </div>
 }

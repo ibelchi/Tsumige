@@ -25,7 +25,7 @@ Col·lecció consulta exemplars actius per defecte; permet incloure retirats i s
 - Títol, plataforma i context del registre permeten distingir resultats. Es conserva l’identificador per distingir duplicats amb dades iguals.
 - Per obrir un joc s’ofereixen els seus exemplars actius; si no en té, les entrades de log; si tampoc en té, els exemplars retirats. Una única vinculació s’obre directament. Si en té diverses, l’usuari escull explícitament. No s’escull la primera arbitràriament.
 - Les fitxes sense cap registre vinculat es compten com a no consultables i no tenen un botó que inventi un exemplar/entrada. Queda pendent un detall propi de fitxa de joc.
-- El detall s’obre en consulta amb Anterior/Següent a dalt i a baix. Es conserven el camp, l’àmbit, la cerca i els filtres en tancar.
+- El detall s’obre en consulta amb Anterior/Següent només a la part inferior, agrupats a la dreta. Es conserven el camp, l’àmbit, la cerca i els filtres en tancar.
 - S’enregistra l’ordre dels resultats en obrir. Després de desar es recarreguen les dades i la llista reflecteix el nou filtre. El registre obert es manté com a punt de navegació encara que deixi de complir-lo; no salta a un altre. La resta de resultats que ja no coincideixen es retiren de la navegació. Actualitza els resultats torna a carregar la consulta sense perdre els filtres. Els resultats nous s’incorporen en tornar a obrir des de la llista, sense alterar l’ordre durant la visita.
 - Si la recàrrega falla, el detall conserva l’esborrany i mostra l’error existent. Navegar/tancar continua protegint els canvis pendents.
 

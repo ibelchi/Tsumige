@@ -1,3 +1,4 @@
+import { useAccess } from '@/lib/access'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { DataReview } from '@/components/data-review'
 import { coverUrl } from '@/lib/cover-storage'
 
 export function SettingsPage() {
+  const { canEdit } = useAccess()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -39,6 +41,7 @@ export function SettingsPage() {
     finally { setBusy(false) }
   }
   return <div className="page-container"><h1 className="page-title">Configuració</h1>
+    {canEdit && <>
     <Button asChild variant="outline" className="mt-5"><Link to="/?vista=contrasenya">Canvia la contrasenya</Link></Button>
     <div className="mt-8 grid items-start gap-6 lg:grid-cols-2">
     <section className="min-w-0 rounded-xl border bg-card p-6 sm:p-8" aria-labelledby="backup-title">
@@ -62,5 +65,6 @@ export function SettingsPage() {
     </section>
     </div>
     <DataReview />
+    </>}
   </div>
 }

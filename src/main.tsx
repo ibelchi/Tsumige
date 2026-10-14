@@ -6,7 +6,9 @@ import { App } from '@/App'
 import { AuthProvider } from '@/components/auth-provider'
 import { prepareRecoveryLocation } from '@/lib/recovery'
 import './index.css'
+import { initializeTheme } from '@/lib/theme'
 
+initializeTheme()
 prepareRecoveryLocation()
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },

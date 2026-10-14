@@ -1,3 +1,4 @@
+import { GameOnlyDetail } from '@/components/home-game-search'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { RecordEditor } from '@/components/record-editor'
@@ -24,7 +25,7 @@ export function GameDetailPage() {
     <Link to="/" className="mt-4 inline-block text-sm underline">Torna a l’inici</Link>
     {isPending && <p role="status" className="mt-4 text-sm">Carregant…</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error.message}</p>}
-    {!isPending && !error && !record && <p className="mt-4 text-sm">Aquest joc no té cap exemplar ni registre de joc per obrir.</p>}
+    {game && !record && data && <GameOnlyDetail row={{id:game.id,game,targets:[]}} catalog={data} onClose={()=>navigate('/')} onSaved={refresh}/>}
     {game && record && data && <RecordEditor key={record.id} kind={copy || !experience ? 'exemplar' : 'experiencia'} record={record} game={game} catalog={data} onClose={() => navigate('/')} onSaved={refresh} />}
   </div>
 }

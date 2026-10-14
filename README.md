@@ -12,6 +12,8 @@ Tsumigē neix per consultar una col·lecció física i digital. També permet re
 - **Plataforma:** un camp únic per a consoles, botigues o altres vies d’accés; opcions noves sense modificar el codi. Físic/digital és independent. Emulador només al log.
 - **Col·lecció:** Galeria inicial amb portada o Llista compacta amb miniatures i valoracions, amb elecció conservada durant la navegació; filtres de plataforma, format i gènere; cerca i navegació d’un registre al següent.
 - **log:** galeria amb portades, plataforma, valoració i estat de completat, agrupada per anys del més recent al més antic, encara que els jocs no siguin a la col·lecció. Accés separat al detall de l’entrada i al de Col·lecció quan hi ha exemplars actius relacionats. Un joc pot tenir entrades de diversos anys; les entrades sense any es conserven fora de la vista principal.
+- **Aparença:** Clar o Fosc amb selecció directa al menú, preferència local i controls també per als convidats.
+- **Eliminació:** des del detall, el propietari pot eliminar l’exemplar o l’entrada de log amb confirmació, conservant la fitxa i la resta de registres. La fitxa només es pot eliminar quan no té exemplars, tampoc històrics, ni entrades. No s’eliminen fitxers de portada.
 - **Valoracions i comentaris:** una valoració i un camp de comentaris per joc. A+ i A++ destaquen en vermell; una valoració en blanc és vàlida.
 - **Propòsits:** pendents, fets o descartats, identificats amb text i color.
 - **Estadístiques:** plataformes, gèneres, compres per any, jocs jugats i valoracions. Les categories enllaçades obren els registres corresponents.

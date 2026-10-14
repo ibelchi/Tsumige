@@ -34,7 +34,7 @@
 }
 
 @layer base {
-  * { border-color: var(--border); }
+  * { border-color: var(--border); --tw-ring-offset-color: var(--background); }
   body { margin: 0; min-width: 320px; }
   button:not(:disabled), select { cursor: pointer; }
 }
@@ -55,3 +55,45 @@
     .collection-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
 }
+
+/* Variables globals: inclouen diàlegs natius i pantalles fora de la sessió. */
+:root { color-scheme: light; }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #151c18;
+  --foreground: #e5ece6;
+  --card: #1e2822;
+  --primary: #92caa3;
+  --primary-foreground: #14251a;
+  --muted: #2b3830;
+  --muted-foreground: #b0beb4;
+  --border: #46574b;
+  --ring: #a2d9b3;
+  --sidebar: #1a231e;
+}
+@layer base {
+  dialog { color: var(--foreground); background: var(--card); }
+  dialog::backdrop { background: rgb(0 0 0 / 55%); }
+  input, select, textarea { accent-color: var(--primary); }
+  ::placeholder { color: var(--muted-foreground); opacity: 1; }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+}
+:root[data-theme="dark"] .text-red-700,
+:root[data-theme="dark"] [class~="text-[#e02424]"] { color: #ff9292; }
+:root[data-theme="dark"] [class~="text-[#996515]"] { color: #e2b65d; }
+:root[data-theme="dark"] .text-amber-800 { color: #f0c589; }
+:root[data-theme="dark"] .text-green-800 { color: #b1e0bf; }
+:root[data-theme="dark"] .bg-green-100 { background-color: #284634; }
+:root[data-theme="dark"] .hover\:bg-green-200:hover { background-color: #355a43; }
+:root[data-theme="dark"] .bg-orange-50 { background-color: #392e20; }
+:root[data-theme="dark"] .text-orange-950 { color: #f3d0a1; }
+:root[data-theme="dark"] .border-orange-300 { border-color: #a57c43; }
+:root[data-theme="dark"] [class~="bg-[#ecfdf5]"] { background-color: #254332; }
+:root[data-theme="dark"] [class~="text-[#166534]"] { color: #ade1bb; }
+:root[data-theme="dark"] [class~="bg-[#fff7ed]"] { background-color: #443321; }
+:root[data-theme="dark"] [class~="text-[#9a3412]"] { color: #f5c18e; }
+:root[data-theme="dark"] [class~="bg-[#fef2f2]"] { background-color: #492b2b; }
+:root[data-theme="dark"] [class~="text-[#991b1b]"] { color: #ffb0b0; }
+/* Només la marca i els seus substituts, mai les portades dels jocs. */
+.brand-logo { mix-blend-mode: multiply; }
+:root[data-theme="dark"] .brand-logo { filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen; }

@@ -1,3 +1,4 @@
+import { ThemeSelector } from '@/components/theme-selector'
 import { useState, type ReactNode } from 'react'
 import { BarChart3, House, History, Library, Menu, Settings2, Target, X } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -38,12 +39,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <BrandLogo className="w-24" />
         </Link>
         <nav aria-label="Navegació principal" className="space-y-1 px-3 pt-4 pb-5 lg:pt-0">
-          {navigation.filter(item => canEdit || item.view !== 'configuracio').map(({ view: itemView, label, icon: Icon, to }) => (
+          {navigation.map(({ view: itemView, label, icon: Icon, to }) => (
             <Link key={itemView} to={to} onClick={() => setMenuOpen(false)} aria-current={view === itemView ? 'page' : undefined} className={cn('flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring', view === itemView ? 'bg-primary/8 font-medium text-primary' : 'text-muted-foreground')}>
               <Icon aria-hidden="true" className="size-4" />{label}
             </Link>
           ))}
         </nav>
+        <ThemeSelector />
       </aside>
       <div className="flex min-w-0 flex-col">
         <div className="flex items-center justify-end gap-4 border-b px-5 py-3 sm:px-8 lg:px-10">{!canEdit && <span className="text-sm text-muted-foreground">Convidat · Només consulta</span>}<LogoutButton /></div>

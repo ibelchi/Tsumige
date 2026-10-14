@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f8f9f6" />
     <meta name="description" content="積みゲー (tsumigē) — El teu historial personal de videojocs." />
+    <script>
+      (() => {
+        let preference = 'light';
+        try { preference = localStorage.getItem('tsumige-theme') || 'light'; } catch {}
+        const dark = preference === 'dark' || (preference === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        if (preference === 'system') { try { localStorage.setItem('tsumige-theme', dark ? 'dark' : 'light'); } catch {} }
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        document.querySelector('meta[name="theme-color"]').content = dark ? '#151c18' : '#f8f9f6';
+      })();
+    </script>
     <title>積みゲー</title>
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
   </head>

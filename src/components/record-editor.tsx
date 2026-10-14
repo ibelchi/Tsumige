@@ -1,8 +1,9 @@
+import { DeleteRecord } from '@/components/delete-record'
 import { GenreSelect } from '@/components/genre-select'
 import { FavoriteIndicator } from '@/components/favorite-indicator'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
-import { saveRecord, createRecord, setGamePlayingFromRecord, removeFromCollection, restoreToCollection, type Catalog } from '@/lib/catalog'
+import { saveRecord, createRecord, setGamePlayingFromRecord, type Catalog } from '@/lib/catalog'
 import type { Exemplar, Experiencia, FitxaJoc, Json, Valoracio } from '@/lib/database.types'
 import { RecordDetails } from '@/components/record-details'
 import { MetadataSearch } from '@/components/metadata-search'
@@ -124,18 +125,6 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
     confirmation.current?.scrollIntoView({ block: 'nearest' })
     confirmation.current?.querySelector('button')?.focus()
   }, [confirmNavigation])
-  async function retire() {
-    if (busy || !canEdit || !copy || !window.confirm(`Retirar «${game.nom}» (${copy.regio ?? game.plataforma}) de la col·lecció? Es conservaran les entrades de log, valoracions i notes de joc.`)) return
-    setBusy(true); setError(null)
-    try { await removeFromCollection(copy.id); await onSaved(); onClose() }
-    catch (caught) { setError(caught instanceof Error ? caught.message : 'No s’ha pogut retirar.'); setBusy(false) }
-  }
-  async function restore() {
-    if (busy || !canEdit || !copy) return
-    setBusy(true); setError(null)
-    try { await restoreToCollection(copy.id); await onSaved(); onClose() }
-    catch (caught) { setError(caught instanceof Error ? caught.message : 'No s’ha pogut recuperar.'); setBusy(false) }
-  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy || retired || !canEdit || !isEditing) return
@@ -226,11 +215,6 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
         {!isEditing && !creating && <p className="mt-2 break-words text-base font-medium">{platformName(game.plataforma)}</p>}
       </div>
       <div className="flex min-w-0 flex-col items-end gap-2">
-        {navigation && <nav aria-label="Recorre els registres des de la capçalera" className="flex max-w-full flex-wrap items-center justify-end gap-2">
-          <Button type="button" variant="outline" disabled={busy || !navigation.previous || confirmNavigation} onClick={() => moveTo(navigation.previous)}>Anterior</Button>
-          <span className="text-sm text-muted-foreground">{navigation.position} de {navigation.total}</span>
-          <Button type="button" variant="outline" disabled={busy || !navigation.next || confirmNavigation} onClick={() => moveTo(navigation.next)}>Següent</Button>
-        </nav>}
         <div className="flex max-w-full flex-wrap justify-end gap-2">
           {canEdit && !retired && !isEditing && !creating && <Button type="button" disabled={busy} onClick={() => { resetDraft(savedCatalog ?? initialCatalog); setEditing(true) }}>Edita</Button>}
           {isEditing && !retired && <>
@@ -241,7 +225,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
         </div>
       </div>
     </header>
-    {retired && <p className="mt-3 text-sm">Aquest exemplar està retirat. Pots consultar-ne les dades i recuperar-lo abans d’editar-lo.</p>}
+    {retired && <p className="mt-3 text-sm">Exemplar històric conservat.</p>}
     {isEditing ? <form id="detall-formulari" key={formVersion} ref={formRef} onSubmit={submit} onChange={() => { if (canEdit) { setDirty(true); setSaved(false) } }} className="mt-4 space-y-4">
       <fieldset disabled={busy || retired || !canEdit} className="space-y-4">
       <div className="flex flex-wrap gap-x-6 gap-y-2 border-b pb-4">
@@ -297,12 +281,12 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
     {saved && <p role="status" className="mt-4 text-sm">Canvis desats.</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
     <div className="mt-6 flex flex-wrap justify-end gap-2">
-      {canEdit && copy && !creating && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(() => void (retired ? restore() : retire()))} className={retired ? 'mr-auto' : 'mr-auto text-red-700'}>{busy ? 'Actualitzant…' : retired ? 'Torna a la col·lecció' : 'Retira de la col·lecció'}</Button>}
+      {!creating && <DeleteRecord target={{kind,id:record.id,gameId:game.id,ownerId:record.user_id,updatedAt:record.updated_at}} title={game.nom} platform={platformName(game.plataforma)} beforeOpen={moveTo} onBusy={setBusy} onDeleted={async()=>{await onSaved();onClose()}} />}
       {!isEditing && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>}
     </div>
-      {navigation && <nav aria-label="Recorre els registres" className="flex items-center justify-between gap-3 border-t pt-4">
+      {navigation && <nav aria-label="Recorre els registres" className="mt-4 flex max-w-full flex-wrap items-center justify-end gap-2 border-t pt-4">
         <Button type="button" variant="outline" disabled={busy || !navigation.previous || confirmNavigation} onClick={() => moveTo(navigation.previous)}>Anterior</Button>
-        <p className="text-sm text-muted-foreground">{navigation.position} de {navigation.total}</p>
+        <span className="text-sm text-muted-foreground">{navigation.position} de {navigation.total}</span>
         <Button type="button" variant="outline" disabled={busy || !navigation.next || confirmNavigation} onClick={() => moveTo(navigation.next)}>Següent</Button>
       </nav>}
       {confirmNavigation && <section ref={confirmation} role="alert" className="rounded-lg border p-4">

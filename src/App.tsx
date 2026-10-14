@@ -10,13 +10,11 @@ import { CatalogPage } from '@/pages/catalog-page'
 import { DashboardPage } from '@/pages/dashboard-page'
 import { SettingsPage } from '@/pages/settings-page'
 import { RatingsPage } from '@/pages/ratings-page'
-import { useAccess } from '@/lib/access'
 import { PasswordPage } from '@/pages/password-page'
 import { GameDetailPage } from '@/pages/game-detail-page'
 import { RecoveryPage } from '@/pages/recovery-page'
 
 function HomePage() {
-  const { canEdit } = useAccess()
   const [params] = useSearchParams()
   const section = params.get('vista')
   if (section === 'detall') return <GameDetailPage key={params.get('joc')} />
@@ -24,10 +22,10 @@ function HomePage() {
   if (section === 'proposits') return <PropositsPage />
   if (section === 'jugats') return <CatalogPage key={`historial-${params.get('any') ?? 'all'}`} history />
   if (section === 'valoracions') return <RatingsPage />
-  if (section === 'retirats') return <CatalogPage key="retirats" retired />
+  if (section === 'retirats') return <Navigate to="/?vista=colleccio" replace />
   if (section === 'colleccio' || params.has('joc')) return <LibraryPage />
   if (section === 'seguiment') return <Navigate to="/?vista=colleccio" replace />
-  if (section === 'configuracio') return canEdit ? <SettingsPage /> : <Navigate to="/" replace />
+  if (section === 'configuracio') return <SettingsPage />
   return section === 'estadistiques'
     ? <StatisticsPage />
     : <DashboardPage />

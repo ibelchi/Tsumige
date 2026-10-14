@@ -15,7 +15,7 @@ import { getCatalog, type Catalog } from '@/lib/catalog'
 import { useAuth } from '@/lib/auth'
 import { useAccess } from '@/lib/access'
 
-export function CatalogPage({ history = false, retired = false }: { history?: boolean; retired?: boolean }) {
+export function CatalogPage({ history = false }: { history?: boolean }) {
   const { session } = useAuth()
   const { canEdit } = useAccess()
   const client = useQueryClient()
@@ -86,7 +86,7 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
   const [creating, setCreating] = useState(false)
   const { data, error, isPending } = useQuery({ queryKey: ['catalog', session?.user.id], queryFn: getCatalog, enabled: Boolean(session) })
   const games = new Map(data?.jocs.map(j => [j.id, j]) ?? [])
-  const active = data?.exemplars.filter(e => retired ? !e.a_la_colleccio : collectionCopy(e, games.get(e.joc_id))) ?? []
+  const active = data?.exemplars.filter(e => collectionCopy(e, games.get(e.joc_id))) ?? []
   const records = history ? (data?.experiencies ?? []).filter(e => e.any_jugat !== null) : active
   const rows = records.filter(r => {
     const j = games.get(r.joc_id)
@@ -115,8 +115,7 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
     return client.getQueryData<Catalog>(['catalog', session?.user.id])
   }
   return <div className="page-container collection-layout">
-    <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="page-title">{history ? 'log' : retired ? 'Jocs retirats' : 'Col·lecció'}</h1><div className="flex flex-wrap gap-2">{!history && <Button asChild variant="outline"><Link to={retired ? '/?vista=colleccio' : '/?vista=retirats'}>{retired ? 'Torna a la col·lecció' : 'Jocs retirats'}</Link></Button>}{canEdit && !retired && <Button disabled={!data} onClick={() => setCreating(true)}>{history ? 'Afegeix una entrada' : 'Afegeix un joc'}</Button>}</div></div>
-    {retired && <p className="mt-3 text-sm text-muted-foreground">Exemplars que has retirat de la col·lecció. Obre’n un per consultar-lo o recuperar-lo; el seu historial de joc es conserva.</p>}
+    <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="page-title">{history ? 'log' : 'Col·lecció'}</h1><div className="flex flex-wrap gap-2">{canEdit && <Button disabled={!data} onClick={() => setCreating(true)}>{history ? 'Afegeix una entrada' : 'Afegeix un joc'}</Button>}</div></div>
     {((history && params.has('any')) || params.has('plataforma') || params.has('genere')) && <Link to="/?vista=estadistiques" className="mt-4 inline-block text-sm underline">Torna a Estadístiques</Link>}
     <div className="mt-8 flex flex-wrap items-center gap-3 border-b pb-5">
       {history && <label className="text-sm">Any <select aria-label="Filtra per any de joc" value={year} onChange={e => setYear(e.target.value)} className="ml-2 h-10 rounded-lg border bg-card px-3"><option value="all">Tots els anys</option>{[...new Set([new Date().getFullYear(), ...(data?.experiencies.flatMap(e => e.any_jugat === null ? [] : [e.any_jugat]) ?? [])])].sort((a, b) => b - a).map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
@@ -132,10 +131,10 @@ export function CatalogPage({ history = false, retired = false }: { history?: bo
       {!history && <select aria-label="Ordena els registres" value={order} onChange={e => setOrder(e.target.value)} className="h-10 rounded-lg border bg-card px-3 text-sm"><option value="az">Nom A–Z</option><option value="za">Nom Z–A</option></select>}
       {!history && <div role="group" aria-label="Vista de la col·lecció" className="flex gap-1"><Button size="sm" variant={view === 'list' ? 'default' : 'outline'} aria-pressed={view === 'list'} onClick={() => chooseView('list')}>Llista</Button><Button size="sm" variant={view === 'cards' ? 'default' : 'outline'} aria-pressed={view === 'cards'} onClick={() => chooseView('cards')}>Galeria</Button></div>}
     </div>
-    {gameFilter && <p className="mt-4 text-sm">Mostrant {games.get(gameFilter)?.nom ?? 'un joc'}. <Link className="underline" to={history ? '/?vista=jugats' : retired ? '/?vista=retirats' : '/?vista=colleccio'}>Mostra tots els registres</Link></p>}
+    {gameFilter && <p className="mt-4 text-sm">Mostrant {games.get(gameFilter)?.nom ?? 'un joc'}. <Link className="underline" to={history ? '/?vista=jugats' : '/?vista=colleccio'}>Mostra tots els registres</Link></p>}
     {(!history || isPending) && <p role="status" className="mt-4 text-sm text-muted-foreground">{isPending ? 'Carregant…' : `${rows.length} exemplars`}</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error.message}</p>}
-    {history && data ? <HistoryList rows={rows.filter((r): r is import('@/lib/database.types').Experiencia => 'any_jugat' in r)} games={games} experiences={data.experiencies} year={year} onOpen={openRecord} copies={data.exemplars} onOpenCollection={id => openRecord(id, true)} onAddCollection={canEdit ? setAddingCollectionGame : undefined} /> : <section aria-label={history ? 'Llista d’entrades de log' : retired ? 'Exemplars retirats' : 'Jocs de la col·lecció'} className={history ? 'mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : view === 'cards' ? 'collection-gallery mt-5 grid gap-4' : 'mt-5 overflow-hidden rounded-xl border bg-card divide-y'}>
+    {history && data ? <HistoryList rows={rows.filter((r): r is import('@/lib/database.types').Experiencia => 'any_jugat' in r)} games={games} experiences={data.experiencies} year={year} onOpen={openRecord} copies={data.exemplars} onOpenCollection={id => openRecord(id, true)} onAddCollection={canEdit ? setAddingCollectionGame : undefined} /> : <section aria-label={history ? 'Llista d’entrades de log' : 'Jocs de la col·lecció'} className={history ? 'mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : view === 'cards' ? 'collection-gallery mt-5 grid gap-4' : 'mt-5 overflow-hidden rounded-xl border bg-card divide-y'}>
       {rows.map(r => {
         const j = games.get(r.joc_id)!
 

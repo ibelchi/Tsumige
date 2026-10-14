@@ -105,8 +105,8 @@ test('game detail preserves full comments, active tags, cover/rating/source orde
  assert.match(guest,/Joc favorit/)
  assert.match(guest,/Per jugar amb infants/)
  assert.doesNotMatch(guest,/Possiblement d’intercanvi|No localitzat|<form|<textarea|>Edita</)
- assert.equal((guest.match(/>Anterior</g)??[]).length,2)
- assert.equal((guest.match(/>Següent</g)??[]).length,2)
+ assert.equal((guest.match(/>Anterior</g)??[]).length,1)
+ assert.equal((guest.match(/>Següent</g)??[]).length,1)
  assert(guest.indexOf('<img')<guest.indexOf('A+'))
  assert(guest.indexOf('A+')<guest.indexOf('>IGDB<'))
  assert.match(renderDetail(true),/>Edita</)
@@ -396,4 +396,65 @@ test('collection genre filters keep existing trim semantics after introducing ge
  client.setQueryData(['catalog',session.user.id],{...catalog,jocs:[{...catalog.jocs[0],id:'action',nom:'Acció visible',genere_principal:' Acció '},{...catalog.jocs[0],id:'role',nom:'Rol exclòs',genere_principal:'Rol'}],exemplars:[{id:'one',joc_id:'action',format:'fisic',a_la_colleccio:true},{id:'two',joc_id:'role',format:'fisic',a_la_colleccio:true}]})
  const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter initialEntries={['/?vista=colleccio&genere=Acci%C3%B3']}><CatalogPage/></MemoryRouter></QueryClientProvider></AuthContext.Provider>)
  assert.match(html,/Acció visible/);assert.doesNotMatch(html,/Rol exclòs/)
+})
+
+test('delete controls respect owner permissions and distinguish game/record while upper navigation stays absent',async()=>{
+ const {DeleteRecord}=await import('../src/components/delete-record')
+ for(const owner of [true,false]) {
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'delete-synthetic'}} as Session
+  client.setQueryData(['access',session.user.id],owner)
+  for(const kind of ['joc','exemplar','experiencia'] as const) {
+   const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><DeleteRecord target={{kind,id:'selected',ownerId:session.user.id,gameId:'game',updatedAt:'stamp'}} title="Prova" platform="Steam" onDeleted={async()=>{}}/></QueryClientProvider></AuthContext.Provider>)
+   if(owner)assert.match(html,kind==='joc' ? /Elimina el joc definitivament/ : /Elimina el registre/)
+   else assert.equal(html,'')
+   assert.doesNotMatch(html,/Retira de la col·lecció|Torna a la col·lecció/)
+  }
+ }
+})
+
+test('permanent game deletion is offered only for an owner game with no copies, including historical, and no log entries',async()=>{
+ const {GameOnlyDetail}=await import('../src/components/home-game-search')
+ const game={...catalog.jocs[0],user_id:'orphan-owner',updated_at:'stamp'}
+ for(const [copies,entries,allowed] of [[[],[],true],[[{joc_id:game.id,a_la_colleccio:false}],[],false],[[],[{joc_id:game.id}],false]] as const) {
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'orphan-owner'}} as Session
+  client.setQueryData(['access',session.user.id],true)
+  const data={...catalog,jocs:[game],exemplars:copies,experiencies:entries} as unknown as Catalog
+  const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><GameOnlyDetail row={{id:game.id,game,targets:[]}} catalog={data} onClose={()=>{}} onSaved={async()=>data}/></QueryClientProvider></AuthContext.Provider>)
+  assert.equal(html.includes('Elimina el joc definitivament'),allowed)
+ }
+})
+
+test('creation no longer offers retirement and scopes duplicate checks to collection versus log',()=>{
+ for(const kind of ['exemplar','experiencia'] as const) {
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}});const session={user:{id:'creation-delete-synthetic'}} as Session
+  client.setQueryData(['access',session.user.id],true);client.setQueryData(['creation-version',session.user.id],true)
+  const data={...catalog,exemplars:[{id:'copy',joc_id:'game',format:'digital',a_la_colleccio:true}]} as unknown as Catalog
+  const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><RecordCreator kind={kind} catalog={data} initialGameId="game" onClose={()=>{}} onSaved={async()=>data}/></QueryClientProvider></AuthContext.Provider>)
+  assert.doesNotMatch(html,/Confirmo conservar el digital|deixar[àa] de comptar com a actiu/)
+  const submit=html.match(/<button[^>]*type="submit"[^>]*>/)?.[0]??''
+  assert.equal(submit.includes('disabled=""'),kind==='exemplar')
+ }
+})
+
+test('sidebar offers one direct icon theme selector after Settings to guests and owners',async()=>{
+ const {MemoryRouter}=await import('react-router-dom')
+ const {SettingsPage}=await import('../src/pages/settings-page')
+ const {AppShell}=await import('../src/components/app-shell')
+ const session={user:{id:'synthetic-owner'}} as Session
+ for(const owner of [false,true]) {
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}})
+  client.setQueryData(['access',session.user.id],owner)
+  const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter><AppShell><SettingsPage/></AppShell></MemoryRouter></QueryClientProvider></AuthContext.Provider>)
+  assert.equal((html.match(/aria-label="Tema de l’aplicació"/g)??[]).length,1)
+  assert(html.indexOf('Tema de l’aplicació')>html.indexOf('>Configuració</a>'))
+  assert.match(html,/lucide-sun/);assert.match(html,/lucide-moon/);assert.doesNotMatch(html,/lucide-monitor/)
+  const settingsOnly=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter><SettingsPage/></MemoryRouter></QueryClientProvider></AuthContext.Provider>)
+  assert.doesNotMatch(settingsOnly,/Tema de l’aplicació/)
+  assert.match(html,/aria-label="Clar" title="Clar"/)
+  for(const label of ['Clar','Fosc'])assert.match(html,new RegExp(`aria-label="${label}" title="${label}"`))
+  assert.match(html,/aria-label="Clar" title="Clar" aria-pressed="true"/)
+  assert.match(html,/href="\/\?vista=configuracio"/)
+  if(owner)assert.match(html,/Descarrega còpia de seguretat/)
+  else assert.doesNotMatch(html,/Descarrega còpia de seguretat|Recupera una còpia|Exporta per consultar|Revisió de dades|Canvia la contrasenya/)
+ }
 })
