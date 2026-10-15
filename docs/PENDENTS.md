@@ -1,5 +1,12 @@
 # Treball pendent
 
+## Presentació pública del repositori — 15 d’octubre de 2026
+
+- README reescrit de manera concisa segons el codi actual: fitxes/exemplars/log, cerca/filtres, detall amb valoració superior i marc de portada, cerques externes, temes, revisió, còpies i desenvolupament. No presenta pujades pròpies ni vídeos incrustats com a implementats.
+- Quatre captures reals facilitades per l’usuari incorporades a docs/screenshots: Inici després de la presentació i Col·lecció/log/detall a Captures de pantalla. Originals conservats, còpies idèntiques sense retall, sense captura mòbil. Referències antigues retirades del README, arxius històrics preservats. Procediment i proposta About/topics a [PRESENTACIO-PUBLICA.md](PRESENTACIO-PUBLICA.md); configuració remota sense modificar.
+- Publicació autoritzada exclusivament de documentació i captures; el canvi independent de denominació de Revisió de dades queda fora del commit i es preserva. Totes les comprovacions manuals ajornades continuen pendents. Sense funcionalitats, dependències, dades o SQL modificats/executats; About/topics pendents de decisió separada.
+
+
 ## Entrega: marc de portada i valoracions a la capçalera — 15 d’octubre de 2026
 
 - Criteri vigent que substitueix el detall anterior amb imatge sencera: marc IGDB cover_big 264 × 374 (132:187), object-cover i object-center per a qualsevol origen. Marc compartit en consulta/edició, fitxes amb/sense vincles i fallback sense imatge/error; alçada màxima de 24 rem. No canvien originals ni URL. Font: https://api-docs.igdb.com/#images. Pujada de portades pròpies ajornada.

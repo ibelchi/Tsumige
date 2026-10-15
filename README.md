@@ -1,72 +1,75 @@
 # 積みゲー · Tsumigē
 
-**Una col·lecció de videojocs i un log personal, en un mateix lloc.**
+**La teva col·lecció de videojocs i el teu log de joc, en un mateix lloc.**
 
-Tsumigē neix per consultar una col·lecció física i digital. També permet recordar què s’ha jugat al llarg dels anys, valorar els jocs, escriure comentaris i seguir els propòsits de cada any. La interfície és en català i busca una presentació clara, discreta i fàcil de consultar.
+Organitza els jocs físics i digitals, recorda què has jugat cada any i guarda valoracions, comentaris i propòsits. Una interfície en català, pensada per consultar-la tant a l’ordinador com al mòbil, amb modes clar i fosc.
 
-[Obre l’aplicació](https://ibelchi.github.io/Tsumige/) · [Blog de l’autor](https://ibelchi.github.io/)
+**[Obre Tsumigē](https://ibelchi.github.io/Tsumige/)** · [Blog de l’autor](https://ibelchi.github.io/)
 
-## Què permet fer?
+<img src="docs/screenshots/inici.png" alt="Inici de Tsumigē amb cercador, jocs en seguiment, propòsits i selecció de jocs a l’atzar" width="1000" />
 
-- **Inici:** recompte de jocs físics i digitals, portades dels jocs que s’estan jugant o es volen jugar aviat, fins a tres portades aleatòries de la col·lecció, estables durant la visita, amb botons Tots/Top que renoven la selecció, i propòsits de l’any actual. Estadístiques al final amb selecció directa; anys amb entrades, només els cinc més recents.
-- **Plataforma:** un camp únic per a consoles, botigues o altres vies d’accés; opcions noves sense modificar el codi. Físic/digital és independent. Emulador només al log.
-- **Col·lecció:** Galeria inicial amb portada o Llista compacta amb miniatures i valoracions, amb elecció conservada durant la navegació; filtres de plataforma, format i gènere; cerca i navegació d’un registre al següent.
-- **log:** galeria amb portades, plataforma, valoració i estat de completat, agrupada per anys del més recent al més antic, encara que els jocs no siguin a la col·lecció. Accés separat al detall de l’entrada i al de Col·lecció quan hi ha exemplars actius relacionats. Un joc pot tenir entrades de diversos anys; les entrades sense any es conserven fora de la vista principal.
-- **Aparença:** Clar o Fosc amb selecció directa al menú, preferència local i controls també per als convidats.
-- **Eliminació:** des del detall, el propietari pot eliminar l’exemplar o l’entrada de log amb confirmació, conservant la fitxa i la resta de registres. La fitxa només es pot eliminar quan no té exemplars, tampoc històrics, ni entrades. No s’eliminen fitxers de portada.
-- **Valoracions i comentaris:** una valoració i un camp de comentaris per joc. A+ i A++ destaquen en vermell; una valoració en blanc és vàlida.
-- **Propòsits:** pendents, fets o descartats, identificats amb text i color.
-- **Estadístiques:** plataformes, gèneres, compres per any, jocs jugats i valoracions. Les categories enllaçades obren els registres corresponents.
-- **Portades:** consulta manual d’IGDB i RAWG o introducció d’una URL.
-- **Revisió de dades:** consulta de camps buits a Configuració, separada per joc, exemplar i entrada de log, amb accés al detall i navegació entre resultats. Només per al propietari.
-- **Còpies de seguretat:** ZIP amb dades i fitxers de les portades, vinculacions i informe d’errors; exportacions CSV per consultar amb Excel.
-- **Accés de convidats:** consulta sense poder modificar les dades, protegida també a la base de dades.
-- **Recuperació:** enllaç per correu per canviar la contrasenya, i restauració de còpies ZIP amb revisió prèvia i portades guardades a Supabase.
+## Un joc, diferents registres
 
-## Captures
+- **Fitxa de videojoc:** títol, plataforma, portada, gènere, valoració i comentaris compartits. El mateix títol en plataformes diferents correspon a fitxes diferents.
+- **Exemplar de col·lecció:** una còpia física o digital, amb les seves dades de compra, regió i conservació.
+- **Entrada de log:** l’any de joc i l’estat de completat. Pot referir-se a un joc que no tens a la col·lecció.
 
-### Inici
+Eliminar un exemplar o una entrada de log demana confirmació i conserva la fitxa i els altres registres. La fitxa només es pot eliminar quan ja no té exemplars ni entrades vinculats.
 
-![Inici: col·lecció, jocs en seguiment i propòsits](docs/captures/inici.jpg)
+## Què hi trobaràs
 
-### Accés
+- **Inici personal:** cercador de tots els jocs accessibles, Jugant i Per jugar aviat, propòsits anuals i una selecció aleatòria amb Tots/Top.
+- **Col·lecció i log en galeria:** portades, plataformes i valoracions; vista llista amb miniatures a Col·lecció i log agrupat per anys. Cerca i filtres per plataforma, format i gènere a Col·lecció, més Favorits o Amb infants; al log, any, cerca i plataformes.
+- **Detalls llegibles:** portada amb marc uniforme i retall centrat, valoració al costat del títol —A+ i A++ en vermell—, comentaris i navegació entre registres. Consulta i edició separades, amb protecció dels canvis sense desar.
+- **Cerques externes:** portades d’IGDB/RAWG o URL pròpia, i icones per cercar un tràiler a YouTube o el joc a MobyGames. Són cerques externes; no hi ha reproductor incrustat ni pujada de portades pròpies.
+- **Seguiment i estadístiques:** propòsits pendents, fets o descartats; distribucions de plataformes, gèneres, compres, anys de joc i valoracions.
+- **Revisió de dades:** consulta camps buits de fitxes, exemplars o entrades de log, i obre el detall per revisar-los. Un preu de 0 € és una dada informada.
+- **Còpies i exportació:** ZIP amb dades, portades i informe de descàrregues; recuperació amb previsualització i exportació CSV per consultar amb Excel.
 
-![Formulari d’inici de sessió](docs/captures/acces.jpg)
+## Captures de pantalla
 
-## Codi públic, dades personals protegides
+### Col·lecció
 
-Aquest repositori conté el programa i la documentació. **No conté la base de dades personal**, els lots d’importació, contrasenyes ni còpies de seguretat. L’aplicació consulta Supabase després d’iniciar sessió; els permisos del propietari i dels convidats s’apliquen amb polítiques de seguretat a la base de dades (RLS).
+<img src="docs/screenshots/colleccio.png" alt="Galeria de Col·lecció amb portades, plataformes i filtres de cerca, format, Favorits i Amb infants" width="1000" />
 
-Les captures mostren una part de la interfície; no donen accés a les dades. La URL i la clau *publishable* de Supabase són configuració pública del client. Les claus secretes i les credencials d’IGDB/Twitch i RAWG es mantenen al servidor.
+### Log
+
+<img src="docs/screenshots/log.png" alt="Entrades de log agrupades per any, amb portada, valoració, estat de completat i accés a Col·lecció" width="1000" />
+
+### Detall d’un videojoc
+
+<img src="docs/screenshots/detall.png" alt="Detall de Hollow Knight amb portada, valoració A++ al costat del títol, dades, comentaris i icones de cerca externa" width="1000" />
+
+## Accés i privacitat
+
+L’aplicació requereix iniciar sessió; l’enllaç públic no dona accés anònim a la col·lecció. El propietari pot editar i gestionar les dades. Els convidats autoritzats poden consultar-les i triar el tema visual, sense modificar registres. Els permisos també es comproven a Supabase amb polítiques RLS.
+
+El repositori conté el programa, no la base de dades personal ni les còpies de seguretat. Les credencials secretes d’IGDB/Twitch i RAWG es mantenen al servidor.
 
 ## Tecnologia
 
-React, TypeScript, Vite, Tailwind CSS, TanStack Query i Supabase. GitHub Actions compila i publica a GitHub Pages en cada pujada a `main`. El blog enllaça aquesta publicació independent.
+React, TypeScript, React Router, Vite, Tailwind CSS i TanStack Query. Supabase proporciona autenticació, PostgreSQL amb RLS i emmagatzematge privat de portades. Icones de Lucide i còpies ZIP amb fflate. GitHub Actions compila i desplega l’aplicació a GitHub Pages.
 
 ## Desenvolupament local
 
-Requereix Node.js 22. Copia `.env.example` a `.env.local` i indica la URL i la clau pública del teu projecte Supabase.
+Requereix **Node.js 22** i un projecte Supabase amb l’esquema, les funcions i els permisos adequats; una base buida no és suficient. Consulta [Arquitectura](docs/ARQUITECTURA.md). Els SQL històrics no són un instal·lador i no s’han de repetir sobre la instància existent.
+
+Copia `.env.example` a `.env.local` i configura la URL i una clau **publishable o anon**, mai una clau secreta.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-La base de dades requereix l’esquema, les funcions i les polítiques descrits a [Arquitectura](docs/ARQUITECTURA.md). Crear només un projecte buit a Supabase no és suficient per executar totes les funcionalitats. Aquest repositori encara no ofereix un instal·lador de base de dades per a tercers.
+Obre `http://127.0.0.1:5173/Tsumige/`. Per comprovar i compilar:
 
 ```sh
 npm run typecheck
 npm run lint
-node_modules/.bin/esbuild tests/*.test.ts --outdir=/tmp/tsumige-tests --bundle --platform=node --format=esm
-node --test /tmp/tsumige-tests/*.js
-node_modules/.bin/esbuild tests/record-creation-view.test.tsx --outfile=/tmp/tsumige-view-tests.cjs --bundle --platform=node --format=cjs '--define:import.meta.env={}'
-node --test /tmp/tsumige-view-tests.cjs
 npm run build
 ```
 
-Les RPC dels formularis d’alta i els noms aprovats ja estan aplicats i validats. Les proves manuals d’altes noves continuen pendents perquè l’usuari no té registres reals per incorporar; no bloquegen aquesta publicació: [Formularis d’alta](docs/PROPOSTA-ALTES.md). Els noms de plataforma aprovats es presenten canònicament al client; la tanda conjunta de conversió i RPC es documenta a [Noms de plataformes](docs/NOMS-PLATAFORMES.md). Les proves PostgreSQL locals utilitzen metadades privades i registres sintètics; no connecten a Supabase.
-
-Consulta [Publicació i manteniment](docs/PUBLICACIO.md) per al circuit de canvis i [Treball pendent](docs/PENDENTS.md) per a les limitacions i properes millores.
+Les instruccions de proves i publicació són a [Publicació i manteniment](docs/PUBLICACIO.md) i [proves de navegador](tests/browser/README.md). Les comprovacions manuals encara pendents es conserven a [Treball pendent](docs/PENDENTS.md); les proves automàtiques no les substitueixen.
 
 ## Autoria i drets
 
