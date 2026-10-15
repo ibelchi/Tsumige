@@ -107,7 +107,12 @@ test('game detail preserves full comments, active tags, cover/rating/source orde
  assert.doesNotMatch(guest,/Possiblement d’intercanvi|No localitzat|<form|<textarea|>Edita</)
  assert.equal((guest.match(/>Anterior</g)??[]).length,1)
  assert.equal((guest.match(/>Següent</g)??[]).length,1)
- assert(guest.indexOf('<img')<guest.indexOf('A+'))
+ assert(guest.indexOf('Etiquetes del joc')<guest.indexOf('<img'))
+ assert.equal((guest.match(/>Tanca<\/button>/g)??[]).length,1)
+ assert(guest.indexOf('>Tanca</button>')<guest.indexOf('Etiquetes del joc'))
+ assert.match(guest,/h-full w-full object-cover object-center/)
+ assert.match(guest,/<dt class="inline[^"]*">Desenvolupadora: <\/dt><dd class="inline/)
+ assert(guest.indexOf('aria-label="Valoració A+"')<guest.indexOf('</header>'))
  assert(guest.indexOf('A+')<guest.indexOf('>IGDB<'))
  assert.match(renderDetail(true),/>Edita</)
  assert.doesNotMatch(renderDetail(false,false),/>A\+</)
@@ -154,7 +159,7 @@ test('direct Collection action selects one copy by relation or offers multiple c
   const c={...catalog,jocs:[game],experiencies:[entry],exemplars:copies.slice(0,count)} as unknown as Catalog
   return renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><RecordEditor kind="experiencia" initialCollection record={c.experiencies[0]} game={c.jocs[0]} catalog={c} onClose={()=>{}} onSaved={async()=>c}/></QueryClientProvider></AuthContext.Provider>)
  }
- assert.match(render(1),/>Format</);assert.doesNotMatch(render(1),/Tria un exemplar/)
+ assert.match(render(1),/>Format: </);assert.doesNotMatch(render(1),/Tria un exemplar/)
  const several=render(2);assert.match(several,/Tria un exemplar/);assert.match(several,/copy1/);assert.match(several,/copy2/)
  assert.doesNotMatch(render(0),/Veure el joc a la col·lecció|Tria un exemplar/)
 })
@@ -326,7 +331,7 @@ test('home search is one accessible field for guests and owners, while standalon
   assert.doesNotMatch(html,/<select|<form|<li /)
  }
  const html=renderToStaticMarkup(<RecordDetails kind="joc" record={null} game={catalog.jocs[0]} catalog={catalog} onViewCollection={()=>{}}/>)
- assert.match(html,/Comentari compartit/);assert.match(html,/A\+/);assert.doesNotMatch(html,/<input|<textarea/)
+ assert.match(html,/Comentari compartit/);assert.doesNotMatch(html,/aria-label="Valoració |<input|<textarea/)
 })
 
 test('collection quick filters prioritize favorites on legacy URLs and combine with platforms/format in both views, including guests and empty results',async()=>{
@@ -421,6 +426,7 @@ test('permanent game deletion is offered only for an owner game with no copies, 
   const data={...catalog,jocs:[game],exemplars:copies,experiencies:entries} as unknown as Catalog
   const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><GameOnlyDetail row={{id:game.id,game,targets:[]}} catalog={data} onClose={()=>{}} onSaved={async()=>data}/></QueryClientProvider></AuthContext.Provider>)
   assert.equal(html.includes('Elimina el joc definitivament'),allowed)
+  assert(html.includes('w-[min(94vw,1000px)]'))
  }
 })
 
@@ -456,5 +462,117 @@ test('sidebar offers one direct icon theme selector after Settings to guests and
   assert.match(html,/href="\/\?vista=configuracio"/)
   if(owner)assert.match(html,/Descarrega còpia de seguretat/)
   else assert.doesNotMatch(html,/Descarrega còpia de seguretat|Recupera una còpia|Exporta per consultar|Revisió de dades|Canvia la contrasenya/)
+ }
+})
+
+test('deletion confirmation starts safely and only its explicit destructive button confirms',async()=>{
+ const {DeletionConfirmation}=await import('../src/components/deletion-confirmation')
+ const {Children,isValidElement}=await import('react')
+ type Props={children?:import('react').ReactNode;onClick?:()=>void;autoFocus?:boolean;type?:string}
+ for(const kind of ['exemplar','experiencia','joc'] as const) {
+  let confirmed=0,cancelled=0
+  const dialog=DeletionConfirmation({kind,title:'Joc sintètic',platform:'Steam',recordId:'synthetic',id:'confirmation',busy:false,error:'',actionLabel:kind==='joc'?'Elimina el joc definitivament':'Elimina el registre',dialogRef:{current:null},cancelRef:{current:null},onCancel:()=>{cancelled++},onConfirm:()=>{confirmed++}})
+  const html=renderToStaticMarkup(dialog)
+  assert.match(html,/Segur que vols eliminar aquest registre\? Aquesta acció no es pot desfer\./)
+  assert.match(html,/Es conserven|Només es permet si/)
+  assert.equal(confirmed,0)
+  const controls:Props[]=[]
+  function walk(node:import('react').ReactNode) {
+   Children.forEach(node,child=>{if(isValidElement<Props>(child)){if(child.props.onClick)controls.push(child.props);walk(child.props.children)}})
+  }
+  walk(dialog)
+  assert.equal(controls.length,2)
+  assert.equal(controls[0].children,'Cancel·la');assert.equal(controls[0].autoFocus,true)
+  controls[0].onClick!();assert.equal(cancelled,1);assert.equal(confirmed,0)
+  dialog.props.onCancel({preventDefault:()=>{}});dialog.props.onClose()
+  assert.equal(cancelled,3);assert.equal(confirmed,0)
+  for(const repeat of [false,true]) {
+   let prevented=false
+   const target={}
+   dialog.props.onKeyDown({key:'Enter',repeat,target,currentTarget:target,preventDefault:()=>{prevented=true}})
+   assert.equal(prevented,true);assert.equal(confirmed,0)
+  }
+  controls[1].onClick!();assert.equal(confirmed,1)
+ }
+})
+
+test('detail header orders owner actions, keeps one close and preserves the full-sized cover and growing comments',async()=>{
+ const {RecordEditor}=await import('../src/components/record-editor')
+ for(const owner of [true,false])for(const comments of ['', 'Primera línia\n'+'Comentaris llargs '.repeat(200)]) {
+  const session={user:{id:'layout-owner'}} as Session
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}})
+  client.setQueryData(['access',session.user.id],owner)
+  const game={...catalog.jocs[0],user_id:session.user.id,comentaris:comments,portada_url:'https://example.invalid/cover.jpg'}
+  const copy={id:'layout-copy',joc_id:game.id,user_id:session.user.id,updated_at:'stamp',format:'fisic',a_la_colleccio:true,preu:0}
+  const c={...catalog,jocs:[game],exemplars:[copy]} as unknown as Catalog
+  const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><RecordEditor kind="exemplar" record={c.exemplars[0]} game={c.jocs[0]} catalog={c} onClose={()=>{}} onSaved={async()=>c}/></QueryClientProvider></AuthContext.Provider>)
+  assert(html.includes('w-[min(94vw,1000px)]'))
+  assert(html.includes('md:grid-cols-[clamp(16rem,28vw,20rem)_minmax(0,1fr)]'))
+  assert(html.includes('max-w-80'))
+  const header=html.slice(0,html.indexOf('</header>'))
+  assert.equal((html.match(/>Tanca<\/button>/g)??[]).length,1)
+  assert.match(header,/>Tanca<\/button>/)
+  if(owner) {
+   assert(header.indexOf('>Edita<')<header.indexOf('>Elimina el registre<'))
+   assert(header.indexOf('>Elimina el registre<')<header.indexOf('>Tanca<'))
+  } else assert.doesNotMatch(header,/>Edita<|>Elimina el registre</)
+  assert.match(html,/h-full w-full object-cover object-center/)
+  assert.match(html,/min-h-12 rounded-md border bg-background p-3/)
+  assert.doesNotMatch(html,/<section class="border-t pt-4"><h3 class="text-sm font-semibold">Comentaris/)
+  if(comments)assert(html.includes(comments))
+ }
+})
+
+test('MobyGames is a safely encoded search link for collection, log and standalone games',async()=>{
+ const {RecordDetails}=await import('../src/components/record-details')
+ const title='Ōkami & Pokémon: "Prova" / #1?'
+ const game={...catalog.jocs[0],nom:title}
+ for(const kind of ['exemplar','experiencia','joc'] as const) {
+  const record=kind==='joc'?null:{id:'synthetic',joc_id:game.id,format:'fisic',any_jugat:2026,preu:null}
+  const html=renderToStaticMarkup(<RecordDetails kind={kind} record={record as Catalog['exemplars'][number]|Catalog['experiencies'][number]|null} game={game} catalog={{...catalog,jocs:[game]}} onViewCollection={()=>{}}/>)
+  const link=html.match(/<a[^>]*aria-label="Cerca el joc a MobyGames"[^>]*>/)?.[0]
+  assert(link)
+  assert(link.includes(`href="https://www.mobygames.com/search/?q=${encodeURIComponent(title)}"`))
+  assert.match(link,/target="_blank"/);assert.match(link,/rel="noopener noreferrer"/)
+  assert.equal((html.match(/aria-label="Cerca el joc a MobyGames"/g)??[]).length,1)
+  assert.doesNotMatch(html,/api\.mobygames|<iframe/)
+ }
+})
+
+test('external search icons keep YouTube first, safe URLs, accessible labels and touch targets',async()=>{
+ const {ExternalGameLinks}=await import('../src/components/external-game-links')
+ const title='Ōkami & Pokémon / #1?'
+ for(const platform of ['Nintendo Switch','Steam','Epic Games','itch.io','Emulador','']) {
+  const html=renderToStaticMarkup(<ExternalGameLinks title={title} platform={platform}/>)
+  const useful=platform==='Nintendo Switch'?platform:''
+  const query=[title,useful,'trailer'].filter(Boolean).join(' ')
+  assert(html.includes(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`))
+  assert(html.includes(`https://www.mobygames.com/search/?q=${encodeURIComponent(title)}`))
+  assert(html.indexOf('youtube.com/results')<html.indexOf('mobygames.com/search'))
+  for(const label of ['Cerca el tràiler a YouTube','Cerca el joc a MobyGames']) {
+   assert(html.includes(`aria-label="${label}" title="${label}"`))
+  }
+  assert.equal((html.match(/target="_blank" rel="noopener noreferrer"/g)??[]).length,2)
+  assert.equal((html.match(/size-11/g)??[]).length,2)
+  assert.equal((html.match(/focus-visible:outline-ring/g)??[]).length,2)
+  assert.equal((html.match(/alt="" aria-hidden="true"/g)??[]).length,2)
+  assert.doesNotMatch(html,/>Cerca|<iframe|api\.youtube|api\.mobygames/)
+ }
+})
+
+test('all detail ratings are unique header badges and absent ratings leave no badge',async()=>{
+ const {GameOnlyDetail}=await import('../src/components/home-game-search')
+ const {RecordEditor}=await import('../src/components/record-editor')
+ for(const rating of ['A++','A+','A','B','C','D',null] as const)for(const standalone of [false,true]) {
+  const session={user:{id:'rating-owner'}} as Session,client=new QueryClient({defaultOptions:{queries:{retry:false}}})
+  client.setQueryData(['access',session.user.id],false)
+  const game={...catalog.jocs[0],valoracio:rating,user_id:session.user.id}
+  const copy={id:'rating-copy',joc_id:game.id,user_id:session.user.id,format:'fisic',a_la_colleccio:true}
+  const c={...catalog,jocs:[game],exemplars:standalone?[]:[copy]} as unknown as Catalog
+  const detail=standalone?<GameOnlyDetail row={{id:game.id,game,targets:[]}} catalog={c} onClose={()=>{}} onSaved={async()=>c}/>:<RecordEditor kind="exemplar" record={c.exemplars[0]} game={game} catalog={c} onClose={()=>{}} onSaved={async()=>c}/>
+  const html=renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}>{detail}</QueryClientProvider></AuthContext.Provider>)
+  assert.equal((html.match(/aria-label="Valoració /g)??[]).length,rating?1:0)
+  if(rating)assert(html.indexOf(`aria-label="Valoració ${rating}"`)<html.indexOf('</header>'))
+  assert.doesNotMatch(html,/text-5xl/)
  }
 })

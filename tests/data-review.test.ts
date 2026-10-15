@@ -92,3 +92,12 @@ test('save updates results while keeping current anchor and original order; no a
   assert.deepEqual(reviewNavigation(snapshot, [], 'joc:game'), ['joc:game'])
   assert.deepEqual(reviewNavigation(snapshot, [...after, { ...after[0], id: 'new' }], 'joc:game'), ['joc:game', 'joc:next'])
 })
+
+test('missing cover combines with title search without confusing stored files or failed URLs',()=>{
+ const c=fixture()
+ c.jocs.push({...c.jocs[0],id:'stored',nom:'Joc amb fitxer',portada_fitxer:'covers/synthetic.jpg'}, {...c.jocs[0],id:'url',nom:'Joc URL',portada_url:'https://example.invalid/broken.jpg'})
+ c.exemplars.push(...c.jocs.slice(1).map((game,i)=>({...c.exemplars[0],id:`copy-${i}`,joc_id:game.id})))
+ assert.deepEqual(reviewRows(c,filters('joc','portada',{search:'sintètic'})).map(row=>row.game.id),['game'])
+ assert.equal(reviewRows(c,filters('joc','portada',{search:'fitxer'})).length,0)
+ assert.equal(reviewRows(c,filters('joc','portada',{search:'URL'})).length,0)
+})

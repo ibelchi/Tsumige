@@ -1,3 +1,4 @@
+import { DetailCover } from '@/components/detail-cover'
 import { DeleteRecord } from '@/components/delete-record'
 import { GenreSelect } from '@/components/genre-select'
 import { FavoriteIndicator } from '@/components/favorite-indicator'
@@ -8,7 +9,6 @@ import type { Exemplar, Experiencia, FitxaJoc, Json, Valoracio } from '@/lib/dat
 import { RecordDetails } from '@/components/record-details'
 import { MetadataSearch } from '@/components/metadata-search'
 import { gameRating, ratingColor } from '@/lib/game-rating'
-import { BrandLogo } from '@/components/brand-logo'
 import { GameRating } from '@/components/game-rating'
 import { gameComments } from '@/lib/game-comments'
 import { collectionCopy, platformName, platformOptions, resolvedPlatformError } from '@/lib/platform'
@@ -194,7 +194,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
       if (updated) resetDraft(updated)
       return updated
     }} />
-  return <dialog ref={dialog} onCancel={event => { event.preventDefault(); moveTo(onClose) }} aria-labelledby="detall-titol" className="m-auto max-h-[94dvh] w-[min(94vw,1160px)] max-w-none overflow-y-auto rounded-xl border bg-card p-4 sm:p-6 text-foreground shadow-xl backdrop:bg-black/40">
+  return <dialog ref={dialog} onCancel={event => { event.preventDefault(); moveTo(onClose) }} aria-labelledby="detall-titol" className="m-auto max-h-[94dvh] w-[min(94vw,1000px)] max-w-none overflow-y-auto rounded-xl border bg-card p-4 sm:p-6 text-foreground shadow-xl backdrop:bg-black/40">
     {choosingCopy && <section ref={copyChooser} aria-label="Tria un exemplar de la col·lecció" className="mb-4 rounded-lg border p-4">
       <h3 className="font-semibold">Tria un exemplar</h3>
       <div className="mt-3 flex flex-col gap-2">
@@ -206,13 +206,14 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
       </div>
       <Button type="button" variant="outline" className="mt-3" onClick={() => setChoosingCopy(false)}>Cancel·la</Button>
     </section>}
-    <header className="grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_18rem]">
+    <header className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
       <div className="min-w-0">
-        <h2 id="detall-titol" className="flex min-w-0 items-start gap-2 text-xl font-semibold">
+        <h2 id="detall-titol" className="flex min-w-0 flex-wrap items-start gap-2 text-xl font-semibold">
           {copy?.favorit && <FavoriteIndicator />}
           <span className="min-w-0 [overflow-wrap:anywhere]">{creating ? (copy ? 'Afegeix un exemplar' : 'Nova entrada de log') : game.nom}</span>
+          <GameRating rating={isEditing ? rating : gameRating(game,catalog.experiencies)} className="shrink-0 rounded-md bg-muted px-2 py-1 text-2xl leading-none"/>
         </h2>
-        {!isEditing && !creating && <p className="mt-2 break-words text-base font-medium">{platformName(game.plataforma)}</p>}
+        {!creating && <p className="mt-1 break-words text-base font-medium">{platformName(game.plataforma)}</p>}
       </div>
       <div className="flex min-w-0 flex-col items-end gap-2">
         <div className="flex max-w-full flex-wrap justify-end gap-2">
@@ -221,7 +222,8 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
             {!creating && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={undoChanges}>Desfés els canvis</Button>}
             <Button type="submit" form="detall-formulari" disabled={busy}>{busy ? 'Desant…' : creating ? 'Afegeix' : 'Desa els canvis'}</Button>
           </>}
-          <Button type="button" variant="ghost" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>
+          {!creating && <DeleteRecord target={{kind,id:record.id,gameId:game.id,ownerId:record.user_id,updatedAt:record.updated_at}} title={game.nom} platform={platformName(game.plataforma)} beforeOpen={moveTo} onBusy={setBusy} onDeleted={async()=>{await onSaved();onClose()}} />}
+          <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>
         </div>
       </div>
     </header>
@@ -232,11 +234,10 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
         <Check name="jugant" label="Hi estic jugant" checked={Boolean(experience?.jugant || history.some(e => e.jugant))} />
         <Check name="per_jugar_aviat" label="Per jugar aviat" checked={game.per_jugar_aviat} />
       </div>
-      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[clamp(12rem,24vw,16rem)_minmax(0,1fr)] md:gap-6">
-        <div className="mx-auto flex w-full max-w-64 min-w-0 flex-col items-center gap-3">
-          {displayImage && !imageError ? <img src={displayImage} alt={`Portada de ${game.nom || 'nou joc'}`} onError={() => setImageError(true)} className="max-h-72 w-full rounded-lg object-contain" /> : <div className="flex min-h-40 w-full items-center justify-center rounded-lg bg-muted"><BrandLogo className="w-12" /></div>}
+      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[clamp(16rem,28vw,20rem)_minmax(0,1fr)] md:gap-6">
+        <div className="mx-auto flex w-full max-w-80 min-w-0 flex-col items-center gap-3">
+          <DetailCover src={imageError ? null : displayImage} title={game.nom || 'nou joc'} onError={()=>setImageError(true)}/>
           {imageError && <p className="text-xs text-muted-foreground">No s’ha pogut carregar la portada.</p>}
-          {rating && <GameRating rating={rating} className="text-center text-5xl leading-none" />}
           {imageSource && <a className="text-xs underline" href={imageSource} target="_blank" rel="noreferrer">Imatge d’{imageSource.startsWith('https://www.igdb.com/') ? 'IGDB' : 'RAWG'}</a>}
         </div>
         <div className="grid min-w-0 gap-3">
@@ -274,17 +275,11 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
           <MetadataSearch name={game.nom} onImage={(url, source) => { setImage(url); setImageSource(source); setImageError(false); setDirty(true); setSaved(false) }} />
         </section>
       </details>
-    </fieldset><div className="flex flex-wrap justify-end gap-2">
-      <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>
-        {canEdit && !retired && !creating && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={undoChanges}>Desfés els canvis</Button>}{canEdit && !retired && <Button disabled={busy}>{busy ? 'Desant…' : creating ? 'Afegeix' : 'Desa els canvis'}</Button>}</div>
+    </fieldset>
     </form> : <RecordDetails kind={kind} record={record} game={game} catalog={catalog} onViewCollection={() => moveTo(openCollection)} />}
     {saved && <p role="status" className="mt-4 text-sm">Canvis desats.</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
-    <div className="mt-6 flex flex-wrap justify-end gap-2">
-      {!creating && <DeleteRecord target={{kind,id:record.id,gameId:game.id,ownerId:record.user_id,updatedAt:record.updated_at}} title={game.nom} platform={platformName(game.plataforma)} beforeOpen={moveTo} onBusy={setBusy} onDeleted={async()=>{await onSaved();onClose()}} />}
-      {!isEditing && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>}
-    </div>
-      {navigation && <nav aria-label="Recorre els registres" className="mt-4 flex max-w-full flex-wrap items-center justify-end gap-2 border-t pt-4">
+      {navigation && <nav aria-label="Recorre els registres" className="mt-3 flex max-w-full flex-wrap items-center justify-end gap-2 border-t pt-3">
         <Button type="button" variant="outline" disabled={busy || !navigation.previous || confirmNavigation} onClick={() => moveTo(navigation.previous)}>Anterior</Button>
         <span className="text-sm text-muted-foreground">{navigation.position} de {navigation.total}</span>
         <Button type="button" variant="outline" disabled={busy || !navigation.next || confirmNavigation} onClick={() => moveTo(navigation.next)}>Següent</Button>

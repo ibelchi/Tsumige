@@ -1,5 +1,76 @@
 # Treball pendent
 
+## Entrega: marc de portada i valoracions a la capçalera — 15 d’octubre de 2026
+
+- Criteri vigent que substitueix el detall anterior amb imatge sencera: marc IGDB cover_big 264 × 374 (132:187), object-cover i object-center per a qualsevol origen. Marc compartit en consulta/edició, fitxes amb/sense vincles i fallback sense imatge/error; alçada màxima de 24 rem. No canvien originals ni URL. Font: https://api-docs.igdb.com/#images. Pujada de portades pròpies ajornada.
+- Totes les valoracions disponibles A++/A+/A/B/C/D passen a un únic distintiu al costat del títol, també al joc sense vincles i en edició (control editable conservat). A+/A++ mantenen vermell; sense valoració no hi ha distintiu ni espai. Eliminada la representació sota icones; sense tercera columna, sense tocar dades.
+- Revisió de dades: Àmbit Dades del joc ofereix Plataforma, Portada, Gènere principal, Valoració i Comentaris; Col·lecció any/preu de compra; log Completat. Sense portada es combina amb la cerca per títol existent; no s’afegeixen filtres nous. Fitxer privat assignat compta com a portada, URL present amb error de càrrega no es considera camp buit, zero euros no és absent. Controls existents de Col·lecció preservats.
+- Chromium local, amb dades/imatges sintètiques: 1440×900 i 390×844, Clar/Fosc; portades verticals/panoràmiques, sense imatge/error, qualificacions diferents/absents, títols/comentaris llargs, únic distintiu, accions, marc i absència de desbordament horitzontal. Captures revisades. Filtres comprovats interactuant amb Àmbit/Camp buit i cerca, incloent preu zero. Cap petició externa en aquestes proves.
+- Noms Assassin’s Creed (panoràmica), Sekiro i Super Mario Land 2 utilitzats només en fixtures sintètiques; no verificades les fitxes/imatges reals de l’usuari per manca de sessió. Prova física en mòbil i totes les comprovacions manuals ajornades d’altes, Gènere, permisos remots i eliminacions continuen pendents. La revisió sintètica de Configuració al mòbil no equival a donar per resolta la incidència real anterior.
+- Entrega inclou la feina local aprovada de redisseny compacte, confirmació d’eliminació, icones externes, correcció del cercador i documents de relleu. TypeScript, ESLint, proves lògiques/SSR, compilació i regressió de navegador abans de publicar. Sense SQL, migracions, dades reals ni bright-worker; materials privats i captures de proves fora de Git. Resultat del desplegament i recursos públics es comunica en acabar.
+
+
+## Cercador d’Inici: selecció i retorn de focus — 15 d’octubre de 2026
+
+- Causa reproduïda en Chromium amb dades sintètiques i el main tabIndex=-1 realista: pointerdown al LI → blur de l’input amb relatedTarget MAIN → llista desmuntada, sense esdeveniment click ni diàleg. No era una fallada d’IDs ni del layout compacte del detall.
+- Correcció mínima: impedir el canvi de focus a pointerdown primari sobre un resultat; la selecció continua exclusivament al click o Retorn. En tancar, restaurar focus després del desmuntatge del diàleg, perquè abans l’input encara era inert. Disposició, enllaços i lògica de dades preservats.
+- Regressió executable a tests/browser/home-search.mjs amb fixture sintètica. Chromium escriptori/ratolí i mòbil/tàctil emulat: joc/plataforma correctes, Col·lecció/log, un sol diàleg, focus, teclat, Esc, Tab, clic fora, joc sense vincles i tria explícita d’exemplars. Cap petició externa, cap consulta ni escriptura a Supabase. Playwright/biblioteques preparats fora del projecte, sense dependències noves al package.json.
+- ESLint, TypeScript/compilació, dotze fitxers de proves de lògica i renderitzat sintètic superats. Persisteix l’avís existent de mida del JavaScript.
+- Pendent confirmació de l’usuari amb les dades accessibles reals, Assassin’s Creed i dispositiu mòbil físic/Safari/Firefox. Aquestes proves de Chromium no acrediten altres revisions visuals, Gènere, altes, permisos remots o eliminacions reals: totes les comprovacions manuals ajornades anteriors continuen pendents. Sense SQL, canvis a Supabase/bright-worker, commit ni desplegament.
+
+
+## Detall: amplada màxima compacta — 15 d’octubre de 2026
+
+- Ajust local del contenidor de detall normal i de fitxa sense vincles: màxim 1000 px en lloc de 1160 px, mantenint 94vw en pantalles petites. Cap canvi de lògica d’accions, confirmacions, enllaços o dades.
+- Distribució interior conservada: columna esquerra clamp(16rem,28vw,20rem), portada de 24 rem d’alt amb object-contain i amplada màxima 20 rem; columna dreta minmax(0,1fr), dades en línia i comentaris només dins d’aquesta columna amb creixement natural. Mateixa mida declarada de portada que abans; una columna al mòbil, sense tercera columna.
+- Controls: ESLint, TypeScript/compilació i proves de detall, inclosos màxim compartit de 1000 px, columnes/portada conservades, títols/comentaris llargs i permisos. Comprovació visual real pendent en mòbil/escriptori i Clar/Fosc: equilibri de les columnes, botons amb poc espai, absència de desbordament i mida percebuda de portada. Totes les comprovacions ajornades continuen pendents, inclosos Assassin’s Creed i Revisió de dades al mòbil. Sense SQL, Supabase, bright-worker, commit ni desplegament.
+
+
+## Icones de cerca externa al detall — 15 d’octubre de 2026
+
+- Substituït l’enllaç textual de MobyGames per la balena oficial i afegida la icona oficial de YouTube: fila centrada just sota la portada, YouTube a l’esquerra/MobyGames a la dreta, abans de valoració i font que es conserven. Imatges de 36 px en àrees de 44 × 44 px, noms accessibles, title, focus visible, pestanya nova i noopener noreferrer. Sense tercera columna ni canvis de mida de portada.
+- YouTube cerca títol + plataforma quan és útil + trailer; Steam/Epic Games/itch.io/Emulador no s’afegeixen com si fossin una edició de maquinari. MobyGames conserva la cerca pel títol exacte. Paràmetres codificats; sense API, reproductor, dades noves ni escriptures.
+- Recursos oficials locals i transparents, amb procedència a public/icons/PROCEDENCIA.md: icona del web de marca YouTube i balena 48 × 48 del favicon de MobyGames, convertida a PNG sense retall/redibuix. Sense filtres de color per tema ni càrregues d’imatge a tercers durant la consulta del detall.
+- Proves de renderitzat per als tres tipus de detall, URL amb accents/caràcters reservats, plataformes útils, ordre, accessibilitat, seguretat i dimensions declarades. Revisió visual real i interaccions pendents en mòbil/escriptori × Clar/Fosc; les comprovacions manuals anteriors, Assassin’s Creed i Revisió de dades al mòbil continuen pendents. Vídeos automàtics i fitxa exacta MobyGames ajornats; bright-worker intacta. Sense SQL, Supabase, commit ni desplegament.
+
+
+## Cerca a MobyGames i localització d’IGDB — 15 d’octubre de 2026
+
+- Enllaç textual discret «Cerca a MobyGames» al detall de consulta compartit per Col·lecció, log i fitxes sense vincles, sota la portada/valoració/font. Títol codificat amb encodeURIComponent, target _blank i rel noopener noreferrer; sense API, camps nous ni tercera columna. Reutilitza colors i focus del tema.
+- bright-worker: referència del client a src/lib/metadata.ts i descripció a ARQUITECTURA.md. Cerca als fitxers accessibles i historial Git sense codi de servidor ni instruccions específiques de desplegament; workflow només de Pages. No s’ha inspeccionat la funció remota ni es conclou que el codi no existeixi fora d’aquest repositori.
+- Per continuar amb YouTube cal facilitar el codi font vigent de bright-worker, imports/fitxers auxiliars, configuració de la funció i, si existeix, repositori o instruccions de desplegament. Només noms de variables requerides, mai tokens, claus ni valors de secrets. No substituir ni desplegar la funció abans de revisar-ho.
+- Proves sintètiques d’enllaç per als tres tipus de detall, accents/caràcters reservats i proteccions de pestanya; ESLint i TypeScript/compilació. Revisió visual i obertura real en mòbil/escriptori i Clar/Fosc pendents; totes les comprovacions manuals ajornades es mantenen. Cap implementació de YouTube, canvi de Supabase/SQL/RPC, commit o desplegament.
+
+
+## Detall compacte i confirmació segura — 15 d’octubre de 2026
+
+- Ajust local que substitueix la ubicació inferior de les accions del redisseny anterior: capçalera dreta amb Edita, Elimina el registre i Tanca, segons permisos; en edició, accions existents de desar/desfer al mateix lloc, sense duplicats inferiors. Tanca sempre a la dreta amb la protecció d’esborranys existent. Anterior/Següent continuen només a baix. Mateixa disposició al joc sense vincles.
+- Confirmació ja existent conservada i reforçada per a exemplar, entrada i joc: missatge «Segur que vols eliminar aquest registre? Aquesta acció no es pot desfer.», context i explicació del que es conserva, Cancel·la enfocada inicialment/autoFocus, acció destructiva explícita. Esc/tancament cancel·len abans d’enviar; Retorn repetit o dirigit al diàleg no confirma. Una petició ja enviada no es pot desfer cancel·lant. Es conserven RLS/IDs/timestamp/dependències i reconciliació de resposta perduda sense repetir DELETE.
+- Comentaris sense separador horitzontal: rectangle amb vora semàntica, cantonades suaus i mínim discret, creixement natural, salts de línia íntegres, sense truncament ni scroll intern. Marges/separacions compactats; portada conservada a 24 rem d’alt, sencera, amb proporcions i dues columnes/escriptori, una/mòbil.
+- Controls automàtics: ESLint, TypeScript, compilació i proves de detall/eliminació amb dades sintètiques; confirmació explícita, cancel·lació/Esc/tancament, Retorn, permisos, ordre d’accions, un sol Tanca, portada conservada i comentaris buits/llargs. Proves de callbacks/SSR no acrediten focus ni interaccions natives reals.
+- Sense navegador disponible per contrastar les quatre combinacions escriptori/mòbil × Clar/Fosc: revisar alçada/scroll segons finestra, accions amb títols llargs, confirmació i focus amb teclat, Cancel·la/Esc, desar/desfer/tancar amb esborrany, comentaris extensos. Totes les comprovacions manuals ajornades continuen pendents; Assassin’s Creed i Revisió de dades al mòbil no es donen per resolts. Sense SQL, RPC noves, dades reals, YouTube/MobyGames, commit o desplegament.
+
+
+## Detall: redisseny visual local — 15 d’octubre de 2026
+
+- Dues columnes en consulta a partir d’amplada mitjana: portada a l’esquerra amb columna de 16–20 rem i espai d’imatge estable de 24 rem d’alt; valoració i font existents a sota. Imatge sencera amb object-contain, sense retall ni deformació; dimensions de portada incrementades també en edició. Mòbil en una columna.
+- Etiquetes activades agrupades al capdamunt del contingut, abans de portada/dades. Dades en una sola columna amb etiqueta/valor en línia i salts naturals per a textos llargs; comentaris separats a sota, amb amplada de la columna de dades i sense retallar. Títol/plataforma a la capçalera; Edita i accions de desament existents conservades.
+- Retirat Tanca superior tant del detall normal com del joc sense vincles. Només Tanca inferior, també en edició, amb les guardes existents; Anterior/Següent continuen només a baix a la dreta.
+- Sense tercera columna ni blocs buits: YouTube/MobyGames continuen només com a idees, sense camps ni gestió d’enllaços implementats. Colors semàntics del tema existents reutilitzats.
+- Revisió visual real pendent en escriptori/mòbil i Clar/Fosc: portada vertical/panoràmica, títols i comentaris llargs, dades buides/0 €, accions, scroll i consulta/edició. No es dona per resolt el cas Assassin’s Creed ni Revisió de dades al mòbil. Totes les altres comprovacions manuals ajornades del relleu continuen pendents.
+- Controls superats: ESLint, TypeScript/compilació i renderitzat sintètic amb comentaris llargs, etiquetes superiors, portada sencera, convidat, camps en línia, un sol Tanca i navegació inferior. Persisteix l’avís existent de mida del JavaScript. Sense navegador disponible, no s’ha comprovat el resultat visual real.
+- Canvis exclusivament locals de presentació, sense SQL, migracions, RPC, dades reals, commit o desplegament. Els documents de relleu previs es preserven.
+
+
+## Relleu verificat — 15 d’octubre de 2026
+
+- Estat vigent resumit a [ESTAT_ACTUAL.md](ESTAT_ACTUAL.md). Les seccions antigues següents són historial; «canvis locals», «no aplicat», «pendent de publicar» o propostes substituïdes no anul·len l’estat vigent.
+- Branca main, local/origin alineats en `09a4be16eb176f3a70afdefa2da61121a8fc1d72`, fetch i divergència 0/0. Directori net abans del relleu. [Actions 38638762048](https://github.com/ibelchi/Tsumige/actions/runs/38638762048) correcte; recursos de Pages contrastats amb l’artefacte. No queda publicació d’aplicació pendent; els documents d’aquest relleu queden locals.
+- Selector publicat: només sol/lluna, sense text visible ni Sistema, centrat sota Configuració; mòbil i convidats inclosos. Eliminacions independents i neteja de joc sense vincles publicades; Anterior/Següent només a baix a la dreta. Confirmat al codi/proves, no amb interaccions manuals reals.
+- Controls repetits: ESLint, TypeScript/compilació, dotze fitxers de lògica i renderitzat sintètic. Cap SQL, migració, reversió ni registre modificat. AGENTS.md creat amb instruccions breus de continuïtat.
+- **Totes les comprovacions manuals ajornades continuen pendents**: Gènere; altes de Col·lecció/log; afegir a Col·lecció des del log; permisos d’aquestes operacions; alta fictícia, eliminació independent i neteja final; tema visual i resta de navegació/teclat/retorn/diàlegs no acreditats. Les proves automàtiques no les substitueixen.
+
+
 ## Aparença Clar / Fosc i publicació (14 d’octubre de 2026)
 
 - Selector definitiu centrat sota Configuració al menú lateral, també dins del menú mòbil: només icones de sol (Clar) i lluna (Fosc), sense text visible. Selecció directa, estat actiu destacat, noms accessibles, ajuda al cursor, focus i botons de teclat; disponible per als convidats. Cap selector duplicat a Configuració.
@@ -349,7 +420,7 @@ La revisió manual dels registres personals es fa a la base de dades i no és un
 
 ## Descartat
 
-- Mode fosc i instal·lació PWA, per decisió de l’autor.
+- Instal·lació PWA descartada. El descart antic del mode fosc queda substituït pel tema Clar/Fosc implementat i publicat.
 - Filtre físic/digital per any; es mantenen els de plataforma i gènere.
 
 ## log: accés al detall de Col·lecció (canvis locals)

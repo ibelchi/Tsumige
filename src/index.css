@@ -97,3 +97,6 @@
 /* Només la marca i els seus substituts, mai les portades dels jocs. */
 .brand-logo { mix-blend-mode: multiply; }
 :root[data-theme="dark"] .brand-logo { filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen; }
+
+/* IGDB cover_big 264 × 374; alçada màxima equivalent als 24 rem anteriors. */
+.detail-cover { width: 100%; max-width: calc(24rem * 132 / 187); aspect-ratio: 132 / 187; }
