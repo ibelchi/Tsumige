@@ -1,3 +1,5 @@
+import { GameLabelFields } from '@/components/game-label-fields'
+import { gameLabels } from '@/lib/game-labels'
 import { GenreSelect } from '@/components/genre-select'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -18,6 +20,7 @@ function initialDraft(game?: FitxaJoc) {
   return { nom: game?.nom ?? '', plataforma: platformName(game?.plataforma ?? ''), desenvolupadora: game?.desenvolupadora ?? '', genere_principal: game?.genere_principal ?? '',
     generos_secundaris: game?.generos_secundaris.join('\n') ?? '', sinopsi: game?.sinopsi ?? '', any_llancament: String(game?.any_llancament ?? ''),
     portada_url: game?.portada_url ?? '', portada_font_url: game?.portada_font_url ?? null, valoracio: game?.valoracio ?? null as Valoracio | null,
+    no_jugat: game?.no_jugat === true, intencio_joc: game?.intencio_joc ?? null,
     comentaris: game?.comentaris ?? '', per_infants: game?.per_infants === true, per_jugar_aviat: game?.per_jugar_aviat ?? false }
 }
 function optionalNumber(value: string) { return value.trim() === '' ? null : Number(value) }
@@ -160,7 +163,7 @@ export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved,
           {(selected.portada_visual_url || draft.portada_url) && <img src={selected.portada_visual_url || draft.portada_url} alt={`Portada de ${draft.nom}`} className="mx-auto max-h-56 max-w-full object-contain" />}
           <GameRating rating={draft.valoracio} className="text-center text-4xl" />
           <dl className="grid gap-3 text-sm sm:grid-cols-2">{[['Desenvolupadora', draft.desenvolupadora], ['Gènere', draft.genere_principal], ['Any de llançament', draft.any_llancament], ['Gèneres secundaris', draft.generos_secundaris], ['Sinopsi', draft.sinopsi], ['Comentaris', draft.comentaris]].map(([label, value]) => <div key={label}><dt className="text-muted-foreground">{label}</dt><dd className="whitespace-pre-wrap break-words">{value || '—'}</dd></div>)}</dl>
-          <div className="flex flex-wrap gap-2 text-sm">{draft.per_infants && <span>Per jugar amb infants</span>}{draft.per_jugar_aviat && <span>Per jugar aviat</span>}</div>
+          <div className="flex flex-wrap gap-2 text-sm">{gameLabels(draft).map(label => <span key={label}>{label}</span>)}{draft.per_infants && <span>Per jugar amb infants</span>}{draft.per_jugar_aviat && <span>Per jugar aviat</span>}</div>
           {!collectionOnly && <Button type="button" variant="outline" onClick={() => { setEditGame(true); setDirty(true) }}>Edita les dades del joc</Button>}
         </section>}
         {selected && editGame && <p className="text-sm text-muted-foreground">Aquests canvis afecten el joc i totes les seves entrades, inclosos la valoració i els comentaris.</p>}
@@ -169,6 +172,7 @@ export function RecordCreator({ kind, catalog: initialCatalog, onClose, onSaved,
           <div className="grid gap-4 sm:grid-cols-2"><Field label="Desenvolupadora"><input value={draft.desenvolupadora} onChange={e => changeDraft('desenvolupadora', e.target.value)} className={control} /></Field><GenreSelect key={gameId ?? 'new-genre'} genres={catalog.jocs.map(game => game.genere_principal)} value={draft.genere_principal} onChange={value => changeDraft('genere_principal', value)} canAdd={canEdit} /><Field label="Any de llançament"><input type="number" min="1" max="9999" value={draft.any_llancament} onChange={e => changeDraft('any_llancament', e.target.value)} className={control} /></Field></div>
           <Field label="Valoració del joc"><select value={draft.valoracio ?? ''} onChange={e => changeDraft('valoracio', (e.target.value || null) as Valoracio | null)} className={control}><option value="">En blanc</option>{['A++', 'A+', 'A', 'B', 'C', 'D'].map(value => <option key={value}>{value}</option>)}</select></Field>
           <Field label="Comentaris del joc"><textarea rows={3} value={draft.comentaris} onChange={e => changeDraft('comentaris', e.target.value)} className={control} /></Field>
+          <GameLabelFields game={draft} onChange={value => { setDraft(previous => ({ ...previous, ...value })); setDirty(true) }} />
           <div className="flex flex-wrap gap-4"><label className="text-sm"><input type="checkbox" checked={draft.per_infants} onChange={e => changeDraft('per_infants', e.target.checked)} /> Per jugar amb infants</label><label className="text-sm"><input type="checkbox" checked={draft.per_jugar_aviat} onChange={e => changeDraft('per_jugar_aviat', e.target.checked)} /> Per jugar aviat</label></div>
           <details className="rounded-lg border p-4"><summary className="cursor-pointer text-sm">Altres dades i portada</summary><div className="mt-3 space-y-4"><Field label="Sinopsi"><textarea value={draft.sinopsi} onChange={e => changeDraft('sinopsi', e.target.value)} className={control} /></Field><Field label="Gèneres secundaris (un per línia)"><textarea value={draft.generos_secundaris} onChange={e => changeDraft('generos_secundaris', e.target.value)} className={control} /></Field><Field label="URL de la imatge"><input type="url" pattern="https?://.*" value={draft.portada_url} onChange={e => { changeDraft('portada_url', e.target.value); changeDraft('portada_font_url', null) }} className={control} /></Field><MetadataSearch key={gameId ?? 'nou'} name={draft.nom} onImage={(url, source) => { changeDraft('portada_url', url); changeDraft('portada_font_url', source) }} /></div></details>
         </>}

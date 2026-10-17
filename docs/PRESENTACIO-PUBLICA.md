@@ -33,3 +33,11 @@ No afegir topics de tràilers incrustats, PWA o pujades pròpies: no estan imple
 - El canvi local independent d’Àmbit → Fitxes de videojocs a `src/components/data-review.tsx` queda fora del commit i es preserva intacte.
 - About/topics només proposats: la configuració remota de GitHub no es modifica en aquesta entrega.
 - Totes les comprovacions manuals ajornades d’altes, Gènere, incorporació des del log, permisos remots, eliminació fictícia, tema i fitxes reals no acreditades continuen pendents.
+
+
+## Captura actualitzada de Col·lecció — 17-10-2026
+
+Substituïda només docs/screenshots/colleccio.png per la captura real nova
+facilitada per l’usuari: cinc botons d’etiquetes i distribució actual de filtres.
+Còpia exacta, sense retall ni modificació de contingut. Inici/log/detall intactes;
+mateixa estructura i ruta relativa al README, amb text alternatiu actualitzat.

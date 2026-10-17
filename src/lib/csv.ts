@@ -1,3 +1,4 @@
+import { intentionOptions } from './game-labels'
 import { collectionCopy, platformName } from './platform.ts'
 import type { Backup } from '@/lib/backup'
 type Cell = string | number | null | undefined
@@ -19,17 +20,17 @@ export function buildCsv(backup: Backup, kind: CsvKind, includeRetired = false):
   let headers: string[]
   let rows: Cell[][]
   if (kind === 'colleccio') {
-    headers = ['Joc', 'Plataforma', 'Format', 'A la col·lecció', 'Regió', 'Conservació', 'Any de compra', 'Preu (€)', 'Botiga original (pendent de conversió)', 'Favorit', 'Possible venda o intercanvi', 'Reproducció', 'No localitzat', 'Comentaris', 'Desenvolupadora', 'Gènere', 'Gèneres secundaris', 'Any de llançament', 'Sinopsi', 'URL de la imatge', 'Procedència de la imatge', 'Per jugar aviat', 'Revisat', 'Per jugar amb infants', 'Valoració']
+    headers = ['Joc', 'Plataforma', 'Format', 'A la col·lecció', 'Regió', 'Conservació', 'Any de compra', 'Preu (€)', 'Botiga original (pendent de conversió)', 'Favorit', 'Possible venda o intercanvi', 'Reproducció', 'No localitzat', 'Comentaris', 'Desenvolupadora', 'Gènere', 'Gèneres secundaris', 'Any de llançament', 'Sinopsi', 'URL de la imatge', 'Procedència de la imatge', 'Per jugar aviat', 'Revisat', 'Per jugar amb infants', 'Valoració', 'No jugat', 'Intenció de joc']
     rows = backup.exemplars.filter(copy => includeRetired || collectionCopy(copy, games.get(copy.joc_id))).map(copy => {
       const j = game(copy.joc_id)
-      return [j.nom, platformName(j.plataforma), copy.format === 'fisic' ? 'Físic' : 'Digital', yesNo(copy.a_la_colleccio), copy.regio, copy.estat_conservacio, copy.any_compra, copy.preu == null ? null : String(copy.preu).replace('.', ','), copy.botiga_servei, yesNo(copy.favorit), yesNo(copy.canvi), yesNo(copy.reproduccio), yesNo(copy.no_localitzat), j.comentaris !== undefined ? j.comentaris : copy.notes, j.desenvolupadora, j.genere_principal, j.generos_secundaris.join(' | '), j.any_llancament, j.sinopsi, j.portada_url, j.portada_font_url, yesNo(j.per_jugar_aviat), yesNo(copy.revisat), j.per_infants === undefined ? null : yesNo(j.per_infants), j.valoracio]
+      return [j.nom, platformName(j.plataforma), copy.format === 'fisic' ? 'Físic' : 'Digital', yesNo(copy.a_la_colleccio), copy.regio, copy.estat_conservacio, copy.any_compra, copy.preu == null ? null : String(copy.preu).replace('.', ','), copy.botiga_servei, yesNo(copy.favorit), yesNo(copy.canvi), yesNo(copy.reproduccio), yesNo(copy.no_localitzat), j.comentaris !== undefined ? j.comentaris : copy.notes, j.desenvolupadora, j.genere_principal, j.generos_secundaris.join(' | '), j.any_llancament, j.sinopsi, j.portada_url, j.portada_font_url, yesNo(j.per_jugar_aviat), yesNo(copy.revisat), j.per_infants === undefined ? null : yesNo(j.per_infants), j.valoracio, yesNo(j.no_jugat ?? false), intentionOptions.find(o => o.value === j.intencio_joc)?.label ?? null]
     })
   } else {
-    headers = ['Joc', 'Plataforma', 'Any de joc', 'Completat', 'Valoració', 'Comentaris', 'Hi estic jugant', 'Per jugar aviat', 'A la col·lecció', 'Desenvolupadora', 'Gènere', 'Any de llançament', 'URL de la imatge', 'Revisat', 'Per jugar amb infants']
+    headers = ['Joc', 'Plataforma', 'Any de joc', 'Completat', 'Valoració', 'Comentaris', 'Hi estic jugant', 'Per jugar aviat', 'A la col·lecció', 'Desenvolupadora', 'Gènere', 'Any de llançament', 'URL de la imatge', 'Revisat', 'Per jugar amb infants', 'No jugat', 'Intenció de joc']
     const owned = new Set(backup.exemplars.filter(copy => collectionCopy(copy, games.get(copy.joc_id))).map(copy => copy.joc_id))
     rows = backup.experiencies.map(experience => {
       const j = game(experience.joc_id)
-      return [j.nom, platformName(j.plataforma), experience.any_jugat, experience.completat === null ? null : experience.completat === 'no_aplicable' ? 'No aplicable' : experience.completat === 'si' ? 'Sí' : 'No', j.valoracio !== undefined ? j.valoracio : experience.valoracio, j.comentaris !== undefined ? j.comentaris : experience.notes, yesNo(experience.jugant), yesNo(j.per_jugar_aviat), yesNo(owned.has(j.id)), j.desenvolupadora, j.genere_principal, j.any_llancament, j.portada_url, yesNo(experience.revisat), j.per_infants === undefined ? null : yesNo(j.per_infants)]
+      return [j.nom, platformName(j.plataforma), experience.any_jugat, experience.completat === null ? null : experience.completat === 'no_aplicable' ? 'No aplicable' : experience.completat === 'si' ? 'Sí' : 'No', j.valoracio !== undefined ? j.valoracio : experience.valoracio, j.comentaris !== undefined ? j.comentaris : experience.notes, yesNo(experience.jugant), yesNo(j.per_jugar_aviat), yesNo(owned.has(j.id)), j.desenvolupadora, j.genere_principal, j.any_llancament, j.portada_url, yesNo(experience.revisat), j.per_infants === undefined ? null : yesNo(j.per_infants), yesNo(j.no_jugat ?? false), intentionOptions.find(o => o.value === j.intencio_joc)?.label ?? null]
     })
   }
   if (kind === 'colleccio' && backup.fitxes_joc.every(game => game.plataforma_resolta === true)) {

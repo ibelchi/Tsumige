@@ -1,3 +1,4 @@
+import { isGameIntention } from './game-labels'
 import names from './platform-names.json'
 import { unzip, strFromU8 } from 'fflate'
 import { isEmulator, platformName, pcStore } from './platform.ts'
@@ -37,6 +38,9 @@ export function validateBackup(value: unknown, owner: string): Backup {
         if (!Array.isArray(row.generos_secundaris) || row.generos_secundaris.some(v => typeof v !== 'string')) fail()
         year(row.any_llancament); url(row.portada_url); url(row.portada_font_url ?? null); bool(row.per_jugar_aviat)
         row.portada_font_url ??= null; row.per_infants ??= false; bool(row.per_infants)
+        // Missing keys must stay missing: the server preserves existing labels.
+        if (Object.hasOwn(row, 'no_jugat')) bool(row.no_jugat)
+        if (Object.hasOwn(row, 'intencio_joc') && !isGameIntention(row.intencio_joc)) fail()
         row.comentaris ??= null; string(row.comentaris, true)
         // File paths from an older Storage instance are never trusted: new
         // uploaded paths are assigned only from this ZIP's validated manifest.

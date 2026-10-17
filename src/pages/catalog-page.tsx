@@ -1,3 +1,4 @@
+import { intentionOptions, matchesGameLabels, setGameLabelFilter, toggleGameIntentionFilter } from '@/lib/game-labels'
 import { collectionQuickFilter, toggleCollectionQuickFilter } from '@/lib/collection-quick-filter'
 import { Star, Baby } from 'lucide-react'
 import { initialCollectionView, rememberCollectionView, type CollectionView } from '@/lib/collection-view'
@@ -41,7 +42,7 @@ export function CatalogPage({ history = false }: { history?: boolean }) {
       document.removeEventListener('keydown', closeOnEscape)
     }
   }, [])
-  const [search, setSearch] = useState('')
+  const search = params.get('cerca') ?? ''
   const platforms = [...new Set(params.getAll('plataforma').map(platformName))]
   const formats = params.has('format') ? params.getAll('format') : ['fisic', 'digital']
   const genre = params.get('genere') ?? ''
@@ -67,7 +68,7 @@ export function CatalogPage({ history = false }: { history?: boolean }) {
     rememberCollectionView(next)
     changeFilter('presentacio', [next])
   }
-  const quickFilter = history ? null : collectionQuickFilter(params)
+  const quickFilter = history ? (params.get('infants') === '1' ? 'infants' : null) : collectionQuickFilter(params)
   const onlyChildren = quickFilter === 'infants'
   const onlyFavorites = quickFilter === 'favorits'
   useEffect(() => {
@@ -76,9 +77,7 @@ export function CatalogPage({ history = false }: { history?: boolean }) {
     }
   }, [history, params, setParams])
   const [order, setOrder] = useState('az')
-  const [year, setYear] = useState(() => /^\d{1,4}$/.test(params.get('any') ?? '') ? params.get('any')! : 'all')
-  const fromHome = params.get('origen') === 'inici'
-  useEffect(() => { if (fromHome) setSearch('') }, [fromHome])
+  const year = /^\d{1,4}$/.test(params.get('any') ?? '') ? params.get('any')! : 'all'
   const [navigationIds, setNavigationIds] = useState<string[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [initialCollectionId, setInitialCollectionId] = useState<string | null>(null)
@@ -90,7 +89,7 @@ export function CatalogPage({ history = false }: { history?: boolean }) {
   const records = history ? (data?.experiencies ?? []).filter(e => e.any_jugat !== null) : active
   const rows = records.filter(r => {
     const j = games.get(r.joc_id)
-    return j && (!onlyChildren || j.per_infants === true) && (!onlyFavorites || ('favorit' in r && r.favorit === true)) && (!gameFilter || j.id === gameFilter) && j.nom.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (!platforms.length || platforms.includes(platformName(j.plataforma) || 'Sense plataforma')) && (!genre || (j.genere_principal?.trim() || 'Sense gènere') === genre) && (history || ('format' in r && formats.includes(r.format))) && (!history || year === 'all' || ('any_jugat' in r && r.any_jugat === Number(year)))
+    return j && matchesGameLabels(j, params) && (!onlyChildren || j.per_infants === true) && (!onlyFavorites || ('favorit' in r && r.favorit === true)) && (!gameFilter || j.id === gameFilter) && j.nom.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (!platforms.length || platforms.includes(platformName(j.plataforma) || 'Sense plataforma')) && (!genre || (j.genere_principal?.trim() || 'Sense gènere') === genre) && (history || ('format' in r && formats.includes(r.format))) && (!history || year === 'all' || ('any_jugat' in r && r.any_jugat === Number(year)))
   }).sort((a, b) => {
     if (order === 'year' && 'any_jugat' in a && 'any_jugat' in b) return (b.any_jugat ?? 0) - (a.any_jugat ?? 0)
     const result = (games.get(a.joc_id)?.nom ?? '').localeCompare(games.get(b.joc_id)?.nom ?? '', 'ca')
@@ -117,20 +116,30 @@ export function CatalogPage({ history = false }: { history?: boolean }) {
   return <div className="page-container collection-layout">
     <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="page-title">{history ? 'log' : 'Col·lecció'}</h1><div className="flex flex-wrap gap-2">{canEdit && <Button disabled={!data} onClick={() => setCreating(true)}>{history ? 'Afegeix una entrada' : 'Afegeix un joc'}</Button>}</div></div>
     {((history && params.has('any')) || params.has('plataforma') || params.has('genere')) && <Link to="/?vista=estadistiques" className="mt-4 inline-block text-sm underline">Torna a Estadístiques</Link>}
-    <div className="mt-8 flex flex-wrap items-center gap-3 border-b pb-5">
-      {history && <label className="text-sm">Any <select aria-label="Filtra per any de joc" value={year} onChange={e => setYear(e.target.value)} className="ml-2 h-10 rounded-lg border bg-card px-3"><option value="all">Tots els anys</option>{[...new Set([new Date().getFullYear(), ...(data?.experiencies.flatMap(e => e.any_jugat === null ? [] : [e.any_jugat]) ?? [])])].sort((a, b) => b - a).map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
-      <div className="min-w-0 grow basis-64"><label className="block text-sm"><span className="sr-only">Cerca per nom</span><input type="search" placeholder="Cerca jocs…" value={search} onChange={e => setSearch(e.target.value)} className="h-10 w-full rounded-lg border bg-card px-3" /></label>
-        {!history && <div role="group" aria-label="Filtres ràpids de Col·lecció" className="mt-2 flex flex-wrap gap-2">
-          <Button type="button" variant="outline" size="sm" aria-pressed={onlyFavorites} onClick={() => setParams(previous => toggleCollectionQuickFilter(previous, 'favorits'))} className={`min-h-10 ${onlyFavorites ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15' : ''}`}><Star aria-hidden="true" className="size-4 shrink-0 fill-current text-[#996515]"/>Favorits</Button>
-          <Button type="button" variant="outline" size="sm" aria-pressed={onlyChildren} onClick={() => setParams(previous => toggleCollectionQuickFilter(previous, 'infants'))} className={`min-h-10 ${onlyChildren ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15' : ''}`}><Baby aria-hidden="true" className="size-4 shrink-0"/>Amb infants</Button>
-        </div>}
+    <section aria-label="Filtres del catàleg" className="mt-6 space-y-4 border-b pb-5">
+      <div role="search" aria-label="Cerca de videojocs">
+        <label className="block text-sm"><span className="sr-only">Cerca per nom</span><input type="search" placeholder="Cerca jocs…" value={search} onChange={e => changeFilter('cerca', e.target.value ? [e.target.value] : [])} className="min-h-11 w-full rounded-lg border bg-card px-3" /></label>
       </div>
-      {!history && <fieldset className="flex items-center gap-3 text-sm"><legend className="sr-only">Format de la col·lecció</legend>{[{value: 'fisic', label: 'Físics'}, {value: 'digital', label: 'Digitals'}].map(f => <label key={f.value} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={formats.includes(f.value)} onChange={e => toggleFilter('format', formats, f.value, e.target.checked)} />{f.label}</label>)}</fieldset>}
-      <details ref={platformMenu} className="relative text-sm"><summary className="cursor-pointer rounded-lg border bg-card px-3 py-2.5">Plataformes · {platforms.length ? `${platforms.length} seleccionades` : 'Totes'}</summary><fieldset className="absolute left-0 z-10 mt-2 max-h-80 w-64 overflow-auto rounded-lg border bg-card p-3 shadow-lg"><legend className="sr-only">Filtra per plataformes</legend><Button type="button" variant="outline" size="sm" className="mb-2 w-full" onClick={() => changeFilter('plataforma', [])}>Totes les plataformes</Button>{[...new Set(records.map(r => platformName(games.get(r.joc_id)?.plataforma ?? '') || 'Sense plataforma'))].sort().map(p => <label key={p} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={platforms.includes(p)} onChange={e => toggleFilter('plataforma', platforms, p, e.target.checked)} />{p}</label>)}</fieldset></details>
-      {!history && <select aria-label="Filtra per gènere" value={genre} onChange={e => changeFilter('genere', e.target.value ? [e.target.value] : [])} className="h-10 max-w-full rounded-lg border bg-card px-3 text-sm"><option value="">Tots els gèneres</option>{[...new Set(records.map(r => games.get(r.joc_id)?.genere_principal?.trim() || 'Sense gènere'))].sort((a, b) => a === 'Sense gènere' ? 1 : b === 'Sense gènere' ? -1 : a.localeCompare(b, 'ca')).map(value => <option key={value} value={value}>{value}</option>)}</select>}
-      {!history && <select aria-label="Ordena els registres" value={order} onChange={e => setOrder(e.target.value)} className="h-10 rounded-lg border bg-card px-3 text-sm"><option value="az">Nom A–Z</option><option value="za">Nom Z–A</option></select>}
-      {!history && <div role="group" aria-label="Vista de la col·lecció" className="flex gap-1"><Button size="sm" variant={view === 'list' ? 'default' : 'outline'} aria-pressed={view === 'list'} onClick={() => chooseView('list')}>Llista</Button><Button size="sm" variant={view === 'cards' ? 'default' : 'outline'} aria-pressed={view === 'cards'} onClick={() => chooseView('cards')}>Galeria</Button></div>}
-    </div>
+      <div role="group" aria-label="Filtres d’etiquetes" className="flex flex-wrap gap-2">
+        {!history && <Button type="button" variant="outline" size="sm" aria-pressed={onlyFavorites} onClick={() => setParams(previous => toggleCollectionQuickFilter(previous, 'favorits'))} className={`min-h-11 ${onlyFavorites ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15' : ''}`}><Star aria-hidden="true" className="size-4 shrink-0 fill-current text-[#996515]"/>Favorits</Button>}
+        <Button type="button" variant="outline" size="sm" aria-pressed={onlyChildren} onClick={() => history ? changeFilter('infants', onlyChildren ? [] : ['1']) : setParams(previous => toggleCollectionQuickFilter(previous, 'infants'))} className={`min-h-11 ${onlyChildren ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15' : ''}`}><Baby aria-hidden="true" className="size-4 shrink-0"/>Amb infants</Button>
+        <Button type="button" variant="outline" size="sm" aria-pressed={params.get('no_jugat') === '1'} onClick={() => setParams(previous => setGameLabelFilter(previous, 'no_jugat', previous.get('no_jugat') === '1' ? '' : '1'))} className={`min-h-11 ${params.get('no_jugat') === '1' ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15' : ''}`}>No jugat</Button>
+        {intentionOptions.map(option => {
+          const active = params.get('intencio_joc') === option.value
+          return <Button key={option.value} type="button" variant="outline" size="sm" aria-pressed={active} onClick={() => setParams(previous => toggleGameIntentionFilter(previous, option.value))} className={`min-h-11 ${active ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15' : ''}`}>{option.label}</Button>
+        })}
+      </div>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+        <div role="group" aria-label="Filtres generals" className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap xl:items-center">
+          {history && <label className="flex min-w-0 items-center gap-2 text-sm">Any <select aria-label="Filtra per any de joc" value={year} onChange={e => changeFilter('any', e.target.value === 'all' ? [] : [e.target.value])} className="min-h-11 min-w-0 flex-1 rounded-lg border bg-card px-3"><option value="all">Tots els anys</option>{[...new Set([new Date().getFullYear(), ...(data?.experiencies.flatMap(e => e.any_jugat === null ? [] : [e.any_jugat]) ?? [])])].sort((a, b) => b - a).map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
+          <details ref={platformMenu} className="relative min-w-0 text-sm"><summary className="flex min-h-11 cursor-pointer items-center rounded-lg border bg-card px-3">Plataformes · {platforms.length ? `${platforms.length} seleccionades` : 'Totes'}</summary><fieldset className="absolute left-0 z-10 mt-2 max-h-80 w-[min(16rem,calc(100vw-3rem))] overflow-auto rounded-lg border bg-card p-3 shadow-lg"><legend className="sr-only">Filtra per plataformes</legend><Button type="button" variant="outline" size="sm" className="mb-2 min-h-11 w-full" onClick={() => changeFilter('plataforma', [])}>Totes les plataformes</Button>{[...new Set(records.map(r => platformName(games.get(r.joc_id)?.plataforma ?? '') || 'Sense plataforma'))].sort().map(p => <label key={p} className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={platforms.includes(p)} onChange={e => toggleFilter('plataforma', platforms, p, e.target.checked)} />{p}</label>)}</fieldset></details>
+          {!history && <select aria-label="Filtra per gènere" value={genre} onChange={e => changeFilter('genere', e.target.value ? [e.target.value] : [])} className="min-h-11 min-w-0 max-w-full rounded-lg border bg-card px-3 text-sm"><option value="">Tots els gèneres</option>{[...new Set(records.map(r => games.get(r.joc_id)?.genere_principal?.trim() || 'Sense gènere'))].sort((a, b) => a === 'Sense gènere' ? 1 : b === 'Sense gènere' ? -1 : a.localeCompare(b, 'ca')).map(value => <option key={value} value={value}>{value}</option>)}</select>}
+          {!history && <fieldset className="flex min-h-11 flex-wrap items-center gap-3 rounded-lg border px-3 text-sm"><legend className="sr-only">Format de la col·lecció</legend>{[{value: 'fisic', label: 'Físics'}, {value: 'digital', label: 'Digitals'}].map(f => <label key={f.value} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={formats.includes(f.value)} onChange={e => toggleFilter('format', formats, f.value, e.target.checked)} />{f.label}</label>)}</fieldset>}
+          {!history && <select aria-label="Ordena els registres" value={order} onChange={e => setOrder(e.target.value)} className="min-h-11 min-w-0 rounded-lg border bg-card px-3 text-sm"><option value="az">Nom A–Z</option><option value="za">Nom Z–A</option></select>}
+        </div>
+        {!history && <div role="group" aria-label="Vista de la col·lecció" className="flex shrink-0 self-end gap-1 lg:ml-auto"><Button type="button" size="sm" className="min-h-11" variant={view === 'list' ? 'default' : 'outline'} aria-pressed={view === 'list'} onClick={() => chooseView('list')}>Llista</Button><Button type="button" size="sm" className="min-h-11" variant={view === 'cards' ? 'default' : 'outline'} aria-pressed={view === 'cards'} onClick={() => chooseView('cards')}>Galeria</Button></div>}
+      </div>
+    </section>
     {gameFilter && <p className="mt-4 text-sm">Mostrant {games.get(gameFilter)?.nom ?? 'un joc'}. <Link className="underline" to={history ? '/?vista=jugats' : '/?vista=colleccio'}>Mostra tots els registres</Link></p>}
     {(!history || isPending) && <p role="status" className="mt-4 text-sm text-muted-foreground">{isPending ? 'Carregant…' : `${rows.length} exemplars`}</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error.message}</p>}

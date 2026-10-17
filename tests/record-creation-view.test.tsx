@@ -140,7 +140,7 @@ test('log gallery keeps descending years, known completion states and separate r
  assert.match(html,/>Completat</);assert.doesNotMatch(html,/No completat|Sense any sintètic|Ordena els registres|exemplars<\/p>|Afegeix una entrada/)
  assert.equal((html.match(/>Entrada de log</g)??[]).length,2)
  assert.equal((html.match(/>Col·lecció<span/g)??[]).length,1)
- assert(html.indexOf('Filtra per any de joc')<html.indexOf('Cerca per nom'))
+ assert(html.indexOf('Cerca per nom')<html.indexOf('Filtra per any de joc'))
  assert(html.indexOf('Cerca per nom')<html.indexOf('Plataformes ·'))
  const buttons=html.match(/<button\b[^>]*>[\s\S]*?<\/button>/g)??[]
  assert(buttons.every(b=>(b.match(/<button\b/g)??[]).length===1))
@@ -574,5 +574,53 @@ test('all detail ratings are unique header badges and absent ratings leave no ba
   assert.equal((html.match(/aria-label="Valoració /g)??[]).length,rating?1:0)
   if(rating)assert(html.indexOf(`aria-label="Valoració ${rating}"`)<html.indexOf('</header>'))
   assert.doesNotMatch(html,/text-5xl/)
+ }
+})
+
+test('game marks: creation controls, shared detail labels, collection/log filters and guest permissions',async()=>{
+ const {MemoryRouter}=await import('react-router-dom')
+ const {CatalogPage}=await import('../src/pages/catalog-page')
+ const {RecordDetails}=await import('../src/components/record-details')
+ const {RecordEditor}=await import('../src/components/record-editor')
+ const {GameLabelFields}=await import('../src/components/game-label-fields')
+ for(const kind of ['exemplar','experiencia'] as const){
+  const html=render(kind)
+  assert.match(html,/name="no_jugat"/);assert.match(html,/name="intencio_joc"/);assert.match(html,/>Vull jugar-hi</);assert.match(html,/>No vull jugar-hi</)
+  assert.doesNotMatch(html,/<select name="intencio_joc"/)
+ }
+ const fields=renderToStaticMarkup(<GameLabelFields game={{no_jugat:true,intencio_joc:'no_vull'}}/>)
+ assert.match(fields,/name="no_jugat"[^>]*checked=""/)
+ assert.match(fields,/type="checkbox" checked=""\/>No vull jugar-hi/)
+ assert.equal((fields.match(/type="checkbox"/g)??[]).length,3)
+ assert.doesNotMatch(fields,/<select|Intenció de joc/)
+ const marked={...catalog.jocs[0],nom:'Marcat',no_jugat:true,intencio_joc:'vull',per_infants:true} as Catalog['jocs'][number]
+ const other={...marked,id:'other',nom:'Sense marques',no_jugat:false,intencio_joc:null}
+ const copy={id:'copy',joc_id:marked.id,format:'digital',a_la_colleccio:true,favorit:true}
+ const entry={id:'entry',joc_id:marked.id,any_jugat:2026,completat:null,jugant:true}
+ const c={...catalog,jocs:[marked,other],exemplars:[copy,{...copy,id:'copy2',joc_id:'other'}],experiencies:[entry,{...entry,id:'entry2',joc_id:'other'}]} as unknown as Catalog
+ const session={user:{id:'synthetic-owner'}} as Session
+ function wrapper(node:React.ReactNode,url='/?vista=colleccio',owner=false){
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}})
+  client.setQueryData(['access',session.user.id],owner);client.setQueryData(['catalog',session.user.id],c)
+  return renderToStaticMarkup(<AuthContext.Provider value={{session,loading:false,error:null}}><QueryClientProvider client={client}><MemoryRouter initialEntries={[url]}>{node}</MemoryRouter></QueryClientProvider></AuthContext.Provider>)
+ }
+ for(const kind of ['exemplar','experiencia'] as const){
+  const record=kind==='exemplar'?c.exemplars[0]:c.experiencies[0]
+  const detail=wrapper(<RecordDetails kind={kind} record={record} game={marked} catalog={c} onViewCollection={()=>{}}/>)
+  assert.match(detail,/>No jugat</);assert.match(detail,/>Vull jugar-hi</);assert.doesNotMatch(detail,/>No vull jugar-hi</)
+  const guest=wrapper(<RecordEditor kind={kind} record={record} game={marked} catalog={c} onClose={()=>{}} onSaved={async()=>c}/> )
+  assert.doesNotMatch(guest,/<form|name="no_jugat"|>Edita</)
+  const editing=wrapper(<RecordEditor kind={kind} record={record} game={marked} catalog={c} creating onClose={()=>{}} onSaved={async()=>c}/>,undefined,true)
+  assert.match(editing,/name="no_jugat"[^>]*checked=""/)
+  assert.match(editing,/>No jugat</);assert.match(editing,/>Vull jugar-hi</);assert.match(editing,/>No vull jugar-hi</)
+  assert.doesNotMatch(editing,/<select name="intencio_joc"/)
+  assert(editing.indexOf('Etiquetes de la fitxa de videojoc') < editing.indexOf('<summary'))
+  assert.match(editing,/type="checkbox" checked=""\/>Vull jugar-hi/)
+ }
+ for(const history of [false,true]){
+  const filtered=wrapper(<CatalogPage history={history}/>,`/?vista=${history?'jugats':'colleccio'}&no_jugat=1&intencio_joc=vull&plataforma=Steam&format=digital`)
+  assert.match(filtered,/Marcat/);assert.doesNotMatch(filtered,/Sense marques/)
+  assert.match(filtered,/aria-pressed="true"[^>]*>Vull jugar-hi</);assert.doesNotMatch(filtered,/Filtra per intenció de joc/)
+  assert.doesNotMatch(filtered,/>Afegeix (?:un joc|una entrada)</)
  }
 })

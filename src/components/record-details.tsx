@@ -1,3 +1,4 @@
+import { gameLabels } from '@/lib/game-labels'
 import { DetailCover } from '@/components/detail-cover'
 import { ExternalGameLinks } from '@/components/external-game-links'
 import { collectionCopy } from '@/lib/platform'
@@ -33,6 +34,7 @@ export function RecordDetails({ kind, record, game, catalog, onViewCollection }:
   const legacyComments = comments.conflict ? [...new Set([...catalog.exemplars, ...history].filter(item => item.joc_id === game.id).map(item => item.notes).filter((value): value is string => Boolean(value?.trim())))] : []
   const provider = imageProvider(game.portada_font_url)
   const tags = [
+    ...gameLabels(game).map(label => ({ label, active: true })),
     { label: 'Jugant', active: Boolean(experience?.jugant || history.some(item => item.jugant)) },
     { label: 'Per jugar aviat', active: game.per_jugar_aviat },
     { label: 'Per jugar amb infants', active: game.per_infants },

@@ -19,8 +19,8 @@ Eliminar un exemplar o una entrada de log demana confirmació i conserva la fitx
 ## Què hi trobaràs
 
 - **Inici personal:** cercador de tots els jocs accessibles, Jugant i Per jugar aviat, propòsits anuals i una selecció aleatòria amb Tots/Top.
-- **Col·lecció i log en galeria:** portades, plataformes i valoracions; vista llista amb miniatures a Col·lecció i log agrupat per anys. Cerca i filtres per plataforma, format i gènere a Col·lecció, més Favorits o Amb infants; al log, any, cerca i plataformes.
-- **Detalls llegibles:** portada amb marc uniforme i retall centrat, valoració al costat del títol —A+ i A++ en vermell—, comentaris i navegació entre registres. Consulta i edició separades, amb protecció dels canvis sense desar.
+- **Col·lecció i log en galeria:** portades, plataformes i valoracions; vista llista amb miniatures a Col·lecció i log agrupat per anys. Cerca i filtres per plataforma, format i gènere a Col·lecció, més Favorits o Amb infants; al log, any, cerca i plataformes. Botons de No jugat i Vull jugar-hi / No vull jugar-hi combinables amb els altres filtres.
+- **Detalls llegibles:** portada amb marc uniforme i retall centrat, valoració al costat del títol —A+ i A++ en vermell—, comentaris i navegació entre registres. Consulta i edició separades, amb protecció dels canvis sense desar i marques compartides del videojoc.
 - **Cerques externes:** portades d’IGDB/RAWG o URL pròpia, i icones per cercar un tràiler a YouTube o el joc a MobyGames. Són cerques externes; no hi ha reproductor incrustat ni pujada de portades pròpies.
 - **Seguiment i estadístiques:** propòsits pendents, fets o descartats; distribucions de plataformes, gèneres, compres, anys de joc i valoracions.
 - **Revisió de dades:** consulta camps buits de fitxes, exemplars o entrades de log, i obre el detall per revisar-los. Un preu de 0 € és una dada informada.
@@ -30,7 +30,7 @@ Eliminar un exemplar o una entrada de log demana confirmació i conserva la fitx
 
 ### Col·lecció
 
-<img src="docs/screenshots/colleccio.png" alt="Galeria de Col·lecció amb portades, plataformes i filtres de cerca, format, Favorits i Amb infants" width="1000" />
+<img src="docs/screenshots/colleccio.png" alt="Galeria de Col·lecció amb cerca, botons Favorits, Amb infants, No jugat i intencions de joc, filtres generals i controls de vista" width="1000" />
 
 ### Log
 

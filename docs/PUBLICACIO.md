@@ -26,7 +26,7 @@ Descarregar periòdicament el ZIP des de Configuració i comprovar l’informe d
 
 ## Recuperació i restauració
 
-Aplicar `supabase/migrations/202610070006_restauracio.sql` sobre l’esquema existent. Les proves `supabase/tests/restauracio.sql` creen dades temporals i les reverteixen al final.
+La restauració existent correspon a la migració històrica `supabase/migrations/202610070006_restauracio.sql`, ja aplicada; no repetir-la per publicar el client. Les proves `supabase/tests/restauracio.sql` creen dades temporals i les reverteixen al final.
 
 A Authentication → URL Configuration, autoritzar exactament https://ibelchi.github.io/Tsumige/?recuperacio=1. Si es prova en local, autoritzar també l’URL concreta de l’entorn local. El correu de recuperació l’envia Supabase; els límits i el servei de correu del projecte condicionen la recepció. La contrasenya nova l’introdueix l’usuari.
 
@@ -43,3 +43,14 @@ La verificació pública ha de relacionar el workflow amb el commit publicat i c
 Les RPC d’altes i els noms canònics també estan aplicats i validats pel rebut privat post-COMMIT. Publicar el client no executa migracions, reversions ni cap escriptura a Supabase. Els fitxers SQL del repositori són referències i plantilles genèriques; no executar-los de nou sobre aquesta instància.
 
 Les proves manuals d’altes noves continuen pendents perquè l’usuari no té registres reals per incorporar. S’han de recordar abans de publicar, però l’usuari ha autoritzat aquesta publicació sense bloquejar-la per aquest motiu. Les proves sintètiques de formularis/RPC no substitueixen aquestes comprovacions ni la revisió visual real de les galeries i del detall.
+
+
+## Publicació posterior a etiquetes i filtres
+
+La migració 202610170001_etiquetes_joc.sql ja està aplicada i verificada segons
+el diagnòstic posterior confirmat per l’usuari. Aquesta publicació només desplega
+el client; no executar SQL, migracions, restauracions ni reversions de Supabase.
+Inclou caselles de fitxa, botons de filtratge, URL, compatibilitat ZIP/CSV,
+Fitxes de videojocs a Revisió de dades i captura real nova de Col·lecció.
+Les comprovacions manuals ajornades continuen pendents; no substituir-les pels
+controls automàtics ni per comprovacions HTTP dels recursos publicats.

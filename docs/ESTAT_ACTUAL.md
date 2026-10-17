@@ -1,5 +1,102 @@
 # Estat actual i relleu de Tsumigē
 
+## Entrega autoritzada d’etiquetes i filtres — 17 d’octubre de 2026
+
+- S’inclouen els canvis locals aprovats de les tres caselles, filtres uniformes
+  de Col·lecció/log, cerca/any en URL, CSV/ZIP i «Fitxes de videojocs» a Revisió
+  de dades. La migració ja aplicada i verificada per l’usuari és només historial
+  de referència: publicar el client no executa SQL ni modifica Supabase.
+- Captura real de Col·lecció actualitzada al README amb el fitxer facilitat per
+  l’usuari; Inici, log i detall es conserven. Originals fora del repositori intactes.
+- Publicació via workflow existent de Pages en pujar main, sense force push.
+  L’estat efectiu de desplegament i la correspondència dels recursos públics
+  amb l’artefacte s’informen després d’executar-lo; no confondre controls locals
+  amb interaccions autenticades de la web publicada.
+- Continuen pendents totes les comprovacions manuals ajornades: Gènere, altes,
+  afegir des del log, permisos reals, eliminacions/neteja, persistència real de
+  les etiquetes i sincronització, restauració remota, dispositiu físic i tema.
+  Les proves Chromium sintètiques no les substitueixen.
+- Les seccions següents documenten el procés anterior. «Local/no publicat»
+  es refereix a aquella fase; aquesta és l’entrega preparada per main. Materials
+  de recuperació, informes, CSV/ZIP i credencials fora de la publicació.
+
+
+## Filtres reorganitzats de Col·lecció i log — 17 d’octubre de 2026
+
+- Cerca destacada en fila pròpia; després botons d’etiquetes uniformes i visibles;
+  filtres generals agrupats; Llista/Galeria de Col·lecció alineats a la dreta.
+  Àrees de botó de 44 px, aria-pressed, focus i verd actiu del tema compartit.
+- Col·lecció: Favorits/Amb infants mantenen l’exclusivitat anterior. No jugat
+  independent; Vull jugar-hi/No vull jugar-hi excloents i desactivables amb un
+  segon clic. Combinables amb cerca/plataformes/gènere/format. Sense selector
+  d’intenció ni casella No jugat als filtres; formularis d’edició intactes.
+- Log: mateixa estructura, Amb infants i les tres marques del joc, any i
+  plataformes. No Favorits (marca d’exemplar, sense correspondència única al
+  log), format ni Llista/A–Z nous. Manté agrupació per anys i galeria única.
+- URL: marques existents conservades; cerca ara usa cerca i any usa any com a
+  font d’estat, també després de recarregar o navegar enrere. Les seleccions
+  noves no eliminen els altres paràmetres. Retorn del detall i canvi de vista
+  comprovats amb filtres actius. Les entrades sense any continuen fora del log
+  principal, sense eliminar-les ni deduir-ne marques.
+- Controls superats: TypeScript, ESLint, compilació, 63 proves de lògica i 32 SSR.
+  Actualitzada la prova antiga d’any abans de cerca: la cerca passa al primer lloc
+  segons la nova decisió. Avís conegut del JavaScript >500 kB, sense errors.
+- Chromium amb menú lateral real i dades sintètiques: Col·lecció/log a 390/768/
+  1440 px, Clar/Fosc; botons i exclusivitat, teclat, plataforma/gènere/format/any,
+  URL, Llista, retorn del detall i recàrrega; àrees tàctils i cap desbordament.
+  Captures a /tmp revisades. Convidat pot filtrar; sense peticions externes ni
+  desaments. No acredita permisos remots, dispositiu físic ni sessions reals.
+- Canvis locals, sense SQL, Supabase, commit, push o publicació. Totes les proves
+  manuals ajornades anteriors, especialment altes i eliminacions, continuen pendents.
+
+
+## Ajust vigent: tres caselles de marques — 17 d’octubre de 2026
+
+- Substituït el selector d’intenció dels formularis per tres caselles visibles:
+  No jugat independent, Vull jugar-hi i No vull jugar-hi excloents i desmarcables.
+  El model i el camp intencio_joc no canvien; un input ocult transporta el valor.
+- Edició: grup Etiquetes del videojoc junt amb Per jugar amb infants, separat
+  de les marques d’exemplar. Fora de Configuració. Altes amb el mateix component;
+  joc existent manté la consulta compartida i l’acció explícita d’editar.
+- Diagnòstic: el servidor localhost:5173 servia un record-editor amb GameLabelFields
+  connectat fora de Configuració; el codi anterior mostrava un selector, no tres
+  caselles. No s’ha reproduït l’absència comunicada al navegador de l’usuari ni
+  acreditat memòria cau/versió antiga. URL concreta pendent de confirmar. Només
+  comprovar HTTP 200 a la tanda anterior era insuficient per acreditar els controls.
+- Chromium amb fixtures sintètiques: alta/edició Col·lecció/log, tres caselles
+  visibles amb Configuració tancada, exclusivitat/desmarcació, independència,
+  teclat, convidats, 1440/390 px i Clar/Fosc sense desbordament. Captures locals
+  revisades. Peticions externes bloquejades i cap desament. Això no acredita
+  persistència remota, dades reals de l’usuari ni dispositiu físic.
+- TypeScript, ESLint, compilació, 62 proves de lògica i 32 SSR; avís de bundle
+  existent. Totes les comprovacions manuals ajornades es mantenen. Sense SQL,
+  canvis remots, commit, push o desplegament. Substitueix les notes anteriors
+  que prescrivien un selector d’intenció en alta/edició; filtres i CSV intactes.
+
+
+## Estat vigent: etiquetes del joc — 17 d’octubre de 2026
+
+- L’usuari confirma la migració d’etiquetes aplicada i el diagnòstic posterior:
+  verificat=true, diferencies=[], totes les comprovacions correctes; 454 fitxes,
+  441 exemplars, 203 entrades i 4 propòsits. No repetir SQL ni recuperacions.
+- Client implementat localment, encara sense publicar: No jugat independent i
+  intenció única opcional Vull jugar-hi / No vull jugar-hi, a fitxes_joc.
+  Edició/alta en formularis existents, etiquetes actives al detall, filtres URL
+  tant a Col·lecció com al log, CSV i validació ZIP compatibles amb còpies antigues.
+  Les claus absents de còpies antigues es mantenen absents per preservar les
+  marques actuals al servidor. Lectura/còpia SELECT * i RPC existents reutilitzades.
+- No es dedueix No jugat del log ni es canvien Jugant, Per jugar aviat, Favorit
+  o Amb infants. Cap camp nou a exemplars/entrades ni pantalla nova.
+- Controls d’aquesta tanda: TypeScript, ESLint, compilació, 13 fitxers de proves
+  de lògica i 32 proves SSR. Avís existent de bundle >500 kB. Sense executar SQL,
+  modificar dades remotes, fer commit, push o desplegament.
+- Pendents: proves interactives de les marques (desar/desfer/error, compartició,
+  convidats, filtres/retorn i CSV/ZIP) i revisió visual mòbil/Clar/Fosc. Totes les
+  comprovacions manuals ajornades anteriors continuen pendents.
+
+Les seccions de publicació següents conserven l’historial; no acrediten que
+els canvis locals d’aquesta tanda estiguin publicats.
+
 Comprovat el 15 d’octubre de 2026.
 
 Entrega posterior autoritzada en preparació: marc IGDB 132:187 amb retall centrat i valoracions úniques al costat del títol. Inclou els canvis locals aprovats de detall compacte (1000 px), accions Edita/Elimina/Tanca superiors, confirmació segura, icones de cerca externa i correcció de selecció/focus del cercador. Aquest estat substitueix les ubicacions i criteris visuals de la publicació anterior descrita més avall. Vegeu l’encapçalament de PENDENTS per a proves i limitacions. El resultat de la nova publicació s’informa separadament en completar-la. Aquest resum i l’encapçalament de [PENDENTS.md](PENDENTS.md) defineixen l’estat vigent; les notes antigues conserven el procés i no són ordres per repetir operacions.

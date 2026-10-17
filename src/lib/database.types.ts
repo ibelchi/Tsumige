@@ -56,7 +56,11 @@ export type Proposit = {
 export type PropositInput = Pick<Proposit, 'text' | 'any' | 'estat'>
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type IntencioJoc = 'vull' | 'no_vull' | null
 export type FitxaJoc = {
+  // Optional only for older backups/catalog caches; current server supplies both.
+  no_jugat?: boolean
+  intencio_joc?: IntencioJoc
   plataforma_resolta?: boolean
   portada_fitxer?: string | null
   portada_visual_url?: string

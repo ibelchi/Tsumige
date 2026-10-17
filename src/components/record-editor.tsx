@@ -1,3 +1,5 @@
+import { GameLabelFields } from '@/components/game-label-fields'
+import { gameLabelFields } from '@/lib/game-labels'
 import { DetailCover } from '@/components/detail-cover'
 import { DeleteRecord } from '@/components/delete-record'
 import { GenreSelect } from '@/components/genre-select'
@@ -156,6 +158,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
       portada_url: image || null, portada_font_url: imageSource,
       ...(commentsReady ? { comentaris: text(form, 'comentaris') } : {}),
       ...(infantsReady ? { per_infants: form.has('per_infants') } : {}),
+      ...gameLabelFields(form),
     }
     const details: Json = copy ? {
       format: text(form, 'format'), regio: text(form, 'regio'), estat_conservacio: text(form, 'estat_conservacio'),
@@ -257,11 +260,16 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
         {!platformResolved && <div><Field label="Botiga o servei"><select name="botiga_servei" value={addingService ? '__add__' : service} disabled={format === 'fisic'} onChange={e => { if (e.target.value === '__add__') setAddingService(true); else { setService(e.target.value); setAddingService(false) } }} className={`${control} disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground`}><option value="">En blanc</option>{services.map(s => <option key={s} value={s}>{s}</option>)}<option value="__add__">Afegeix una botiga o servei…</option></select></Field>
           {addingService && format === 'digital' && <div className="mt-2 flex items-end gap-2"><Field label="Nova botiga o servei"><input value={newService} onChange={e => setNewService(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addService() } }} className={control} /></Field><Button type="button" variant="outline" disabled={!newService.trim()} onClick={addService}>Afegeix</Button></div>}
         </div>}
-      </div><div className="flex flex-wrap gap-4"><Check name="favorit" label="Favorit" checked={copy.favorit} /><Check name="per_infants" label="Per jugar amb infants" checked={Boolean(game.per_infants)} /><Check name="canvi" label="Possible venda o intercanvi" checked={copy.canvi} /><Check name="reproduccio" label="Reproducció" checked={copy.reproduccio} /><label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="no_localitzat" checked={notFound} onChange={e => setNotFound(e.target.checked)} />No localitzat</label></div></>}
-      {experience && <><Check name="per_infants" label="Per jugar amb infants" checked={Boolean(game.per_infants)} /><div className="grid gap-4 sm:grid-cols-3">
+      </div><div role="group" aria-label="Etiquetes de l’exemplar" className="flex flex-wrap gap-4"><Check name="favorit" label="Favorit" checked={copy.favorit} /><Check name="canvi" label="Possible venda o intercanvi" checked={copy.canvi} /><Check name="reproduccio" label="Reproducció" checked={copy.reproduccio} /><label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="no_localitzat" checked={notFound} onChange={e => setNotFound(e.target.checked)} />No localitzat</label></div></>}
+      {experience && <><div className="grid gap-4 sm:grid-cols-3">
         <Field label="Any de joc"><input name="any_jugat" type="number" min="1" max="9999" defaultValue={experience.any_jugat ?? ''} className={control} /></Field>
         <Field label="Completat"><select name="completat" defaultValue={experience.completat ?? ''} className={control}><option value="">En blanc</option><option value="si">Sí</option><option value="no">No</option><option value="no_aplicable">No aplicable</option></select></Field>
       </div></>}
+      <section aria-label="Marques compartides del videojoc" className="space-y-2">
+        <h3 className="text-sm font-medium">Etiquetes del videojoc</h3>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Check name="per_infants" label="Per jugar amb infants" checked={Boolean(game.per_infants)} /></div>
+        <GameLabelFields game={game} />
+      </section>
       <Field label="Valoració del joc"><select name="valoracio" value={rating ?? ''} onChange={e => setRating((e.target.value || null) as Valoracio | null)} className={`${control} ${ratingColor(rating)}`}><option value="" className="text-foreground">En blanc</option>{(['A++', 'A+', 'A', 'B', 'C', 'D'] as const).map(value => <option key={value} className={ratingColor(value)}>{value}</option>)}</select></Field>
       <Field label="Comentaris"><textarea name="comentaris" rows={4} defaultValue={comments.value} disabled={comments.conflict} className={control} /></Field>
       {comments.conflict && <p role="status" className="text-sm text-amber-800">Hi ha comentaris diferents en els registres d’aquest joc. Cal revisar-los abans d’unificar-los; es conserven tots.</p>}
