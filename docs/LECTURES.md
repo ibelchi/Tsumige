@@ -1,4 +1,4 @@
-# Lectures — experiment local
+# Lectures — experiment activat a Pages
 
 ## Prova i retirada
 
@@ -26,8 +26,9 @@ quan es canvia de secció. En mòbil, tancar el menú només l’oculta.
 Per retirar l’experiment, afegeix `VITE_ENABLE_READINGS=false` a `.env.local`
 sense substituir-ne les altres línies, i reinicia Vite. Inici recupera
 l’amplada i distribució anteriors, sense columna buida ni consulta RSS.
-La compilació de producció el desactiva per defecte. `true` l’activaria,
-però **no s’ha de publicar activat abans de desplegar i validar lectures**.
+El workflow de Pages el compila amb `VITE_ENABLE_READINGS=true`. Per retirar-lo
+del web públic, canvia aquest valor a `false` i torna a publicar el client.
+La compilació fora del workflow continua desactivant-lo si no s’indica `true`.
 
 ## Dades i límits
 
@@ -60,13 +61,15 @@ SUPABASE_URL/SUPABASE_ANON_KEY, mai credencials IGDB ni service_role.
 Admet l’origen de Pages; altres orígens es poden declarar expressament
 amb LECTURES_ALLOWED_ORIGINS (llista separada per comes).
 
-La publicació del codi al repositori està autoritzada. El workflow de Pages
-no activa Lectures ni desplega la funció. No s’ha desplegat ni executat aquesta
-funció en Deno/Supabase. Abans d’activar-la cal autoritzar el desplegament i
-validar autenticació real
-(propietari/convidat, sessió caducada, sense sessió), CORS i comportament de
-la passarel·la de Supabase amb la configuració real. Després es podrà activar
-VITE_ENABLE_READINGS=true en la compilació pública. No requereix SQL/RPC.
+`lectures` v1 ja consta ACTIVE a Supabase. Preflight des de Pages amb HTTP
+200 i accés sense sessió rebutjat amb HTTP 401; bright-worker v2 i
+game-metadata v6 no s’han modificat. No s’utilitzen permisos de taules ni SQL.
+
+L’usuari ha autoritzat l’activació de Pages sense la comprovació manual
+prèvia amb script. El workflow compila amb `VITE_ENABLE_READINGS=true`.
+La resposta amb RSS reals i sessió autenticada queda pendent de la prova
+personal de l’usuari; el CLI administratiu no proporciona una sessió de joc.
+No es considera verificada amb mocks ni amb la resposta 401.
 
 ## Validació
 
@@ -82,8 +85,9 @@ Lectures superades. Setze combinacions d’amplada/alçada/tema en Chromium i es
 buit/error/parcial correctes. Consulta real local: 25 entrades elegibles,
 sense duplicats/podcasts a les seleccions; tres enllaços comprovats amb HEAD
 HTTP 200. Avís de Vite per mida del bundle (>500 kB), sense error.
-La funció Edge passa comprovació estàtica TypeScript; manca execució Deno
-real i verificació de Supabase. Punt previ de restauració (arxiu de Git,
+La funció Edge passa comprovació estàtica TypeScript i ja està desplegada;
+CORS i rebuig d’accés sense sessió comprovats. Manca resposta autenticada
+amb dades RSS des de l’entorn Edge i verificació final de Pages. Punt previ de restauració (arxiu de Git,
 HEAD 969de658): `/tmp/tsumige-abans-lectures-20261022/`, fora del repositori;
 /tmp és temporal. El mecanisme habitual de retirada és l’indicador local.
 

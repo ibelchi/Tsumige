@@ -5,3 +5,6 @@ dist/
 !.env.example
 *.local
 *.log
+
+# Fitxers locals del CLI de Supabase (mai publicar).
+supabase/.temp/

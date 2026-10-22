@@ -1,7 +1,7 @@
 # Estat actual i relleu de Tsumigē
 
 
-## Lectures — experiment local, 22 d’octubre de 2026
+## Lectures — activació pública autoritzada, 22 d’octubre de 2026
 
 - Bloc independent a la barra lateral compartida, sota navegació/tema,
   disponible en totes les seccions; en mòbil, dins del menú desplegable.
@@ -12,14 +12,18 @@
   en escriptori de poca alçada. Sense modificar les mides de les portades.
 - RSS reals llegits en local; exclusions per categories/ruta, URL úniques,
   memòria cau i errors aïllats. Vegeu [LECTURES.md](LECTURES.md).
-- Activat per defecte només en desenvolupament. `VITE_ENABLE_READINGS=false`
-  recupera la distribució anterior; reiniciar Vite després de canviar-lo.
-- Publicació del codi al repositori autoritzada. El workflow de Pages
-  compila amb Lectures desactivat; no desplega funcions de Supabase.
-- Edge Function `lectures` preparada, **no desplegada ni validada remotament**.
-  Producció desactivada per defecte. Cap SQL, RPC ni dada remota modificats.
-- Pendents: acceptació visual de l’usuari, navegació autenticada real i,
-  només si es conserva i s’autoritza, desplegament/verificació de la funció.
+- Activat en desenvolupament i al workflow de Pages amb
+  `VITE_ENABLE_READINGS=true`. El workflow no desplega funcions de Supabase.
+- Desactivació: `false` i reiniciar Vite en local; `false` al workflow i
+  tornar a publicar per retirar-lo de Pages sense alterar la resta.
+- Edge Function `lectures` desplegada a Supabase (versió 1, ACTIVE).
+  CORS de Pages verificat amb OPTIONS 200; petició sense sessió rebutjada
+  amb 401. `bright-worker` v2 i `game-metadata` v6 es conserven intactes.
+- L’usuari autoritza activar Pages sense l’script manual previ i provarà
+  amb la seva sessió habitual. Resposta autenticada amb RSS reals i permisos
+  reals encara pendents: no es donen per verificats amb proves sintètiques.
+- Cap SQL, RPC ni dada de les taules modificats. La comprovació dels recursos
+  públics i de GitHub Actions no equival a validar una sessió autenticada.
 - Es mantenen totes les comprovacions manuals ajornades anteriors.
 
 ## Entrega autoritzada d’etiquetes i filtres — 17 d’octubre de 2026

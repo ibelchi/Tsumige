@@ -28,6 +28,7 @@ jobs:
       - run: node --test /tmp/tsumige-readings-view-tests.cjs
       - run: npm run build
         env:
+          VITE_ENABLE_READINGS: "true"
           VITE_SUPABASE_URL: https://swexwdaqqdisbtvzwikv.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_W6slvF26oP7zAUBY86Lpsw_mV3TgSsA
       - uses: actions/configure-pages@v5
