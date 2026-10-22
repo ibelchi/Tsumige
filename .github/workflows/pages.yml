@@ -24,6 +24,8 @@ jobs:
       - run: node --test /tmp/tsumige-tests/*.js
       - run: node_modules/.bin/esbuild tests/record-creation-view.test.tsx --outfile=/tmp/tsumige-view-tests.cjs --bundle --platform=node --format=cjs '--define:import.meta.env={}'
       - run: node --test /tmp/tsumige-view-tests.cjs
+      - run: node_modules/.bin/esbuild tests/readings-view.test.tsx --outfile=/tmp/tsumige-readings-view-tests.cjs --bundle --platform=node --format=cjs '--define:import.meta.env={}'
+      - run: node --test /tmp/tsumige-readings-view-tests.cjs
       - run: npm run build
         env:
           VITE_SUPABASE_URL: https://swexwdaqqdisbtvzwikv.supabase.co

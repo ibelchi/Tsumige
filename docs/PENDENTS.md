@@ -1,5 +1,27 @@
 # Treball pendent
 
+
+## Lectures — experiment local, 22 d’octubre de 2026
+
+- Bloc independent a la barra lateral compartida, sota navegació/tema,
+  disponible en totes les seccions; en mòbil, dins del menú desplegable.
+- Sense modalitats ni quotes: les tres publicacions elegibles més recents
+  entre tots els canals, ordenades per data i sense duplicats. Títols limitats
+  visualment a tres línies; text complet accessible i tooltip natiu.
+- Inici recupera el contenidor original; barra de 248 px i scroll vertical
+  en escriptori de poca alçada. Sense modificar les mides de les portades.
+- RSS reals llegits en local; exclusions per categories/ruta, URL úniques,
+  memòria cau i errors aïllats. Vegeu [LECTURES.md](LECTURES.md).
+- Activat per defecte només en desenvolupament. `VITE_ENABLE_READINGS=false`
+  recupera la distribució anterior; reiniciar Vite després de canviar-lo.
+- Publicació del codi al repositori autoritzada. El workflow de Pages
+  compila amb Lectures desactivat; no desplega funcions de Supabase.
+- Edge Function `lectures` preparada, **no desplegada ni validada remotament**.
+  Producció desactivada per defecte. Cap SQL, RPC ni dada remota modificats.
+- Pendents: acceptació visual de l’usuari, navegació autenticada real i,
+  només si es conserva i s’autoritza, desplegament/verificació de la funció.
+- Es mantenen totes les comprovacions manuals ajornades anteriors.
+
 ## Entrega autoritzada d’etiquetes i filtres — 17 d’octubre de 2026
 
 - S’inclouen els canvis locals aprovats de les tres caselles, filtres uniformes
