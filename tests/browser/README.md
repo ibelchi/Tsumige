@@ -33,3 +33,35 @@ Comproven caselles d’alta/edició, exclusivitat, consulta convidada i filtres/
 retorn del detall, recàrrega i amplades mòbil/tauleta/escriptori amb Clar/Fosc.
 No desen registres ni executen SQL. Les captures de prova queden a /tmp, fora
 del repositori; no substitueixen les comprovacions manuals reals pendents.
+
+`editor-layout.mjs` comprova el redisseny de l’edició amb una fixture separada:
+
+```sh
+npm run dev -- --port 5194 --strictPort
+LD_LIBRARY_PATH=/tmp/tsumige-edit-libs/extracted/usr/lib/x86_64-linux-gnu node tests/browser/editor-layout.mjs
+```
+
+Playwright pot indicar-se amb TSUMIGE_PLAYWRIGHT_MODULE; TEST_BASE_URL canvia
+l’adreça de Vite. Totes les peticions de Supabase s’intercepten: simula desar,
+error i recàrrega amb un catàleg sintètic, sense cap desament o eliminació real.
+Inclou nom, valoració, caselles, intencions, portada/vincles conservats, botons
+als dos extrems, avisos de canvis pendents i permisos de consulta. La plataforma
+existent continua protegida perquè les RPC i el trigger actuals ho exigeixen.
+No executeu desaments de la fixture manualment contra un servei real; és una
+pantalla de proves automatitzades, amb una sessió falsa sense permisos reals.
+
+`home-summary.mjs` usa el mateix Vite a 5194 i la mateixa preparació de
+Playwright/biblioteques que editor-layout. Prova les cinc targetes, les URL
+netes, recomptes i resultats de Col·lecció, OR A+/A++, percentatges i buits;
+cercador per clic/toc/teclat amb dues plataformes del mateix títol i joc només
+al log. Tot el catàleg està precàrregat en memòria i es bloquegen peticions
+externes. Les captures de Clar/Fosc i mòbil/escriptori van exclusivament a /tmp.
+
+
+`home-summary-design.mjs` afegeix verificació del refinament exclusiu de les
+targetes, amb el mateix servidor 5194 i Playwright extern: 320, 390, 768,
+1024, 1440 i 1920 px, Clar/Fosc, moviment normal/reduït. La fixture `large=1`
+genera 1234 exemplars sintètics i un percentatge del 100,0 %. Comprova centrat,
+límit d’amplada, altura/etiquetes alineades, 26 px d’icona, percentatge sota
+la xifra, focus i contrast sobre els colors CSS color-mix compostos al canvas.
+No modifica dades reals; totes les peticions externes es bloquegen.

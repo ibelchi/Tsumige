@@ -8,6 +8,8 @@ Organitza els jocs físics i digitals, recorda què has jugat cada any i guarda 
 
 <img src="docs/screenshots/inici.png" alt="Inici de Tsumigē amb cercador, jocs en seguiment, propòsits i selecció de jocs a l’atzar" width="1000" />
 
+*Captura d’Inici anterior al redisseny de les targetes i el cercador; pendent de renovar.*
+
 ## Un joc, diferents registres
 
 - **Fitxa de videojoc:** títol, plataforma, portada, gènere, valoració i comentaris compartits. El mateix títol en plataformes diferents correspon a fitxes diferents.
@@ -18,15 +20,17 @@ Eliminar un exemplar o una entrada de log demana confirmació i conserva la fitx
 
 ## Què hi trobaràs
 
-- **Inici personal:** cercador de tots els jocs accessibles, Jugant i Per jugar aviat, propòsits anuals i una selecció aleatòria amb Tots/Top.
-- **Col·lecció i log en galeria:** portades, plataformes i valoracions; vista llista amb miniatures a Col·lecció i log agrupat per anys. Cerca i filtres per plataforma, format i gènere a Col·lecció, més Favorits o Amb infants; al log, any, cerca i plataformes. Botons de No jugat i Vull jugar-hi / No vull jugar-hi combinables amb els altres filtres.
-- **Detalls llegibles:** portada amb marc uniforme i retall centrat, valoració al costat del títol —A+ i A++ en vermell—, comentaris i navegació entre registres. Consulta i edició separades, amb protecció dels canvis sense desar i marques compartides del videojoc.
+- **Inici personal:** cinc targetes amb accés directe a físics, digitals, Vull jugar, Jocs top (A+ o A++) i Jocs MEH (D). Recomptes d’exemplars actius i percentatges sobre tota la col·lecció, també els no valorats. Cercador global en una fila pròpia, Jugant i Per jugar aviat, propòsits anuals i selecció aleatòria amb Tots/Top.
+- **Col·lecció i log en galeria:** portades, plataformes i valoracions; vista llista amb miniatures a Col·lecció i log agrupat per anys. Cerca i filtres per plataforma, format, gènere i valoració a Col·lecció, inclòs Top A+ o A++, més Favorits o Amb infants; al log, any, cerca i plataformes. Botons de No jugat i Vull jugar-hi / No vull jugar-hi combinables amb els altres filtres.
+- **Detalls llegibles:** portada amb marc uniforme i retall centrat, valoració al costat del títol —A+ i A++ en vermell—, comentaris i navegació entre registres. Consulta i edició separades, amb protecció dels canvis sense desar i marques compartides del videojoc. En edició: nom editable, valoració compacta, caselles agrupades, camps curts i les mateixes accions de desfer, desar, eliminar i tancar a dalt i a baix. La plataforma dels jocs vinculats es conserva; no es pot canviar des d’aquest formulari.
 - **Cerques externes:** portades d’IGDB/RAWG o URL pròpia, i icones per cercar un tràiler a YouTube o el joc a MobyGames. Són cerques externes; no hi ha reproductor incrustat ni pujada de portades pròpies.
 - **Seguiment i estadístiques:** propòsits pendents, fets o descartats; distribucions de plataformes, gèneres, compres, anys de joc i valoracions.
 - **Revisió de dades:** consulta camps buits de fitxes, exemplars o entrades de log, i obre el detall per revisar-los. Un preu de 0 € és una dada informada.
 - **Còpies i exportació:** ZIP amb dades, portades i informe de descàrregues; recuperació amb previsualització i exportació CSV per consultar amb Excel.
 
 ## Captures de pantalla
+
+Captures reals conservades. Inici, Col·lecció i log estan pendents d’actualització després dels darrers canvis de distribució i filtres.
 
 ### Col·lecció
 
@@ -39,6 +43,8 @@ Eliminar un exemplar o una entrada de log demana confirmació i conserva la fitx
 ### Detall d’un videojoc
 
 <img src="docs/screenshots/detall.png" alt="Detall de Hollow Knight amb portada, valoració A++ al costat del títol, dades, comentaris i icones de cerca externa" width="1000" />
+
+*Mode consulta. Falta una captura real del nou formulari d’edició.*
 
 ## Accés i privacitat
 

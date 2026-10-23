@@ -16,9 +16,10 @@ import { gameComments } from '@/lib/game-comments'
 import { collectionCopy, platformName, platformOptions, resolvedPlatformError } from '@/lib/platform'
 import { storeName } from '@/lib/store-name'
 import { useAccess } from '@/lib/access'
+import { useAuth } from '@/lib/auth'
 
-const control = 'mt-1 w-full rounded-lg border bg-card p-2 text-sm focus-visible:outline-2 focus-visible:outline-ring'
-function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="block text-sm">{label}{children}</label> }
+const control = 'mt-1 block min-h-11 min-w-0 w-full rounded-lg border bg-card p-2 text-sm focus-visible:outline-2 focus-visible:outline-ring'
+function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="block min-w-0 text-sm">{label}{children}</label> }
 function Check({ label, name, checked }: { label: string; name: string; checked: boolean }) { return <label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name={name} defaultChecked={checked} />{label}</label> }
 function text(form: FormData, key: string): string | null { const result = String(form.get(key) ?? ''); return result === '' ? null : result }
 function number(form: FormData, key: string): number | null { const result = text(form, key); return result === null ? null : Number(result) }
@@ -30,6 +31,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
   navigation?: { position: number; total: number; previous?: () => void; next?: () => void }
 }) {
   const { canEdit } = useAccess()
+  const { session } = useAuth()
   const [savedCatalog, setSavedCatalog] = useState<Catalog | null>(null)
   const catalog = savedCatalog ?? initialCatalog
   const game = catalog.jocs.find(item => item.id === initialGame.id) ?? initialGame
@@ -41,6 +43,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
   const platformResolved = game.plataforma_resolta === true || (creating && !existingGame && catalog.plataformaModel === 2)
   const dialog = useRef<HTMLDialogElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
+  const deleteButton = useRef<HTMLButtonElement>(null)
   const confirmation = useRef<HTMLElement>(null)
   const pendingNavigation = useRef<(() => void) | null>(null)
   const [dirty, setDirty] = useState(false)
@@ -191,6 +194,19 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
     }
     catch (caught) { setError(caught instanceof Error ? caught.message : 'No s’han pogut desar els canvis.'); setBusy(false) }
   }
+  // Els dos extrems utilitzen els mateixos handlers. L’eliminació inferior
+  // activa l’únic controlador superior, conservat també en sortir d’edició.
+  function actions(bottom = false) {
+    return <div role="group" aria-label={bottom ? 'Accions inferiors del detall' : 'Accions superiors del detall'} className="flex max-w-full flex-wrap justify-end gap-2">
+      {canEdit && !retired && !isEditing && !creating && <Button type="button" disabled={busy} onClick={() => { resetDraft(savedCatalog ?? initialCatalog); setEditing(true) }}>Edita</Button>}
+      {isEditing && !retired && <>
+        {!creating && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={undoChanges}>Desfés els canvis</Button>}
+        <Button type="submit" form="detall-formulari" disabled={busy || confirmNavigation}>{busy ? 'Desant…' : creating ? 'Afegeix' : 'Desa els canvis'}</Button>
+      </>}
+      {!creating && (bottom ? canEdit && session?.user.id === record.user_id && <Button type="button" variant="outline" className="max-w-full whitespace-normal text-red-700" disabled={busy || confirmNavigation} onClick={() => deleteButton.current?.click()}>Elimina el registre</Button> : <DeleteRecord key="delete" buttonRef={deleteButton} disabled={busy || confirmNavigation} target={{kind,id:record.id,gameId:game.id,ownerId:record.user_id,updatedAt:record.updated_at}} title={game.nom} platform={platformName(game.plataforma)} beforeOpen={moveTo} onBusy={setBusy} onDeleted={async()=>{await onSaved();onClose()}} />)}
+      <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>
+    </div>
+  }
   if (relatedCopy) return <RecordEditor key={relatedCopy.id} kind="exemplar" record={relatedCopy} game={game} catalog={catalog}
     onClose={() => setRelatedCopyId(null)} onSaved={async () => {
       const updated = await onSaved()
@@ -209,33 +225,40 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
       </div>
       <Button type="button" variant="outline" className="mt-3" onClick={() => setChoosingCopy(false)}>Cancel·la</Button>
     </section>}
-    <header className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-      <div className="min-w-0">
-        <h2 id="detall-titol" className="flex min-w-0 flex-wrap items-start gap-2 text-xl font-semibold">
+    <header className={isEditing ? "flex justify-end" : "grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_auto]"}>
+      <div className={isEditing ? "sr-only" : "min-w-0"}>
+        <h2 id="detall-titol" className={isEditing ? "sr-only" : "flex min-w-0 flex-wrap items-start gap-2 text-xl font-semibold"}>
           {copy?.favorit && <FavoriteIndicator />}
           <span className="min-w-0 [overflow-wrap:anywhere]">{creating ? (copy ? 'Afegeix un exemplar' : 'Nova entrada de log') : game.nom}</span>
-          <GameRating rating={isEditing ? rating : gameRating(game,catalog.experiencies)} className="shrink-0 rounded-md bg-muted px-2 py-1 text-2xl leading-none"/>
+          <GameRating rating={gameRating(game,catalog.experiencies)} className="shrink-0 rounded-md bg-muted px-2 py-1 text-2xl leading-none"/>
         </h2>
-        {!creating && <p className="mt-1 break-words text-base font-medium">{platformName(game.plataforma)}</p>}
+        {!creating && !isEditing && <p className="mt-1 break-words text-base font-medium">{platformName(game.plataforma)}</p>}
       </div>
-      <div className="flex min-w-0 flex-col items-end gap-2">
-        <div className="flex max-w-full flex-wrap justify-end gap-2">
-          {canEdit && !retired && !isEditing && !creating && <Button type="button" disabled={busy} onClick={() => { resetDraft(savedCatalog ?? initialCatalog); setEditing(true) }}>Edita</Button>}
-          {isEditing && !retired && <>
-            {!creating && <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={undoChanges}>Desfés els canvis</Button>}
-            <Button type="submit" form="detall-formulari" disabled={busy}>{busy ? 'Desant…' : creating ? 'Afegeix' : 'Desa els canvis'}</Button>
-          </>}
-          {!creating && <DeleteRecord target={{kind,id:record.id,gameId:game.id,ownerId:record.user_id,updatedAt:record.updated_at}} title={game.nom} platform={platformName(game.plataforma)} beforeOpen={moveTo} onBusy={setBusy} onDeleted={async()=>{await onSaved();onClose()}} />}
-          <Button type="button" variant="outline" disabled={busy || confirmNavigation} onClick={() => moveTo(onClose)}>Tanca</Button>
-        </div>
-      </div>
+      {actions()}
     </header>
     {retired && <p className="mt-3 text-sm">Exemplar històric conservat.</p>}
     {isEditing ? <form id="detall-formulari" key={formVersion} ref={formRef} onSubmit={submit} onChange={() => { if (canEdit) { setDirty(true); setSaved(false) } }} className="mt-4 space-y-4">
       <fieldset disabled={busy || retired || !canEdit} className="space-y-4">
-      <div className="flex flex-wrap gap-x-6 gap-y-2 border-b pb-4">
-        <Check name="jugant" label="Hi estic jugant" checked={Boolean(experience?.jugant || history.some(e => e.jugant))} />
-        <Check name="per_jugar_aviat" label="Per jugar aviat" checked={game.per_jugar_aviat} />
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_5.5rem] items-start md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_5.5rem] gap-3">
+        <div className="col-span-2 min-w-0 md:col-span-1 md:col-start-1 md:row-start-1"><Field label="Nom"><input name="nom" required defaultValue={game.nom} className={control} /></Field></div>
+        <div className="min-w-0 md:col-start-2 md:row-start-1">
+          <Field label="Plataforma">{creating && !existingGame ? <><input name="plataforma" required list="editor-plataformes" defaultValue={platformName(game.plataforma)} className={control} /><datalist id="editor-plataformes">{platformOptions(catalog).map(option => <option key={option} value={option} />)}</datalist></> : <select name="plataforma" required defaultValue={platformName(game.plataforma)} disabled={!creating || existingGame} aria-describedby={!creating || existingGame ? 'plataforma-limitacio' : undefined} className={`${control} disabled:bg-muted disabled:text-muted-foreground`}>
+            <option value="">Selecciona una plataforma</option>{platformOptions(catalog).map(option => <option key={option} value={option}>{option}</option>)}
+          </select>}</Field>
+          {(!creating || existingGame) && <><input type="hidden" name="plataforma" value={platformName(game.plataforma)} /><p id="plataforma-limitacio" className="mt-1 text-xs text-muted-foreground">La plataforma és compartida amb els exemplars i el log; ara no es pot canviar.</p></>}
+        </div>
+        <div className="min-w-0 md:col-start-3 md:row-start-1"><Field label="Valoració"><select name="valoracio" value={rating ?? ''} onChange={e => setRating((e.target.value || null) as Valoracio | null)} className={`${control} px-1 text-lg font-semibold ${ratingColor(rating)}`}><option value="" className="text-foreground">—</option>{(['A++', 'A+', 'A', 'B', 'C', 'D'] as const).map(value => <option key={value} className={ratingColor(value)}>{value}</option>)}</select></Field></div>
+      </div>
+      <div className={copy ? "grid items-stretch gap-2 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]" : "grid gap-2"}>
+        <fieldset className="min-w-0 rounded-lg border bg-primary/5 px-3 py-2"><legend className="sr-only">Seguiment i preferències de joc</legend>
+          <GameLabelFields game={game} beforeIntention={<>
+            <Check name="jugant" label="Hi estic jugant" checked={Boolean(experience?.jugant || history.some(e => e.jugant))} />
+            <Check name="per_jugar_aviat" label="Per jugar aviat" checked={game.per_jugar_aviat} />
+          </>} afterIntention={<Check name="per_infants" label="Per jugar amb infants" checked={Boolean(game.per_infants)} />} />
+        </fieldset>
+        {copy && <fieldset className="min-w-0 rounded-lg border bg-muted/70 px-3 py-2"><legend className="sr-only">Col·lecció</legend><div className="flex flex-wrap gap-x-4 gap-y-2">
+          <Check name="favorit" label="Favorit" checked={copy.favorit} /><Check name="canvi" label="Possible venda o intercanvi" checked={copy.canvi} /><Check name="reproduccio" label="Reproducció" checked={copy.reproduccio} /><label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="no_localitzat" checked={notFound} onChange={e => setNotFound(e.target.checked)} />No localitzat</label>
+        </div></fieldset>}
       </div>
       <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[clamp(16rem,28vw,20rem)_minmax(0,1fr)] md:gap-6">
         <div className="mx-auto flex w-full max-w-80 min-w-0 flex-col items-center gap-3">
@@ -243,34 +266,30 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
           {imageError && <p className="text-xs text-muted-foreground">No s’ha pogut carregar la portada.</p>}
           {imageSource && <a className="text-xs underline" href={imageSource} target="_blank" rel="noreferrer">Imatge d’{imageSource.startsWith('https://www.igdb.com/') ? 'IGDB' : 'RAWG'}</a>}
         </div>
-        <div className="grid min-w-0 gap-3">
-          <Field label="Nom"><input name="nom" required defaultValue={game.nom} className={control} /></Field>
-          <Field label="Plataforma"><input name="plataforma" list="plataforma-opcions" required defaultValue={platformName(game.plataforma)} className={control} /><datalist id="plataforma-opcions">{platformOptions(catalog).map(option => <option key={option} value={option} />)}</datalist></Field>
+        <div className="@container min-w-0 space-y-3">
           <Field label="Desenvolupadora"><input name="desenvolupadora" defaultValue={game.desenvolupadora ?? ''} className={control} /></Field>
-          <GenreSelect genres={catalog.jocs.map(game => game.genere_principal)} defaultValue={game.genere_principal ?? ''} onChange={() => setDirty(true)} canAdd={canEdit} />
-          <Field label="Any de llançament"><input name="any_llancament" type="number" min="1" max="9999" defaultValue={game.any_llancament ?? ''} className={control} /></Field>
-        </div>
-      </div>
-      {copy && <><div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid max-w-[26rem] min-w-0 grid-cols-1 items-end gap-3 @min-[22rem]:grid-cols-[minmax(0,1fr)_11rem]">
+          <div className="min-w-0 [&_select]:min-h-11"><GenreSelect genres={catalog.jocs.map(game => game.genere_principal)} defaultValue={game.genere_principal ?? ''} onChange={() => setDirty(true)} canAdd={canEdit} /></div>
+          <Field label="Any de llançament"><input name="any_llancament" type="number" min="1" max="9999" defaultValue={game.any_llancament ?? ''} className={`${control} max-w-32`} /></Field>
+          </div>
+          <div className="grid min-w-0 grid-cols-2 items-end gap-3 sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-3">
+      {copy && <>
         <Field label="Format"><select name="format" value={format} onChange={e => { setFormat(e.target.value as 'fisic' | 'digital'); setAddingService(false) }} className={control}><option value="fisic">Físic</option><option value="digital">Digital</option></select></Field>
         <Field label="Regió"><input name="regio" defaultValue={copy.regio ?? ''} className={control} /></Field>
         <Field label="Conservació"><input name="estat_conservacio" defaultValue={copy.estat_conservacio ?? ''} className={control} /></Field>
-        <Field label="Any de compra"><input name="any_compra" type="number" min="1" max="9999" defaultValue={copy.any_compra ?? ''} className={control} /></Field>
-        <Field label="Preu (€)"><input name="preu" type="number" min="0" step="0.01" defaultValue={copy.preu ?? ''} className={control} /></Field>
+        <Field label="Any de compra"><input name="any_compra" type="number" min="1" max="9999" defaultValue={copy.any_compra ?? ''} className={`${control} max-w-32`} /></Field>
+        <Field label="Preu (€)"><input name="preu" type="number" min="0" step="0.01" defaultValue={copy.preu ?? ''} className={`${control} w-[8.5rem] max-w-full`} /></Field>
         {!platformResolved && <div><Field label="Botiga o servei"><select name="botiga_servei" value={addingService ? '__add__' : service} disabled={format === 'fisic'} onChange={e => { if (e.target.value === '__add__') setAddingService(true); else { setService(e.target.value); setAddingService(false) } }} className={`${control} disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground`}><option value="">En blanc</option>{services.map(s => <option key={s} value={s}>{s}</option>)}<option value="__add__">Afegeix una botiga o servei…</option></select></Field>
           {addingService && format === 'digital' && <div className="mt-2 flex items-end gap-2"><Field label="Nova botiga o servei"><input value={newService} onChange={e => setNewService(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addService() } }} className={control} /></Field><Button type="button" variant="outline" disabled={!newService.trim()} onClick={addService}>Afegeix</Button></div>}
         </div>}
-      </div><div role="group" aria-label="Etiquetes de l’exemplar" className="flex flex-wrap gap-4"><Check name="favorit" label="Favorit" checked={copy.favorit} /><Check name="canvi" label="Possible venda o intercanvi" checked={copy.canvi} /><Check name="reproduccio" label="Reproducció" checked={copy.reproduccio} /><label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="no_localitzat" checked={notFound} onChange={e => setNotFound(e.target.checked)} />No localitzat</label></div></>}
-      {experience && <><div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Any de joc"><input name="any_jugat" type="number" min="1" max="9999" defaultValue={experience.any_jugat ?? ''} className={control} /></Field>
+      </>}
+      {experience && <>
+        <Field label="Any de joc"><input name="any_jugat" type="number" min="1" max="9999" defaultValue={experience.any_jugat ?? ''} className={`${control} max-w-32`} /></Field>
         <Field label="Completat"><select name="completat" defaultValue={experience.completat ?? ''} className={control}><option value="">En blanc</option><option value="si">Sí</option><option value="no">No</option><option value="no_aplicable">No aplicable</option></select></Field>
-      </div></>}
-      <section aria-label="Marques compartides del videojoc" className="space-y-2">
-        <h3 className="text-sm font-medium">Etiquetes del videojoc</h3>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Check name="per_infants" label="Per jugar amb infants" checked={Boolean(game.per_infants)} /></div>
-        <GameLabelFields game={game} />
-      </section>
-      <Field label="Valoració del joc"><select name="valoracio" value={rating ?? ''} onChange={e => setRating((e.target.value || null) as Valoracio | null)} className={`${control} ${ratingColor(rating)}`}><option value="" className="text-foreground">En blanc</option>{(['A++', 'A+', 'A', 'B', 'C', 'D'] as const).map(value => <option key={value} className={ratingColor(value)}>{value}</option>)}</select></Field>
+      </>}
+          </div>
+        </div>
+      </div>
       <Field label="Comentaris"><textarea name="comentaris" rows={4} defaultValue={comments.value} disabled={comments.conflict} className={control} /></Field>
       {comments.conflict && <p role="status" className="text-sm text-amber-800">Hi ha comentaris diferents en els registres d’aquest joc. Cal revisar-los abans d’unificar-los; es conserven tots.</p>}
     </fieldset>{experience && <section className="mt-7 border-t pt-5"><h3 className="font-medium">A la col·lecció</h3>
@@ -284,6 +303,7 @@ export function RecordEditor({ kind, record: initialRecord, game: initialGame, c
         </section>
       </details>
     </fieldset>
+      {actions(true)}
     </form> : <RecordDetails kind={kind} record={record} game={game} catalog={catalog} onViewCollection={() => moveTo(openCollection)} />}
     {saved && <p role="status" className="mt-4 text-sm">Canvis desats.</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}

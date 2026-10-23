@@ -1,3 +1,5 @@
+import { Search } from 'lucide-react'
+import { HomeSummaryCards } from '@/components/home-summary-cards'
 import { HomeGameSearch } from '@/components/home-game-search'
 import { Button } from '@/components/ui/button'
 import { summaryExpansion } from '@/lib/summary-expansion'
@@ -48,19 +50,14 @@ export function CollectionSummary() {
     enabled: isSupabaseConfigured && Boolean(session),
     retry: false,
   })
-  const counters = [
-    { label: 'Jocs físics', value: data?.fisics, format: 'fisic' },
-    { label: 'Jocs digitals', value: data?.digitals, format: 'digital' },
-  ]
 
   return (
     <section aria-label="Resum de la col·lecció" aria-busy={isFetching} className="mt-8">
-      <div className="flex flex-wrap justify-start gap-3">
-        {counters.map(({ label, value, format }) => (
-          <Link key={label} to={`/?vista=colleccio&format=${format}&origen=inici`} className="block min-w-0 rounded-lg border bg-card px-4 py-2 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 font-mono text-2xl font-medium">{value ?? '—'}</p></Link>
-        ))}
+      <HomeSummaryCards />
+      <section aria-labelledby="home-search-title" className="mt-4 space-y-2">
+        <h2 id="home-search-title" className="flex items-center gap-2 text-sm font-medium"><Search aria-hidden="true" className="size-4"/>Cerca un joc</h2>
         <HomeGameSearch />
-      </div>
+      </section>
       <div className="mt-3 grid items-start gap-3 md:grid-cols-2">
         <GameList title="Jugant" games={data?.jugant} isLoading={isFetching} owner={session?.user.id} />
         <GameList title="Per jugar aviat" games={data?.per_jugar_aviat} isLoading={isFetching} owner={session?.user.id} />

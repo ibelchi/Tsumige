@@ -6,7 +6,7 @@ export function DeletionConfirmation({kind,title,platform,recordId,id,busy,error
  kind: DeleteKind; title: string; platform: string; recordId: string; id: string; busy: boolean; error: string; actionLabel: string
  dialogRef: RefObject<HTMLDialogElement | null>; cancelRef: RefObject<HTMLButtonElement | null>; onCancel:()=>void; onConfirm:()=>void
 }) {
- return <dialog ref={dialogRef} onCancel={event=>{event.preventDefault();onCancel()}} onClose={onCancel}
+ return <dialog ref={dialogRef} onCancel={event=>{event.preventDefault();event.stopPropagation();onCancel()}} onClose={onCancel}
   onKeyDown={event=>{if(event.key==='Enter' && (event.repeat || event.target===event.currentTarget))event.preventDefault()}}
   aria-labelledby={id} aria-describedby={`${id}-warning`} className="m-auto max-h-[90dvh] w-[min(94vw,560px)] overflow-y-auto rounded-xl border bg-card p-6 text-foreground backdrop:bg-black/40">
   <h2 id={id} className="text-lg font-semibold">{kind==='joc' ? 'Elimina el joc definitivament' : kind==='exemplar' ? 'Elimina aquest exemplar' : 'Elimina aquesta entrada de log'}</h2>

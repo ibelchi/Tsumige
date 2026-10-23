@@ -54,3 +54,18 @@ Inclou caselles de fitxa, botons de filtratge, URL, compatibilitat ZIP/CSV,
 Fitxes de videojocs a Revisió de dades i captura real nova de Col·lecció.
 Les comprovacions manuals ajornades continuen pendents; no substituir-les pels
 controls automàtics ni per comprovacions HTTP dels recursos publicats.
+
+
+## Entrega d’edició i targetes d’Inici — 23-10-2026
+
+Inclou el formulari compartit amb accions superiors/inferiors, dues capses
+de caselles, nom editable i plataforma existent protegida; cinc targetes amb
+recomptes/filtres comuns, percentatges sobre tota la col·lecció i cercador ample.
+No requereix SQL ni desplegar Edge Functions. Les captures reals actuals es
+conserven; la renovació d’Inici, Col·lecció/log i captura d’edició no bloqueja
+la publicació. Vegeu [PRESENTACIO-PUBLICA.md](PRESENTACIO-PUBLICA.md).
+
+Les comprovacions manuals ajornades continuen pendents. El workflow també
+executa la prova de renderitzat del formulari reorganitzat. Els tests Chromium
+locals utilitzen exclusivament fixtures i peticions interceptades; no substitueixen
+la comprovació amb sessió habitual. El refinament visual no canvia les RPC.

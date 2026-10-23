@@ -484,7 +484,9 @@ test('deletion confirmation starts safely and only its explicit destructive butt
   assert.equal(controls.length,2)
   assert.equal(controls[0].children,'Cancel·la');assert.equal(controls[0].autoFocus,true)
   controls[0].onClick!();assert.equal(cancelled,1);assert.equal(confirmed,0)
-  dialog.props.onCancel({preventDefault:()=>{}});dialog.props.onClose()
+  let propagationStopped=false
+  dialog.props.onCancel({preventDefault:()=>{},stopPropagation:()=>{propagationStopped=true}});dialog.props.onClose()
+  assert.equal(propagationStopped,true)
   assert.equal(cancelled,3);assert.equal(confirmed,0)
   for(const repeat of [false,true]) {
    let prevented=false

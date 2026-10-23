@@ -1,6 +1,41 @@
 # Estat actual i relleu de Tsumigē
 
 
+## Entrega d’edició i Inici — 23 d’octubre de 2026
+
+- Publicació a main autoritzada per l’usuari. El workflow existent valida,
+  compila i desplega Pages; aquesta tanda no desplega funcions ni executa SQL.
+  L’estat efectiu de publicació i dels recursos públics s’informa al lliurament.
+- Edició compartida de Col·lecció/log: nom editable i valoració compacta a
+  la capçalera, dues capses de caselles (una al log), camps curts, comentaris
+  i Configuració al final. Mateixos controls a dalt/baix amb estats compartits
+  i confirmació única d’eliminació. Esc ja no propaga el tancament al detall.
+- Plataforma existent protegida per la RPC i el trigger actuals. Canviar-la
+  afectaria exemplars/log vinculats a la mateixa fitxa, inclosos històrics.
+  Correcció futura pendent de decisió i autorització SQL; res preparat ni aplicat.
+- Inici: cinc targetes centrades i compactes (màxim 896 px), icones de 26 px,
+  accents suaus, xifres 28/32 px i percentatges 16 px; Clar/Fosc, focus i
+  moviment reduït. Cercador global ample en una fila pròpia, sense canvi de
+  lògica: clic/toc/Retorn comprovats amb dades sintètiques.
+- Targetes i catàleg comparteixen exemplars actius com a unitat. Vull jugar
+  exclou jocs només al log. Top A+ o A++ amb OR, MEH D; percentatges sobre
+  tota la col·lecció, inclosos no valorats, sense deduplicar títols. Enllaços
+  sense filtres residuals; s’afegeix el selector de valoració a Col·lecció.
+- Proves locals: TypeScript, ESLint i compilació; 71 proves lògiques i 36 de
+  renderitzat. Chromium sintètic: 12 combinacions d’edició, 8 d’Inici i 24
+  de disseny, incloent 1234, 100,0 %, contrast i moviment reduït. No són
+  comprovacions de persistència remota, RLS real ni dispositius físics.
+- README i [PRESENTACIO-PUBLICA.md](PRESENTACIO-PUBLICA.md) actualitzats;
+  captures originals conservades. Renovar Inici, Col·lecció i log; completar
+  el detall en consulta amb una captura real del nou formulari d’edició.
+- Continuen pendents totes les comprovacions manuals ajornades, incloses
+  Gènere, altes de Col·lecció/log, afegir des del log, permisos, eliminació
+  fictícia/neteja, restauració, sincronització i revisió visual personal.
+- Detalls de model, implementació i comprovacions a
+  [EDICIO-I-RESUM-INICI.md](EDICIO-I-RESUM-INICI.md). Les propostes pendents i
+  descartades de les seccions següents no queden aprovades per publicar.
+
+
 ## Lectures — activació pública autoritzada, 22 d’octubre de 2026
 
 - Bloc independent a la barra lateral compartida, sota navegació/tema,

@@ -1,12 +1,12 @@
 import { DeletionConfirmation } from '@/components/deletion-confirmation'
 import {deletionIO} from '@/lib/record-deletion-api'
-import {useEffect,useId,useRef,useState} from 'react'
+import {useEffect,useId,useRef,useState,type Ref} from 'react'
 import {Button} from '@/components/ui/button'
 import {useAccess} from '@/lib/access'
 import {useAuth} from '@/lib/auth'
 import {DeletionUncertain,runDeletion,type DeleteTarget} from '@/lib/record-deletion'
-export function DeleteRecord({target,title,platform,beforeOpen,onDeleted,onBusy}: {
- target: DeleteTarget; title: string; platform: string; beforeOpen?:(action:()=>void)=>void; onDeleted:()=>Promise<void>; onBusy?:(busy:boolean)=>void
+export function DeleteRecord({target,title,platform,beforeOpen,onDeleted,onBusy,buttonRef,disabled=false}: {
+ target: DeleteTarget; title: string; platform: string; beforeOpen?:(action:()=>void)=>void; onDeleted:()=>Promise<void>; onBusy?:(busy:boolean)=>void; buttonRef?:Ref<HTMLButtonElement>; disabled?:boolean
 }) {
  const {canEdit}=useAccess()
  const {session}=useAuth()
@@ -39,7 +39,7 @@ export function DeleteRecord({target,title,platform,beforeOpen,onDeleted,onBusy}
  }
  if(!canEdit || session?.user.id!==target.ownerId)return null
  const label=target.kind==='joc' ? 'Elimina el joc definitivament' : 'Elimina el registre'
- return <><Button type="button" variant="outline" className="max-w-full whitespace-normal text-red-700" onClick={()=>{
+ return <><Button ref={buttonRef} type="button" variant="outline" disabled={disabled || busy} className="max-w-full whitespace-normal text-red-700" onClick={()=>{
   const action=()=>{snapshot.current=target;setOpen(true)}
   if(beforeOpen)beforeOpen(action);else action()
  }}>{label}</Button>

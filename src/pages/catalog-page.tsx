@@ -1,3 +1,4 @@
+import { collectionRecords } from '@/lib/collection-filters'
 import { intentionOptions, matchesGameLabels, setGameLabelFilter, toggleGameIntentionFilter } from '@/lib/game-labels'
 import { collectionQuickFilter, toggleCollectionQuickFilter } from '@/lib/collection-quick-filter'
 import { Star, Baby } from 'lucide-react'
@@ -46,6 +47,8 @@ export function CatalogPage({ history = false }: { history?: boolean }) {
   const platforms = [...new Set(params.getAll('plataforma').map(platformName))]
   const formats = params.has('format') ? params.getAll('format') : ['fisic', 'digital']
   const genre = params.get('genere') ?? ''
+  const ratings = params.getAll('valoracio')
+  const ratingSelection = ratings.length <= 1 ? ratings[0] ?? '' : ratings.length === 2 && ratings.includes('A+') && ratings.includes('A++') ? '__top__' : '__multiple__'
   function changeFilter(name: string, values: string[]) {
     setParams(previous => {
       const next = new URLSearchParams(previous)
@@ -87,10 +90,10 @@ export function CatalogPage({ history = false }: { history?: boolean }) {
   const games = new Map(data?.jocs.map(j => [j.id, j]) ?? [])
   const active = data?.exemplars.filter(e => collectionCopy(e, games.get(e.joc_id))) ?? []
   const records = history ? (data?.experiencies ?? []).filter(e => e.any_jugat !== null) : active
-  const rows = records.filter(r => {
+  const rows = (history ? records.filter(r => {
     const j = games.get(r.joc_id)
     return j && matchesGameLabels(j, params) && (!onlyChildren || j.per_infants === true) && (!onlyFavorites || ('favorit' in r && r.favorit === true)) && (!gameFilter || j.id === gameFilter) && j.nom.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (!platforms.length || platforms.includes(platformName(j.plataforma) || 'Sense plataforma')) && (!genre || (j.genere_principal?.trim() || 'Sense gènere') === genre) && (history || ('format' in r && formats.includes(r.format))) && (!history || year === 'all' || ('any_jugat' in r && r.any_jugat === Number(year)))
-  }).sort((a, b) => {
+  }) : data ? collectionRecords(data, params) : []).sort((a, b) => {
     if (order === 'year' && 'any_jugat' in a && 'any_jugat' in b) return (b.any_jugat ?? 0) - (a.any_jugat ?? 0)
     const result = (games.get(a.joc_id)?.nom ?? '').localeCompare(games.get(b.joc_id)?.nom ?? '', 'ca')
     return order === 'za' ? -result : result
@@ -135,6 +138,7 @@ export function CatalogPage({ history = false }: { history?: boolean }) {
           <details ref={platformMenu} className="relative min-w-0 text-sm"><summary className="flex min-h-11 cursor-pointer items-center rounded-lg border bg-card px-3">Plataformes · {platforms.length ? `${platforms.length} seleccionades` : 'Totes'}</summary><fieldset className="absolute left-0 z-10 mt-2 max-h-80 w-[min(16rem,calc(100vw-3rem))] overflow-auto rounded-lg border bg-card p-3 shadow-lg"><legend className="sr-only">Filtra per plataformes</legend><Button type="button" variant="outline" size="sm" className="mb-2 min-h-11 w-full" onClick={() => changeFilter('plataforma', [])}>Totes les plataformes</Button>{[...new Set(records.map(r => platformName(games.get(r.joc_id)?.plataforma ?? '') || 'Sense plataforma'))].sort().map(p => <label key={p} className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={platforms.includes(p)} onChange={e => toggleFilter('plataforma', platforms, p, e.target.checked)} />{p}</label>)}</fieldset></details>
           {!history && <select aria-label="Filtra per gènere" value={genre} onChange={e => changeFilter('genere', e.target.value ? [e.target.value] : [])} className="min-h-11 min-w-0 max-w-full rounded-lg border bg-card px-3 text-sm"><option value="">Tots els gèneres</option>{[...new Set(records.map(r => games.get(r.joc_id)?.genere_principal?.trim() || 'Sense gènere'))].sort((a, b) => a === 'Sense gènere' ? 1 : b === 'Sense gènere' ? -1 : a.localeCompare(b, 'ca')).map(value => <option key={value} value={value}>{value}</option>)}</select>}
           {!history && <fieldset className="flex min-h-11 flex-wrap items-center gap-3 rounded-lg border px-3 text-sm"><legend className="sr-only">Format de la col·lecció</legend>{[{value: 'fisic', label: 'Físics'}, {value: 'digital', label: 'Digitals'}].map(f => <label key={f.value} className="flex min-h-10 items-center gap-2"><input type="checkbox" checked={formats.includes(f.value)} onChange={e => toggleFilter('format', formats, f.value, e.target.checked)} />{f.label}</label>)}</fieldset>}
+          {!history && <select aria-label="Filtra per valoració" value={ratingSelection} onChange={e => changeFilter('valoracio', e.target.value === '__top__' ? ['A+', 'A++'] : e.target.value ? [e.target.value] : [])} className="min-h-11 min-w-0 rounded-lg border bg-card px-3 text-sm"><option value="">Totes les valoracions</option><option value="__top__">Top · A+ o A++</option>{ratingSelection === '__multiple__' && <option value="__multiple__" disabled>{ratings.length} valoracions seleccionades</option>}{['A++','A+','A','B','C','D','Sense valoració'].map(value => <option key={value} value={value}>{value}</option>)}</select>}
           {!history && <select aria-label="Ordena els registres" value={order} onChange={e => setOrder(e.target.value)} className="min-h-11 min-w-0 rounded-lg border bg-card px-3 text-sm"><option value="az">Nom A–Z</option><option value="za">Nom Z–A</option></select>}
         </div>
         {!history && <div role="group" aria-label="Vista de la col·lecció" className="flex shrink-0 self-end gap-1 lg:ml-auto"><Button type="button" size="sm" className="min-h-11" variant={view === 'list' ? 'default' : 'outline'} aria-pressed={view === 'list'} onClick={() => chooseView('list')}>Llista</Button><Button type="button" size="sm" className="min-h-11" variant={view === 'cards' ? 'default' : 'outline'} aria-pressed={view === 'cards'} onClick={() => chooseView('cards')}>Galeria</Button></div>}

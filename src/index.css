@@ -100,3 +100,37 @@
 
 /* IGDB cover_big 264 × 374; alçada màxima equivalent als 24 rem anteriors. */
 .detail-cover { width: 100%; max-width: calc(24rem * 132 / 187); aspect-ratio: 132 / 187; }
+
+/* Només les cinc targetes d’Inici; el cercador conserva tota l’amplada. */
+.home-summary-card[data-summary-kind="physical"] { --summary-accent: #245f9e; }
+.home-summary-card[data-summary-kind="digital"] { --summary-accent: #7250a5; }
+.home-summary-card[data-summary-kind="wanted"] { --summary-accent: #956000; }
+.home-summary-card[data-summary-kind="top"] { --summary-accent: #2d704d; }
+.home-summary-card[data-summary-kind="meh"] { --summary-accent: #52667c; }
+:root[data-theme="dark"] .home-summary-card[data-summary-kind="physical"] { --summary-accent: #93c5fd; }
+:root[data-theme="dark"] .home-summary-card[data-summary-kind="digital"] { --summary-accent: #c4b5fd; }
+:root[data-theme="dark"] .home-summary-card[data-summary-kind="wanted"] { --summary-accent: #f2c46d; }
+:root[data-theme="dark"] .home-summary-card[data-summary-kind="top"] { --summary-accent: #91d4ab; }
+:root[data-theme="dark"] .home-summary-card[data-summary-kind="meh"] { --summary-accent: #a9bfd5; }
+.home-summary-card {
+  color: var(--foreground);
+  background: var(--card);
+  background: color-mix(in srgb, var(--summary-accent) 3%, var(--card));
+  border-color: color-mix(in srgb, var(--summary-accent) 22%, var(--border));
+  transition: background-color 150ms, border-color 150ms, transform 150ms;
+}
+.home-summary-icon {
+  color: var(--summary-accent);
+  background: color-mix(in srgb, var(--summary-accent) 11%, var(--card));
+}
+.home-summary-card:hover {
+  background: color-mix(in srgb, var(--summary-accent) 7%, var(--card));
+  border-color: color-mix(in srgb, var(--summary-accent) 60%, var(--border));
+}
+.home-summary-card:active { border-color: var(--summary-accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .home-summary-card:hover { transform: translateY(-1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-summary-card { transition: none; }
+}
